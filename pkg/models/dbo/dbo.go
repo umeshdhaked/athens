@@ -1,6 +1,7 @@
 package dbo
 
 type User struct { //user_table in dynamoDB
+	Id              string `json:"id"`
 	Mobile          string `json:"mobile"`
 	Hashed_password string `json:"hashed_password"`
 	Name            string `json:"name"`

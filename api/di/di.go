@@ -2,6 +2,7 @@ package di
 
 import (
 	otcSvc "github.com/FastBizTech/hastinapura/api/services/otp"
+	"github.com/FastBizTech/hastinapura/api/services/promo"
 	"github.com/FastBizTech/hastinapura/api/services/register"
 	"github.com/FastBizTech/hastinapura/pkg/services/aws"
 	"github.com/FastBizTech/hastinapura/pkg/services/crypto"
@@ -14,20 +15,26 @@ import (
 // var dynamoConnection pkg.DynnamoConnection
 var regService *register.RegistrationService
 var sess *session.Session
-var dynamoVar *dynamodb.DynamoDB
+var dynamoDb *dynamodb.DynamoDB
 var otpSender *otp.OtpSender
 var otpService *otcSvc.OtpService
 var crp *crypto.Crypto
+var promoSvc *promo.PromoService
 
 func InitialiseServices() {
 	sess = aws.ConfigureAwsSdkSession()
-	dynamoVar = dynamo.ConfigureDynamoSession(sess)
-	otpSender = otp.NewOtpSender(dynamoVar)
+	dynamoDb = dynamo.ConfigureDynamoSession(sess)
+	otpSender = otp.NewOtpSender(dynamoDb)
 	crp = crypto.NewCrypto()
 	otpService = otcSvc.NewOtpService(otpSender, crp)
-	regService = register.NewRegistrationService(dynamoVar, otpService, crp)
+	regService = register.NewRegistrationService(dynamoDb, otpService, crp)
+	promoSvc = promo.NewPromoService(dynamoDb)
 }
 
 func GetRegistrationService() *register.RegistrationService {
 	return regService
+}
+
+func GetPromoService() *promo.PromoService {
+	return promoSvc
 }

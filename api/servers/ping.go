@@ -6,5 +6,5 @@ import (
 )
 
 func StartPingServer(serverGrp *gin.RouterGroup) {
-	serverGrp.GET("/ping", handlers.HandleGetServerPing)
+	serverGrp.POST("/ping", handlers.HandleGetServerPing)
 }
