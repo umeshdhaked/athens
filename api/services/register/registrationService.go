@@ -4,16 +4,17 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/FastBizTech/hastinapura/api/services/otp"
 	"github.com/FastBizTech/hastinapura/pkg/models/dbo"
 	"github.com/FastBizTech/hastinapura/pkg/models/requests"
 	"github.com/FastBizTech/hastinapura/pkg/models/responses"
 	"github.com/FastBizTech/hastinapura/pkg/services/crypto"
+	"github.com/FastBizTech/hastinapura/pkg/services/jwt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/google/uuid"
 )
 
 type RegistrationService struct {
@@ -40,7 +41,7 @@ func (s *RegistrationService) RegisterUser(user requests.RegisterUserRequest) (*
 		return nil, err
 	}
 
-	obj := dbo.User{Mobile: user.MobileNumber, Hashed_password: s.cryp.HashString(user.Password)}
+	obj := dbo.User{Id: uuid.New().String(), Mobile: user.MobileNumber, Hashed_password: s.cryp.HashString(user.Password)}
 	item, _ := dynamodbattribute.MarshalMap(obj)
 	params := &dynamodb.PutItemInput{
 		TableName: aws.String("user_table"),
@@ -51,11 +52,15 @@ func (s *RegistrationService) RegisterUser(user requests.RegisterUserRequest) (*
 	fmt.Print(output)
 	er := req.Send()
 	if er != nil {
-		fmt.Errorf("Failed to make Query API call, %v", er)
+		return nil, errors.Join(er, errors.New("FAILED TO MAKE API CALL TO DYNAMO"))
 	}
 
-	//generate some session token here
-	return &responses.LoginSuccessResponse{user.MobileNumber, "some-login-token-after-signup"}, nil
+	token, err := jwt.CreateToken(obj.Id, obj.Mobile)
+	if err != nil {
+		return nil, err
+	}
+
+	return &responses.LoginSuccessResponse{MobileNumber: user.MobileNumber, LoginToken: token}, nil
 }
 
 func (s *RegistrationService) LoginUser(user requests.RegisterUserRequest) (*responses.LoginSuccessResponse, error) {
@@ -89,111 +94,15 @@ func (s *RegistrationService) LoginUser(user requests.RegisterUserRequest) (*res
 		log.Println(users)
 
 		if s.cryp.HashString(password) == users[0].Hashed_password {
-			// generate some token here
-			return &responses.LoginSuccessResponse{(users[0]).Mobile, "some-login-token"}, nil
+			token, err := jwt.CreateToken(users[0].Id, users[0].Mobile)
+			if err != nil {
+				return nil, err
+			}
+
+			return &responses.LoginSuccessResponse{MobileNumber: (users[0]).Mobile, LoginToken: token}, nil
 		} else {
-			return nil, errors.New("pawword did not match")
+			return nil, errors.New("password did not match")
 		}
 
 	}
-}
-
-func (s *RegistrationService) SavePhoneNo(phoneNo string) error {
-
-	//check if already exists ????
-	var queryInput = &dynamodb.QueryInput{
-		TableName: aws.String("promo_phones_no"),
-		IndexName: aws.String("mobile-index"),
-		KeyConditions: map[string]*dynamodb.Condition{
-			"mobile": {
-				ComparisonOperator: aws.String("EQ"),
-				AttributeValueList: []*dynamodb.AttributeValue{
-					{
-						S: aws.String(phoneNo),
-					},
-				},
-			},
-		},
-	}
-	var resp, er = s.svc.Query(queryInput)
-	exPromoPh := []dbo.PromoPhone{}
-	if err := dynamodbattribute.UnmarshalListOfMaps(resp.Items, &exPromoPh); err != nil {
-		fmt.Println(err)
-	}
-
-	obj := dbo.PromoPhone{Mobile: phoneNo, Timestamp: time.Now().Format(time.RFC850)}
-	if len(exPromoPh) > 0 && exPromoPh[0].IsAlreadyContacted == "true" {
-		return nil
-	} else {
-		obj.IsAlreadyContacted = "false"
-	}
-
-	// then only update with timestamp
-	item, er := dynamodbattribute.MarshalMap(obj)
-	if er != nil {
-		return er
-	}
-	params := &dynamodb.PutItemInput{
-		TableName: aws.String("promo_phones_no"),
-		Item:      item,
-	}
-
-	req, output := s.svc.PutItemRequest(params)
-	fmt.Print(output)
-	err := req.Send()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (s *RegistrationService) FetchPromoNumbers(isAlreadyConnected string) ([]dbo.PromoPhone, error) {
-
-	//check if already exists ????
-	var queryInput = &dynamodb.QueryInput{
-		TableName: aws.String("promo_phones_no"),
-		IndexName: aws.String("is_already_contacted-index"),
-		KeyConditions: map[string]*dynamodb.Condition{
-			"is_already_contacted": {
-				ComparisonOperator: aws.String("EQ"),
-				AttributeValueList: []*dynamodb.AttributeValue{
-					{
-						S: aws.String(isAlreadyConnected),
-					},
-				},
-			},
-		},
-	}
-	var resp, er = s.svc.Query(queryInput)
-	if nil != er {
-		return nil, er
-	}
-	exPromoPh := []dbo.PromoPhone{}
-	if err := dynamodbattribute.UnmarshalListOfMaps(resp.Items, &exPromoPh); err != nil {
-		fmt.Println(err)
-	}
-	return exPromoPh, nil
-}
-
-func (s *RegistrationService) MarkContacted(mobile string, comment string) error {
-	obj := dbo.PromoPhone{Mobile: mobile,
-		Timestamp: time.Now().Format(time.RFC850), IsAlreadyContacted: "true", Comment: comment}
-
-	// then only update with timestamp
-	item, er := dynamodbattribute.MarshalMap(obj)
-	if er != nil {
-		return er
-	}
-	params := &dynamodb.PutItemInput{
-		TableName: aws.String("promo_phones_no"),
-		Item:      item,
-	}
-
-	req, output := s.svc.PutItemRequest(params)
-	fmt.Print(output)
-	err := req.Send()
-	if err != nil {
-		return err
-	}
-	return nil
 }
