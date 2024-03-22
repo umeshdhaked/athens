@@ -32,5 +32,4 @@ cd hastinapur/api go build ./...
 go build cmd/main.go
 ./main
 ```
-
-
+9. run with ```nohup ./main &```
