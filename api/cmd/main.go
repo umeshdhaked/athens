@@ -43,5 +43,6 @@ func main() {
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,
 	}
+	log.Println("application running on port : " + conf.Port)
 	srv.ListenAndServe()
 }
