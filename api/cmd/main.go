@@ -10,6 +10,7 @@ import (
 	"github.com/FastBizTech/hastinapura/api/di"
 	servers "github.com/FastBizTech/hastinapura/api/servers"
 	"github.com/FastBizTech/hastinapura/pkg/models"
+	"github.com/aws/aws-secretsmanager-caching-go/secretcache"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 )
@@ -30,6 +31,12 @@ func main() {
 		fmt.Printf("unable to decode into config struct, %v", err)
 	}
 
+	//initialize conf
+	if secCache, er := secretcache.New(); er == nil {
+		conf.UpdateSecretsInConfig(secCache)
+	} else {
+		log.Fatal(er)
+	}
 	di.InitialiseServices(conf)
 
 	engine := gin.Default()

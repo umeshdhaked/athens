@@ -21,6 +21,9 @@ export GOPATH=$HOME/projects
 export PATH=$PATH:$GOROOT/bin
 # Setup ENV for current sandbox
 export ENV=dev
+export AWS_ACCESS_KEY_ID=
+export AWS_SECRET_ACCESS_KEY=
+export AWS_REGION=
 ```
 5. new setup | cd $HOME & mkdir projects
 6. setup git ssh for ec2 and add in authorize in gihub repo in projects
