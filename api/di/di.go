@@ -4,6 +4,7 @@ import (
 	otcSvc "github.com/FastBizTech/hastinapura/api/services/otp"
 	"github.com/FastBizTech/hastinapura/api/services/promo"
 	"github.com/FastBizTech/hastinapura/api/services/register"
+	"github.com/FastBizTech/hastinapura/pkg/models"
 	"github.com/FastBizTech/hastinapura/pkg/services/aws"
 	"github.com/FastBizTech/hastinapura/pkg/services/crypto"
 	"github.com/FastBizTech/hastinapura/pkg/services/dynamo"
@@ -21,8 +22,8 @@ var otpService *otcSvc.OtpService
 var crp *crypto.Crypto
 var promoSvc *promo.PromoService
 
-func InitialiseServices() {
-	sess = aws.ConfigureAwsSdkSession()
+func InitialiseServices(conf *models.ApplicationConfig) {
+	sess = aws.ConfigureAwsSdkSession(conf)
 	dynamoDb = dynamo.ConfigureDynamoSession(sess)
 	otpSender = otp.NewOtpSender(dynamoDb)
 	crp = crypto.NewCrypto()

@@ -1,0 +1,6 @@
+{
+    "AwsSecretManager" : {
+        "SecretName" : "hastinapur_dev"
+    },
+    "Port" : "8080"
+}

@@ -1,0 +1,7 @@
+{
+    "AwsSecretConfig" : {
+        "AccessKeyID":"",
+        "SecretAccessKey":"",
+        "Region":"us-east-1"
+    }
+}
