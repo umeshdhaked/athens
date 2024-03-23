@@ -32,7 +32,9 @@ export AWS_REGION=
 7. clone git repo in projects
 8. build, and run application
 ```
-kill already running application netstat -ano | grep 8080
+kill already running application 
+get PID -> netstat -nlp|grep 8080
+kill PID -> kill 3014
 cd hastinapur/pkg go build ./...
 cd hastinapur/api go build ./...
 go build cmd/main.go
