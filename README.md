@@ -1,7 +1,7 @@
 # Hastinapura
 
 # local run guide
--> just to to current dir
+-> just go to current dir
 -> run go build ./...
 -> go run cmd/main.go
 
