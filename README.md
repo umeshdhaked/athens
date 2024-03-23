@@ -32,6 +32,7 @@ export AWS_REGION=
 7. clone git repo in projects
 8. build, and run application
 ```
+kill already running application netstat -ano | grep 8080
 cd hastinapur/pkg go build ./...
 cd hastinapur/api go build ./...
 go build cmd/main.go
