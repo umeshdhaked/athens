@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/fastbiztech/hastinapura/internal/utils"
 	"github.com/spf13/viper"
@@ -37,7 +38,7 @@ func LoadConfig() {
 
 	err := viper.ReadInConfig()
 	if err != nil {
-		fmt.Printf("%v", err)
+		log.Fatal(err.Error())
 	}
 
 	err = viper.Unmarshal(&config)
