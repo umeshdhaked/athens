@@ -4,13 +4,13 @@ import (
 	"log"
 	"os"
 
-	"github.com/FastBizTech/hastinapura/pkg/models"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/fastbiztech/hastinapura/internal/config"
 )
 
-func ConfigureAwsSdkSession(config *models.ApplicationConfig) *session.Session {
+func ConfigureAwsSdkSession(config *config.Config) *session.Session {
 	sess, err := session.NewSession(&aws.Config{
 		Region: aws.String(os.Getenv("AWS_REGION")),
 	})

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/FastBizTech/hastinapura/api/di"
-	"github.com/FastBizTech/hastinapura/api/services/register"
-	"github.com/FastBizTech/hastinapura/pkg/models/requests"
+	"github.com/fastbiztech/hastinapura/api/di"
+	"github.com/fastbiztech/hastinapura/api/services/register"
+	"github.com/fastbiztech/hastinapura/pkg/models/requests"
 	"github.com/gin-gonic/gin"
 )
 

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	models "github.com/FastBizTech/hastinapura/pkg/models"
+	"github.com/fastbiztech/hastinapura/pkg/models"
 	"github.com/gin-gonic/gin"
 )
 

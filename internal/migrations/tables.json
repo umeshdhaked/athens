@@ -1,0 +1,145 @@
+[
+  {
+    "TableName": "User",
+    "KeySchema": [
+      {"AttributeName": "ID", "KeyType": "HASH"}
+    ],
+    "AttributeDefinitions": [
+      {"AttributeName": "ID", "AttributeType": "S"}
+    ],
+    "ProvisionedThroughput": {
+      "ReadCapacityUnits": 5,
+      "WriteCapacityUnits": 5
+    }
+  },
+  {
+    "TableName": "Group",
+    "KeySchema": [
+      {"AttributeName": "ID", "KeyType": "HASH"}
+    ],
+    "AttributeDefinitions": [
+      {"AttributeName": "ID", "AttributeType": "S"}
+    ],
+    "ProvisionedThroughput": {
+      "ReadCapacityUnits": 5,
+      "WriteCapacityUnits": 5
+    }
+  },
+  {
+    "TableName": "Contacts",
+    "KeySchema": [
+      {"AttributeName": "ID", "KeyType": "HASH"}
+    ],
+    "AttributeDefinitions": [
+      {"AttributeName": "ID", "AttributeType": "S"}
+    ],
+    "ProvisionedThroughput": {
+      "ReadCapacityUnits": 5,
+      "WriteCapacityUnits": 5
+    }
+  },
+  {
+    "TableName": "SmsSender",
+    "KeySchema": [
+      {"AttributeName": "ID", "KeyType": "HASH"}
+    ],
+    "AttributeDefinitions": [
+      {"AttributeName": "ID", "AttributeType": "S"}
+    ],
+    "ProvisionedThroughput": {
+      "ReadCapacityUnits": 5,
+      "WriteCapacityUnits": 5
+    }
+  },
+  {
+    "TableName": "SmsTemplate",
+    "KeySchema": [
+      {"AttributeName": "ID", "KeyType": "HASH"}
+    ],
+    "AttributeDefinitions": [
+      {"AttributeName": "ID", "AttributeType": "S"}
+    ],
+    "ProvisionedThroughput": {
+      "ReadCapacityUnits": 5,
+      "WriteCapacityUnits": 5
+    }
+  },
+  {
+    "TableName": "SmsAudit",
+    "KeySchema": [
+      {"AttributeName": "ID", "KeyType": "HASH"}
+    ],
+    "AttributeDefinitions": [
+      {"AttributeName": "ID", "AttributeType": "S"}
+    ],
+    "ProvisionedThroughput": {
+      "ReadCapacityUnits": 5,
+      "WriteCapacityUnits": 5
+    }
+  },
+  {
+    "TableName": "PendingSms",
+    "KeySchema": [
+      {"AttributeName": "ID", "KeyType": "HASH"}
+    ],
+    "AttributeDefinitions": [
+      {"AttributeName": "ID", "AttributeType": "S"}
+    ],
+    "ProvisionedThroughput": {
+      "ReadCapacityUnits": 5,
+      "WriteCapacityUnits": 5
+    }
+  },
+  {
+    "TableName": "Campaign",
+    "KeySchema": [
+      {"AttributeName": "ID", "KeyType": "HASH"}
+    ],
+    "AttributeDefinitions": [
+      {"AttributeName": "ID", "AttributeType": "S"}
+    ],
+    "ProvisionedThroughput": {
+      "ReadCapacityUnits": 5,
+      "WriteCapacityUnits": 5
+    }
+  },
+  {
+    "TableName": "Subscription",
+    "KeySchema": [
+      {"AttributeName": "ID", "KeyType": "HASH"}
+    ],
+    "AttributeDefinitions": [
+      {"AttributeName": "ID", "AttributeType": "S"}
+    ],
+    "ProvisionedThroughput": {
+      "ReadCapacityUnits": 5,
+      "WriteCapacityUnits": 5
+    }
+  },
+  {
+    "TableName": "S3ContactsData",
+    "KeySchema": [
+      {"AttributeName": "ID", "KeyType": "HASH"}
+    ],
+    "AttributeDefinitions": [
+      {"AttributeName": "ID", "AttributeType": "S"}
+    ],
+    "ProvisionedThroughput": {
+      "ReadCapacityUnits": 5,
+      "WriteCapacityUnits": 5
+    }
+  },
+  {
+    "TableName": "Credits",
+    "KeySchema": [
+      {"AttributeName": "ID", "KeyType": "HASH"}
+    ],
+    "AttributeDefinitions": [
+      {"AttributeName": "ID", "AttributeType": "S"}
+    ],
+    "ProvisionedThroughput": {
+      "ReadCapacityUnits": 5,
+      "WriteCapacityUnits": 5
+    }
+  }
+]
