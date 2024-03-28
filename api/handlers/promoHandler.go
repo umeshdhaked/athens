@@ -3,9 +3,9 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/FastBizTech/hastinapura/api/di"
-	"github.com/FastBizTech/hastinapura/api/services/promo"
-	"github.com/FastBizTech/hastinapura/pkg/models/requests"
+	"github.com/fastbiztech/hastinapura/api/di"
+	"github.com/fastbiztech/hastinapura/api/services/promo"
+	"github.com/fastbiztech/hastinapura/pkg/models/requests"
 	"github.com/gin-gonic/gin"
 )
 

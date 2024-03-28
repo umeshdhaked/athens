@@ -4,8 +4,8 @@ import (
 	"errors"
 	"log"
 
-	"github.com/FastBizTech/hastinapura/pkg/services/crypto"
-	"github.com/FastBizTech/hastinapura/pkg/services/otp"
+	"github.com/fastbiztech/hastinapura/pkg/services/crypto"
+	"github.com/fastbiztech/hastinapura/pkg/services/otp"
 )
 
 type OtpService struct {

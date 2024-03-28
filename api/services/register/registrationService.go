@@ -5,15 +5,15 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/FastBizTech/hastinapura/api/services/otp"
-	"github.com/FastBizTech/hastinapura/pkg/models/dbo"
-	"github.com/FastBizTech/hastinapura/pkg/models/requests"
-	"github.com/FastBizTech/hastinapura/pkg/models/responses"
-	"github.com/FastBizTech/hastinapura/pkg/services/crypto"
-	"github.com/FastBizTech/hastinapura/pkg/services/jwt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/fastbiztech/hastinapura/api/services/otp"
+	"github.com/fastbiztech/hastinapura/pkg/models/dbo"
+	"github.com/fastbiztech/hastinapura/pkg/models/requests"
+	"github.com/fastbiztech/hastinapura/pkg/models/responses"
+	"github.com/fastbiztech/hastinapura/pkg/services/crypto"
+	"github.com/fastbiztech/hastinapura/pkg/services/jwt"
 	"github.com/google/uuid"
 )
 

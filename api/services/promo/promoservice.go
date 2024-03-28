@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/FastBizTech/hastinapura/pkg/models/dbo"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/fastbiztech/hastinapura/pkg/models/dbo"
 )
 
 type PromoService struct {

@@ -1,6 +1,14 @@
 {
-    "AwsSecretManager" : {
-        "SecretName" : "hastinapur_dev"
+    "Aws" : {
+        "db": {
+            "key_id": "DUMMY",
+            "access_key": "DUMMY",
+            "region": "ap-south-1",
+            "endpoint": "http://localhost:8000"
+        }
     },
-    "Port" : "8080"
+
+    "App": {
+        "Port" : "8080"
+    }
 }
