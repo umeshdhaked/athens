@@ -7,6 +7,6 @@ import (
 )
 
 func ConfigureDynamoSession(sess *session.Session) *dynamodb.DynamoDB {
-	svc := dynamodb.New(sess, aws.NewConfig().WithLogLevel(aws.LogDebugWithHTTPBody))
+	svc := dynamodb.New(sess, aws.NewConfig().WithLogLevel(aws.LogDebugWithRequestErrors))
 	return svc
 }

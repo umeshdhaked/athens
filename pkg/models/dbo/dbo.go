@@ -18,4 +18,5 @@ type Otp struct { // otp table in dynamoDB
 	Id     string `json:"id"`
 	Mobile string `json:"mobile"`
 	Otp    string `json:"otp"`
+	Exp    int64  `json:"exp"`
 }

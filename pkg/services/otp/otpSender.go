@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
@@ -43,7 +44,13 @@ func (o *OtpSender) SendOtp(otp string) error {
 }
 
 func (o *OtpSender) SaveOtp(mobile string, hashedOtp string) error {
-	item, er := dynamodbattribute.MarshalMap(dbo.Otp{Id: uuid.New().String(), Mobile: mobile, Otp: hashedOtp})
+	item, er := dynamodbattribute.MarshalMap(
+		dbo.Otp{
+			Id:     uuid.New().String(),
+			Mobile: mobile,
+			Otp:    hashedOtp,
+			Exp:    time.Now().Add(2 * time.Minute).Unix(),
+		})
 	if er != nil {
 		return er
 	}
@@ -61,7 +68,7 @@ func (o *OtpSender) SaveOtp(mobile string, hashedOtp string) error {
 	return nil
 }
 
-func (o *OtpSender) FetchOtp(mobileNo string) string {
+func (o *OtpSender) FetchOtp(mobileNo string) *dbo.Otp {
 
 	var queryInput = &dynamodb.QueryInput{
 		TableName: aws.String("otp"),
@@ -81,12 +88,12 @@ func (o *OtpSender) FetchOtp(mobileNo string) string {
 	var resp1, err1 = o.svc.Query(queryInput)
 	if err1 != nil {
 		fmt.Println(err1)
-		return ""
+		return nil
 	} else {
 		otp := []dbo.Otp{}
 		if err := dynamodbattribute.UnmarshalListOfMaps(resp1.Items, &otp); err != nil {
 			fmt.Println(err)
 		}
-		return otp[0].Otp
+		return &otp[0]
 	}
 }

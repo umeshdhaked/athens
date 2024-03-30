@@ -42,12 +42,18 @@ var routeList = [...]route{
 		group:      "/v1/users",
 		middleware: []gin.HandlerFunc{middleware.TokenAuthMiddleware()},
 		endpoints: []endpoint{
-			{http.MethodPost, "/sendOtp", handlers.HandleSendOtp},
-			{http.MethodPost, "/registerUser", handlers.HandleRegisterUser},
-			{http.MethodPost, "/login", handlers.HandleLoginUser},
 			{http.MethodPost, "/savePromoNumber", handlers.HandleSaveNumber},
 			{http.MethodPost, "/fetchPromoNumbers", handlers.HandleFetchPromoNumbers},
 			{http.MethodPost, "/markContacted", handlers.HandleMarkContactedNumber},
+		},
+	},
+	{
+		group: "/v1/users",
+		endpoints: []endpoint{
+			{http.MethodPost, "/sendOtp", handlers.HandleSendOtp},
+			{http.MethodPost, "/registerUser", handlers.HandleRegisterUser},
+			{http.MethodPost, "/login", handlers.HandleLoginUser},
+			{http.MethodPost, "/refresh_token", handlers.RefreshToken},
 		},
 	},
 }
