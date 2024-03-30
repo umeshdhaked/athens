@@ -20,4 +20,8 @@ services:
      AWS_ACCESS_KEY_ID: 'DUMMY'
      AWS_SECRET_ACCESS_KEY: 'DUMMY'
    command:
-     dynamodb describe-limits --endpoint-url http://dynamodb-local:8000 --region us-west-2
+    # dynamodb describe-limits --endpoint-url http://dynamodb-local:8000 --region us-west-2
+    # dynamodb list-tables --endpoint-url http://dynamodb-local:8000 --region us-west-2
+    # dynamodb scan --table-name User --endpoint-url http://dynamodb-local:8000 --region us-west-2
+    dynamodb scan --table-name Contacts --endpoint-url http://dynamodb-local:8000 --region us-west-2
+    
