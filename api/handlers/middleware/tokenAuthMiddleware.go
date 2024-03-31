@@ -35,8 +35,10 @@ func TokenAuthMiddleware() gin.HandlerFunc {
 
 		userNme := claims["username"]
 		id := claims["id"]
+		role := claims["role"]
 		ctx.AddParam("username", userNme.(string))
 		ctx.AddParam("id", id.(string))
+		ctx.AddParam("role", role.(string))
 		ctx.Next()
 	}
 

@@ -56,4 +56,15 @@ var routeList = [...]route{
 			{http.MethodPost, "/refresh_token", handlers.RefreshToken},
 		},
 	},
+	{
+		group:      "/v1/subscriptions",
+		middleware: []gin.HandlerFunc{middleware.TokenAuthMiddleware()},
+		endpoints: []endpoint{
+			{http.MethodPost, "/createNewPricingSystem", handlers.HandleCreateNewPricingSystem},
+			{http.MethodGet, "/fetchAllActivePricingModel", handlers.HandleFetchAllActivePricingModel},
+			{http.MethodPost, "/addDefaultSubscriptions", handlers.HandleAddDefaultSubscriptionToUser},
+			{http.MethodPost, "/addCustomSubscriptions", handlers.HandleAddSubscriptionToUser},
+			{http.MethodPost, "/fetchAllActiveActiveSubscriptionsForUser", handlers.HandleFetchAllActiveSubscriptionsForUser},
+		},
+	},
 }

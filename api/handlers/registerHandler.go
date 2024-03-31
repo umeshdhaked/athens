@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -16,16 +15,14 @@ import (
 func HandleSendOtp(ctx *gin.Context) {
 	var user requests.RegisterUserRequest
 	if err := ctx.ShouldBindJSON(&user); err != nil {
-		fmt.Print(user)
-		ctx.Error(err)
-		ctx.AbortWithStatus(http.StatusBadRequest)
+		ctx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	var reg *register.RegistrationService = di.GetRegistrationService()
 	if err := reg.SendOtp(user); err != nil {
-		ctx.Error(err)
-		ctx.AbortWithStatus(http.StatusBadRequest)
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
 	}
 	ctx.String(http.StatusOK, "Otp Sent Successful")
 }
@@ -33,16 +30,15 @@ func HandleSendOtp(ctx *gin.Context) {
 func HandleRegisterUser(ctx *gin.Context) {
 	var user requests.RegisterUserRequest
 	if err := ctx.ShouldBindJSON(&user); err != nil {
-		ctx.Error(err)
-		ctx.AbortWithStatus(http.StatusBadRequest)
+		ctx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	var reg *register.RegistrationService = di.GetRegistrationService()
 	registerResp, err := reg.RegisterUser(user)
 	if nil != err {
-		ctx.Error(err)
-		ctx.AbortWithStatus(http.StatusBadRequest)
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
 	}
 
 	ctx.JSON(http.StatusOK, registerResp)
@@ -51,17 +47,15 @@ func HandleRegisterUser(ctx *gin.Context) {
 func HandleLoginUser(ctx *gin.Context) {
 	var user requests.RegisterUserRequest
 	if err := ctx.ShouldBindJSON(&user); err != nil {
-		fmt.Print(user)
-		ctx.Error(err)
-		ctx.AbortWithStatus(http.StatusBadRequest)
+		ctx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	var reg *register.RegistrationService = di.GetRegistrationService()
 	loginResp, err := reg.LoginUser(user)
 	if nil != err {
-		ctx.Error(err)
-		ctx.AbortWithStatus(http.StatusBadRequest)
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
 	}
 
 	ctx.JSON(http.StatusOK, loginResp)
@@ -79,6 +73,7 @@ func RefreshToken(ctx *gin.Context) {
 	exp := claims["exp"].(float64)
 	currTime := time.Now().Unix()
 	userNme := claims["username"].(string)
+	role := claims["role"].(string)
 	id := claims["id"].(string)
 	if int64(exp) < currTime {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "TOKEN_EXPIRED"})
@@ -86,7 +81,7 @@ func RefreshToken(ctx *gin.Context) {
 		return
 	}
 	if int64(exp)-currTime < 7200 {
-		tkn, err := jwt.CreateToken(id, userNme)
+		tkn, err := jwt.CreateToken(id, userNme, role)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Internal Server Error"})
 			ctx.Abort()
