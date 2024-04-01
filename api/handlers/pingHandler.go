@@ -8,6 +8,6 @@ import (
 )
 
 func HandleGetServerPing(ctx *gin.Context) {
-	content := models.TestingResponse{Message: "Pong"}
+	content := models.Testing{Message: "Pong"}
 	ctx.JSON(http.StatusOK, content)
 }

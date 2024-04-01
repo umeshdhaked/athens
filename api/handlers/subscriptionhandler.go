@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/fastbiztech/hastinapura/api/di"
@@ -13,9 +12,7 @@ import (
 func HandleCreateNewPricingSystem(ctx *gin.Context) {
 	var pricingRequest requests.PricingRequest
 	if err := ctx.ShouldBindJSON(&pricingRequest); err != nil {
-		fmt.Print(pricingRequest)
-		ctx.Error(err)
-		ctx.AbortWithError(http.StatusBadRequest, err)
+		ctx.String(http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -23,8 +20,7 @@ func HandleCreateNewPricingSystem(ctx *gin.Context) {
 
 	resp, err := sub.CreateNewPricingSystem(ctx, &pricingRequest)
 	if nil != err {
-		ctx.Error(err)
-		ctx.AbortWithError(http.StatusBadRequest, err)
+		ctx.String(http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -35,8 +31,7 @@ func HandleFetchAllActivePricingModel(ctx *gin.Context) {
 	var sub *subscription.SubscriptionService = di.GetSubscriptionService()
 	resp, err := sub.FetchAllActivePricingModel(ctx)
 	if nil != err {
-		ctx.Error(err)
-		ctx.AbortWithError(http.StatusBadRequest, err)
+		ctx.String(http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -46,17 +41,14 @@ func HandleFetchAllActivePricingModel(ctx *gin.Context) {
 func HandleAddDefaultSubscriptionToUser(ctx *gin.Context) {
 	var subRequest *requests.UserDefaultSubscriptionRequest
 	if err := ctx.ShouldBindJSON(&subRequest); err != nil {
-		fmt.Print(subRequest)
-		ctx.Error(err)
-		ctx.AbortWithError(http.StatusBadRequest, err)
+		ctx.String(http.StatusBadRequest, err.Error())
 		return
 	}
 
 	var sub *subscription.SubscriptionService = di.GetSubscriptionService()
 	err := sub.AddDefaultSubscriptionToUser(ctx, subRequest)
 	if nil != err {
-		ctx.Error(err)
-		ctx.AbortWithError(http.StatusBadRequest, err)
+		ctx.String(http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -66,17 +58,14 @@ func HandleAddDefaultSubscriptionToUser(ctx *gin.Context) {
 func HandleAddSubscriptionToUser(ctx *gin.Context) {
 	var subRequest *requests.UserSubscriptionRequest
 	if err := ctx.ShouldBindJSON(&subRequest); err != nil {
-		fmt.Print(subRequest)
-		ctx.Error(err)
-		ctx.AbortWithError(http.StatusBadRequest, err)
+		ctx.String(http.StatusBadRequest, err.Error())
 		return
 	}
 
 	var sub *subscription.SubscriptionService = di.GetSubscriptionService()
 	err := sub.AddSubscriptionToUser(ctx, subRequest)
 	if nil != err {
-		ctx.Error(err)
-		ctx.AbortWithError(http.StatusBadRequest, err)
+		ctx.String(http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -86,17 +75,14 @@ func HandleAddSubscriptionToUser(ctx *gin.Context) {
 func HandleFetchAllActiveSubscriptionsForUser(ctx *gin.Context) {
 	var subRequest *requests.FetchSubscriptionRequest
 	if err := ctx.ShouldBindJSON(&subRequest); err != nil {
-		fmt.Print(subRequest)
-		ctx.Error(err)
-		ctx.AbortWithError(http.StatusBadRequest, err)
+		ctx.String(http.StatusBadRequest, err.Error())
 		return
 	}
 
 	var sub *subscription.SubscriptionService = di.GetSubscriptionService()
 	resp, err := sub.FetchAllActiveSubscriptionsForUser(ctx, subRequest)
 	if nil != err {
-		ctx.Error(err)
-		ctx.AbortWithError(http.StatusBadRequest, err)
+		ctx.String(http.StatusInternalServerError, err.Error())
 		return
 	}
 

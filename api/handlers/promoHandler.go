@@ -12,14 +12,14 @@ import (
 func HandleSaveNumber(ctx *gin.Context) {
 	var user requests.PromoUserRequest
 	if err := ctx.ShouldBindJSON(&user); err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, err)
+		ctx.String(http.StatusBadRequest, err.Error())
 		return
 	}
 
 	var reg *promo.PromoService = di.GetPromoService()
 	err := reg.SavePhoneNo(user.MobileNumber)
 	if nil != err {
-		ctx.AbortWithError(http.StatusBadRequest, err)
+		ctx.String(http.StatusInternalServerError, err.Error())
 		return
 	}
 	ctx.String(http.StatusOK, "Saved phone number")
@@ -28,13 +28,13 @@ func HandleSaveNumber(ctx *gin.Context) {
 func HandleFetchPromoNumbers(ctx *gin.Context) {
 	var user requests.PromoUserRequest
 	if err := ctx.ShouldBindJSON(&user); err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, err)
+		ctx.String(http.StatusBadRequest, err.Error())
 		return
 	}
 	var reg *promo.PromoService = di.GetPromoService()
 	list, err := reg.FetchPromoNumbers(user.Is_already_contacted)
 	if nil != err {
-		ctx.AbortWithError(http.StatusBadRequest, err)
+		ctx.String(http.StatusInternalServerError, err.Error())
 		return
 	}
 	ctx.JSON(http.StatusOK, list)
@@ -43,14 +43,14 @@ func HandleFetchPromoNumbers(ctx *gin.Context) {
 func HandleMarkContactedNumber(ctx *gin.Context) {
 	var user requests.PromoUserRequest
 	if err := ctx.ShouldBindJSON(&user); err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, err)
+		ctx.String(http.StatusBadRequest, err.Error())
 		return
 	}
 
 	var reg *promo.PromoService = di.GetPromoService()
 	err := reg.MarkContacted(user.MobileNumber, user.Comment)
 	if nil != err {
-		ctx.AbortWithError(http.StatusBadRequest, err)
+		ctx.String(http.StatusInternalServerError, err.Error())
 		return
 	}
 	ctx.String(http.StatusOK, "Marked as contacted")
