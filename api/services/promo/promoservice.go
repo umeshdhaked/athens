@@ -4,8 +4,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/fastbiztech/hastinapura/pkg/models/dbo"
-	"github.com/fastbiztech/hastinapura/pkg/repositories"
+	"github.com/fastbiztech/hastinapura/internal/pkg/models/dbo"
+	"github.com/fastbiztech/hastinapura/internal/pkg/repositories"
 )
 
 type PromoService struct {

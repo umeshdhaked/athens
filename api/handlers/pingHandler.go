@@ -3,7 +3,7 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/fastbiztech/hastinapura/pkg/models"
+	"github.com/fastbiztech/hastinapura/internal/pkg/models"
 	"github.com/gin-gonic/gin"
 )
 

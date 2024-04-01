@@ -6,9 +6,9 @@ import (
 
 	"github.com/fastbiztech/hastinapura/api/di"
 	"github.com/fastbiztech/hastinapura/api/services/register"
-	"github.com/fastbiztech/hastinapura/pkg/models/requests"
-	"github.com/fastbiztech/hastinapura/pkg/models/responses"
-	"github.com/fastbiztech/hastinapura/pkg/services/jwt"
+	"github.com/fastbiztech/hastinapura/internal/pkg/models/requests"
+	"github.com/fastbiztech/hastinapura/internal/pkg/models/responses"
+	"github.com/fastbiztech/hastinapura/internal/pkg/services/jwt"
 	"github.com/gin-gonic/gin"
 )
 

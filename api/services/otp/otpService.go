@@ -5,8 +5,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/fastbiztech/hastinapura/pkg/services/crypto"
-	"github.com/fastbiztech/hastinapura/pkg/services/otp"
+	"github.com/fastbiztech/hastinapura/internal/pkg/services/crypto"
+	"github.com/fastbiztech/hastinapura/internal/pkg/services/otp"
 )
 
 type OtpService struct {

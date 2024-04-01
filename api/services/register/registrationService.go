@@ -6,12 +6,12 @@ import (
 	"log"
 
 	"github.com/fastbiztech/hastinapura/api/services/otp"
-	"github.com/fastbiztech/hastinapura/pkg/models/dbo"
-	"github.com/fastbiztech/hastinapura/pkg/models/requests"
-	"github.com/fastbiztech/hastinapura/pkg/models/responses"
-	"github.com/fastbiztech/hastinapura/pkg/repositories"
-	"github.com/fastbiztech/hastinapura/pkg/services/crypto"
-	"github.com/fastbiztech/hastinapura/pkg/services/jwt"
+	"github.com/fastbiztech/hastinapura/internal/pkg/models/dbo"
+	"github.com/fastbiztech/hastinapura/internal/pkg/models/requests"
+	"github.com/fastbiztech/hastinapura/internal/pkg/models/responses"
+	"github.com/fastbiztech/hastinapura/internal/pkg/repositories"
+	"github.com/fastbiztech/hastinapura/internal/pkg/services/crypto"
+	"github.com/fastbiztech/hastinapura/internal/pkg/services/jwt"
 	"github.com/google/uuid"
 )
 
