@@ -8,6 +8,7 @@ import (
 	"github.com/fastbiztech/hastinapura/api/services/register"
 	"github.com/fastbiztech/hastinapura/api/services/subscription"
 	"github.com/fastbiztech/hastinapura/internal/config"
+	"github.com/fastbiztech/hastinapura/pkg/repositories"
 	"github.com/fastbiztech/hastinapura/pkg/services/aws"
 	"github.com/fastbiztech/hastinapura/pkg/services/crypto"
 	"github.com/fastbiztech/hastinapura/pkg/services/dynamo"
@@ -23,16 +24,28 @@ var otpService *otcSvc.OtpService
 var crp *crypto.Crypto
 var promoSvc *promo.PromoService
 var subService *subscription.SubscriptionService
+var userRepo *repositories.UserRepo
+var subscriptionRepo *repositories.SubscriptionRepo
+var pricingRepo *repositories.PricingRepo
+var promoRepo *repositories.PromotionRepo
+var otpRepo *repositories.OtpRepo
 
 func InitialiseServices(conf *config.Config) {
+	crp = crypto.NewCrypto()
 	sess = aws.ConfigureAwsSdkSession(conf)
 	dynamoDb = dynamo.ConfigureDynamoSession(sess)
-	otpSender = otp.NewOtpSender(dynamoDb)
-	crp = crypto.NewCrypto()
+	//repos
+	userRepo = repositories.NewUserRepo(dynamoDb)
+	subscriptionRepo = repositories.NewSubscriptionRepo(dynamoDb)
+	pricingRepo = repositories.NewPricingRepo(dynamoDb)
+	promoRepo = repositories.NewPromotionRepo(dynamoDb)
+	otpRepo = repositories.NewOtpRepo(dynamoDb)
+	//services
+	regService = register.NewRegistrationService(userRepo, otpService, crp)
+	otpSender = otp.NewOtpSender(otpRepo)
 	otpService = otcSvc.NewOtpService(otpSender, crp)
-	regService = register.NewRegistrationService(dynamoDb, otpService, crp)
-	promoSvc = promo.NewPromoService(dynamoDb)
-	subService = subscription.NewSubscriptionService(dynamoDb)
+	promoSvc = promo.NewPromoService(promoRepo)
+	subService = subscription.NewSubscriptionService(pricingRepo, subscriptionRepo, userRepo)
 }
 
 func GetRegistrationService() *register.RegistrationService {

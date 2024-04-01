@@ -2,24 +2,19 @@ package otp
 
 import (
 	"crypto/rand"
-	"fmt"
 	"io"
 	"log"
-	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/fastbiztech/hastinapura/pkg/models/dbo"
-	"github.com/google/uuid"
+	"github.com/fastbiztech/hastinapura/pkg/repositories"
 )
 
 type OtpSender struct {
-	svc *dynamodb.DynamoDB
+	otpRepo *repositories.OtpRepo
 }
 
-func NewOtpSender(svc *dynamodb.DynamoDB) *OtpSender {
-	return &OtpSender{svc: svc}
+func NewOtpSender(otpRepo *repositories.OtpRepo) *OtpSender {
+	return &OtpSender{otpRepo: otpRepo}
 }
 
 func (o *OtpSender) GenerateOtp() string {
@@ -44,57 +39,16 @@ func (o *OtpSender) SendOtp(otp string) error {
 }
 
 func (o *OtpSender) SaveOtp(mobile string, hashedOtp string) error {
-	item, er := dynamodbattribute.MarshalMap(
-		dbo.Otp{
-			Id:     uuid.New().String(),
-			Mobile: mobile,
-			Otp:    hashedOtp,
-			Exp:    time.Now().Add(2 * time.Minute).Unix(),
-		})
-	if er != nil {
-		return er
-	}
-	params := &dynamodb.PutItemInput{
-		TableName: aws.String("otp"),
-		Item:      item,
-	}
-
-	req, output := o.svc.PutItemRequest(params)
-	fmt.Print(output)
-	err := req.Send()
-	if err != nil {
+	if err := o.otpRepo.SaveOtp(mobile, hashedOtp); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (o *OtpSender) FetchOtp(mobileNo string) *dbo.Otp {
-
-	var queryInput = &dynamodb.QueryInput{
-		TableName: aws.String("otp"),
-		IndexName: aws.String("mobile-index"),
-		KeyConditions: map[string]*dynamodb.Condition{
-			"mobile": {
-				ComparisonOperator: aws.String("EQ"),
-				AttributeValueList: []*dynamodb.AttributeValue{
-					{
-						S: aws.String(mobileNo),
-					},
-				},
-			},
-		},
-	}
-
-	var resp1, err1 = o.svc.Query(queryInput)
-	if err1 != nil {
-		fmt.Println(err1)
+	if otp, err := o.otpRepo.GetOtp(mobileNo); err != nil {
 		return nil
 	} else {
-		otp := []dbo.Otp{}
-		if err := dynamodbattribute.UnmarshalListOfMaps(resp1.Items, &otp); err != nil {
-			fmt.Println(err)
-			return nil
-		}
-		return &otp[0]
+		return otp
 	}
 }
