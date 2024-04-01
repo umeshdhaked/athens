@@ -6,7 +6,7 @@ import (
 
 	"github.com/fastbiztech/hastinapura/api/di"
 	"github.com/fastbiztech/hastinapura/api/services/subscription"
-	"github.com/fastbiztech/hastinapura/pkg/models/requests"
+	"github.com/fastbiztech/hastinapura/internal/pkg/models/requests"
 	"github.com/gin-gonic/gin"
 )
 

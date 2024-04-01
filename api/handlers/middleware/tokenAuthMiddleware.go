@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/fastbiztech/hastinapura/pkg/services/jwt"
+	"github.com/fastbiztech/hastinapura/internal/pkg/services/jwt"
 	"github.com/gin-gonic/gin"
 )
 

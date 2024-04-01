@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
-	"github.com/fastbiztech/hastinapura/pkg/models/dbo"
+	"github.com/fastbiztech/hastinapura/internal/pkg/models/dbo"
 	"github.com/gin-gonic/gin"
 )
 

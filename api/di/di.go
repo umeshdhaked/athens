@@ -8,11 +8,11 @@ import (
 	"github.com/fastbiztech/hastinapura/api/services/register"
 	"github.com/fastbiztech/hastinapura/api/services/subscription"
 	"github.com/fastbiztech/hastinapura/internal/config"
-	"github.com/fastbiztech/hastinapura/pkg/repositories"
-	"github.com/fastbiztech/hastinapura/pkg/services/aws"
-	"github.com/fastbiztech/hastinapura/pkg/services/crypto"
-	"github.com/fastbiztech/hastinapura/pkg/services/dynamo"
-	"github.com/fastbiztech/hastinapura/pkg/services/otp"
+	"github.com/fastbiztech/hastinapura/internal/pkg/repositories"
+	"github.com/fastbiztech/hastinapura/internal/pkg/services/aws"
+	"github.com/fastbiztech/hastinapura/internal/pkg/services/crypto"
+	"github.com/fastbiztech/hastinapura/internal/pkg/services/dynamo"
+	"github.com/fastbiztech/hastinapura/internal/pkg/services/otp"
 )
 
 // var dynamoConnection pkg.DynnamoConnection
