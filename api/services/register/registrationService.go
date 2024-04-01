@@ -41,6 +41,29 @@ func (s *RegistrationService) RegisterUser(user requests.RegisterUserRequest) (*
 		return nil, err
 	}
 
+	var queryInput = &dynamodb.QueryInput{
+		TableName: aws.String("user_table"),
+		IndexName: aws.String("mobile-index"),
+		KeyConditions: map[string]*dynamodb.Condition{
+			"mobile": {
+				ComparisonOperator: aws.String("EQ"),
+				AttributeValueList: []*dynamodb.AttributeValue{
+					{
+						S: aws.String(user.MobileNumber),
+					},
+				},
+			},
+		},
+	}
+	var resp1, err1 = s.svc.Query(queryInput)
+	if err1 != nil {
+		fmt.Println(err1)
+		return nil, err1
+	}
+	if *resp1.Count > 0 {
+		return nil, errors.New("user already exists")
+	}
+
 	obj := dbo.User{Id: uuid.New().String(), Mobile: user.MobileNumber, Hashed_password: s.cryp.HashString(user.Password)}
 	item, _ := dynamodbattribute.MarshalMap(obj)
 	params := &dynamodb.PutItemInput{
@@ -55,7 +78,7 @@ func (s *RegistrationService) RegisterUser(user requests.RegisterUserRequest) (*
 		return nil, errors.Join(er, errors.New("FAILED TO MAKE API CALL TO DYNAMO"))
 	}
 
-	token, err := jwt.CreateToken(obj.Id, obj.Mobile)
+	token, err := jwt.CreateToken(obj.Id, obj.Mobile, obj.Role)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +117,7 @@ func (s *RegistrationService) LoginUser(user requests.RegisterUserRequest) (*res
 		log.Println(users)
 
 		if s.cryp.HashString(password) == users[0].Hashed_password {
-			token, err := jwt.CreateToken(users[0].Id, users[0].Mobile)
+			token, err := jwt.CreateToken(users[0].Id, users[0].Mobile, users[0].Role)
 			if err != nil {
 				return nil, err
 			}

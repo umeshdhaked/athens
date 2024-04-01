@@ -6,6 +6,7 @@ import (
 	otcSvc "github.com/fastbiztech/hastinapura/api/services/otp"
 	"github.com/fastbiztech/hastinapura/api/services/promo"
 	"github.com/fastbiztech/hastinapura/api/services/register"
+	"github.com/fastbiztech/hastinapura/api/services/subscription"
 	"github.com/fastbiztech/hastinapura/internal/config"
 	"github.com/fastbiztech/hastinapura/pkg/services/aws"
 	"github.com/fastbiztech/hastinapura/pkg/services/crypto"
@@ -21,6 +22,7 @@ var otpSender *otp.OtpSender
 var otpService *otcSvc.OtpService
 var crp *crypto.Crypto
 var promoSvc *promo.PromoService
+var subService *subscription.SubscriptionService
 
 func InitialiseServices(conf *config.Config) {
 	sess = aws.ConfigureAwsSdkSession(conf)
@@ -30,6 +32,7 @@ func InitialiseServices(conf *config.Config) {
 	otpService = otcSvc.NewOtpService(otpSender, crp)
 	regService = register.NewRegistrationService(dynamoDb, otpService, crp)
 	promoSvc = promo.NewPromoService(dynamoDb)
+	subService = subscription.NewSubscriptionService(dynamoDb)
 }
 
 func GetRegistrationService() *register.RegistrationService {
@@ -38,4 +41,8 @@ func GetRegistrationService() *register.RegistrationService {
 
 func GetPromoService() *promo.PromoService {
 	return promoSvc
+}
+
+func GetSubscriptionService() *subscription.SubscriptionService {
+	return subService
 }

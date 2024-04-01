@@ -93,6 +93,7 @@ func (o *OtpSender) FetchOtp(mobileNo string) *dbo.Otp {
 		otp := []dbo.Otp{}
 		if err := dynamodbattribute.UnmarshalListOfMaps(resp1.Items, &otp); err != nil {
 			fmt.Println(err)
+			return nil
 		}
 		return &otp[0]
 	}
