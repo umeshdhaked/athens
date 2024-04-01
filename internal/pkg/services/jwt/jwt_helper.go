@@ -1,7 +1,11 @@
 package jwt
 
 import (
+	"errors"
 	"fmt"
+	"github.com/fastbiztech/hastinapura/internal/pkg/models/responses"
+	"github.com/gin-gonic/gin"
+	"log"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -53,4 +57,31 @@ func DecodeToken(tokenString string) (jwt.MapClaims, error) {
 	}
 
 	return claims, nil
+}
+
+func RefreshToken(ctx *gin.Context) (*responses.LoginSuccessResponse, error) {
+	jwtToken := ctx.Request.Header["Token"][0]
+
+	if er := VerifyToken(jwtToken); er != nil {
+		log.Println("INVALID_TOKEN")
+		return nil, errors.Join(er, errors.New("INVALID_TOKEN"))
+	}
+	claims, _ := DecodeToken(jwtToken)
+	exp := claims["exp"].(float64)
+	currTime := time.Now().Unix()
+	userNme := claims["username"].(string)
+	role := claims["role"].(string)
+	id := claims["id"].(string)
+	if int64(exp) < currTime {
+		return nil, errors.New("TOKEN_EXPIRED")
+	}
+	if int64(exp)-currTime < 7200 {
+		tkn, err := CreateToken(id, userNme, role)
+		if err != nil {
+			return nil, errors.Join(err, errors.New("internal server error"))
+		}
+		return &responses.LoginSuccessResponse{MobileNumber: userNme, LoginToken: tkn}, nil
+	} else {
+		return nil, errors.New("TOKEN_REFRESH_NOT_ALLOWED")
+	}
 }

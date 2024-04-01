@@ -53,7 +53,7 @@ var routeList = [...]route{
 			{http.MethodPost, "/sendOtp", handlers.HandleSendOtp},
 			{http.MethodPost, "/registerUser", handlers.HandleRegisterUser},
 			{http.MethodPost, "/login", handlers.HandleLoginUser},
-			{http.MethodPost, "/refresh_token", handlers.RefreshToken},
+			{http.MethodPost, "/refresh_token", handlers.HandleRefreshToken},
 		},
 	},
 	{
