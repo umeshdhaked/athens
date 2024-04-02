@@ -19,3 +19,19 @@ type UserSubscriptionRequest struct {
 type FetchSubscriptionRequest struct {
 	UserMobile string
 }
+
+type DeactivateSubscriptionRequest struct {
+	Id string
+}
+
+type AddCreditsRequest struct {
+	UserMobile    string
+	InitialCredit float32
+}
+
+type ChargeUserRequest struct {
+	UserId      string
+	Category    string
+	SubCategory string
+	UnitCount   float32
+}

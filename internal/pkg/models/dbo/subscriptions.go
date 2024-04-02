@@ -24,10 +24,21 @@ type UserSubscription struct {
 }
 
 type Credits struct {
-	Id              string `json:"id"`
-	UserId          string `json:"userId"`
-	InitialCredit   string `json:"initialCredit"`
-	RemainingCredit string `json:"remainingCredit"`
-	CreatedAt       string `json:"createdAt"`
-	DeletedAt       string `json:"deletedAt"`
+	Id              string  `json:"id"`
+	UserId          string  `json:"user_id"`
+	InitialCredit   float32 `json:"initial_credit"`
+	RemainingCredit float32 `json:"remaining_credit"`
+	CreatedAt       int64   `json:"createdAt"`
+	DeletedAt       int64   `json:"deletedAt"`
+}
+
+type CreditAudits struct {
+	Id            string  `json:"id"`
+	Category      string  `json:"category"`
+	SubCategory   string  `json:"sub_category"`
+	DeductedAmout float32 `json:"deducted_amount"`
+	AddedAmount   float32 `json:"added_amount"`
+	CreditId      string  `json:"credit_id"`
+	UserId        string  `json:"user_id"`
+	UpdatedAt     int64   `json:"updated_at"`
 }

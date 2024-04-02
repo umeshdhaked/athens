@@ -2,6 +2,8 @@ package subscription
 
 import (
 	"errors"
+	"log"
+	"sort"
 	"time"
 
 	"github.com/fastbiztech/hastinapura/internal/pkg/models/dbo"
@@ -13,13 +15,15 @@ import (
 )
 
 type SubscriptionService struct {
-	pricingRepo *repositories.PricingRepo
-	subRepo     *repositories.SubscriptionRepo
-	userRepo    *repositories.UserRepo
+	pricingRepo     *repositories.PricingRepo
+	subRepo         *repositories.SubscriptionRepo
+	userRepo        *repositories.UserRepo
+	creditRepo      *repositories.CreditsRepo
+	creditAuditRepo *repositories.CreditsAuditRepo
 }
 
-func NewSubscriptionService(pricingRepo *repositories.PricingRepo, subRepo *repositories.SubscriptionRepo, userRepo *repositories.UserRepo) *SubscriptionService {
-	return &SubscriptionService{pricingRepo: pricingRepo, subRepo: subRepo, userRepo: userRepo}
+func NewSubscriptionService(pricingRepo *repositories.PricingRepo, subRepo *repositories.SubscriptionRepo, userRepo *repositories.UserRepo, creditRepo *repositories.CreditsRepo, creditAuditRepo *repositories.CreditsAuditRepo) *SubscriptionService {
+	return &SubscriptionService{pricingRepo: pricingRepo, subRepo: subRepo, userRepo: userRepo, creditRepo: creditRepo, creditAuditRepo: creditAuditRepo}
 }
 
 func (s *SubscriptionService) CreateNewPricingSystem(ctx *gin.Context, pricing *requests.PricingRequest) (*responses.PricingResponse, error) {
@@ -70,12 +74,6 @@ func (s *SubscriptionService) CreateNewPricingSystem(ctx *gin.Context, pricing *
 }
 
 func (s *SubscriptionService) FetchAllActivePricingModel(ctx *gin.Context) ([]*responses.PricingResponse, error) {
-	if role, exists := ctx.Params.Get("role"); !exists {
-		return nil, errors.New("internal server error, user role not found")
-	} else if "admin" != role {
-		return nil, errors.New("only admin user allowed to add pricing")
-	}
-
 	pricing, er := s.pricingRepo.FetchAllActivePricing()
 	if er != nil {
 		return nil, er
@@ -175,12 +173,6 @@ func (s *SubscriptionService) AddSubscriptionToUser(ctx *gin.Context, subReq *re
 }
 
 func (s *SubscriptionService) FetchAllActiveSubscriptionsForUser(ctx *gin.Context, req *requests.FetchSubscriptionRequest) ([]*responses.SubscriptionResponse, error) {
-	if role, exists := ctx.Params.Get("role"); !exists {
-		return nil, errors.New("internal server error, user role not found")
-	} else if role != "admin" {
-		return nil, errors.New("only admin user allowed to add pricing")
-	}
-
 	// get User
 	user, er := s.userRepo.GetUserFromMobile(req.UserMobile)
 	if er != nil {
@@ -209,11 +201,139 @@ func (s *SubscriptionService) FetchAllActiveSubscriptionsForUser(ctx *gin.Contex
 	return resp, nil
 }
 
-// TODO: add/update credit api
+func (s *SubscriptionService) DeactivateSubscriptionsForUser(ctx *gin.Context, subRequest *requests.DeactivateSubscriptionRequest) error {
+	subsription, err := s.subRepo.GetSubscriptionFromId(subRequest.Id)
+	if err != nil {
+		return err
+	}
 
-func chargeUser(userId string, typ string, subtype string) {
+	subsription.Status = "INACTIVE"
+
+	return s.subRepo.CreateUserSubscription(subsription)
+}
+
+func (s *SubscriptionService) AddCreditToUser(ctx *gin.Context, subRequest *requests.AddCreditsRequest) error {
+	user, err := s.userRepo.GetUserFromMobile(subRequest.UserMobile)
+	if err != nil {
+		return err
+	}
+
+	credit, err := s.creditRepo.FetchUserCredit(user.Id)
+	if err != nil {
+		return err
+	}
+
+	log.Println("credit added", subRequest)
+
+	if credit == nil {
+		credit = &dbo.Credits{
+			Id:              uuid.New().String(),
+			UserId:          user.Id,
+			InitialCredit:   subRequest.InitialCredit,
+			RemainingCredit: subRequest.InitialCredit,
+			CreatedAt:       time.Now().Unix(),
+		}
+	} else {
+		credit.InitialCredit = credit.InitialCredit + subRequest.InitialCredit
+		credit.RemainingCredit = credit.RemainingCredit + subRequest.InitialCredit
+	}
+
+	if err = s.creditAuditRepo.CreateUserCreditAudit(&dbo.CreditAudits{
+		Id:            uuid.New().String(),
+		DeductedAmout: 0,
+		AddedAmount:   subRequest.InitialCredit,
+		CreditId:      credit.Id,
+		UserId:        credit.UserId,
+		UpdatedAt:     time.Now().Unix(),
+	}); err != nil {
+		return err
+	}
+
+	return s.creditRepo.CreateUserCredit(credit)
+}
+
+func (s *SubscriptionService) FetchCredit(ctx *gin.Context) (*responses.CreditsResponse, error) {
+	userId, exists := ctx.Params.Get("id")
+	if !exists { // create another version of this with payment validation with transaction ID
+		return nil, errors.New("internal server error, user id not found")
+	}
+	mobile, exists := ctx.Params.Get("username")
+	if !exists { // create another version of this with payment validation with transaction ID
+		return nil, errors.New("internal server error, user mobile not found")
+	}
+
+	credit, err := s.creditRepo.FetchUserCredit(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	creditResp := &responses.CreditsResponse{
+		Id:              credit.Id,
+		UserMobile:      mobile,
+		InitialCredit:   credit.InitialCredit,
+		RemainingCredit: credit.RemainingCredit,
+		CreatedAt:       credit.CreatedAt,
+	}
+
+	return creditResp, nil
+}
+
+func (s *SubscriptionService) ChargeUser(userId string, category string, subCategory string, unitCount float32) error {
 	// get subscription (recent one for typ,subtype,userId)
+	usersSubscription, er := s.subRepo.FetchAllSubscriptionForAUser(userId)
+	if er != nil {
+		return er
+	}
+	sort.Slice(usersSubscription[:], func(i, j int) bool {
+		return usersSubscription[i].CreatedAt > usersSubscription[j].CreatedAt
+	})
+	var currentActiveSub dbo.UserSubscription
+	for _, sub := range usersSubscription {
+		if sub.Status == "ACTIVE" && sub.Type == category && sub.SubType == subCategory {
+			currentActiveSub = sub
+			break
+		}
+	}
+
+	pricingId := currentActiveSub.PricingId
+
 	// get pricing from subscription
+	pricing, err := s.pricingRepo.GetPricingByPricingID(pricingId)
+	if err != nil {
+		return er
+	}
+
 	// fetch credit for user_id
-	// update credit from user_id
+	credit, err := s.creditRepo.FetchUserCredit(userId)
+	if err != nil {
+		return err
+	}
+	if credit == nil {
+		return errors.New("credit not found")
+	}
+
+	totalUsedCredit := pricing.Rates * unitCount
+	remainingCredit := credit.RemainingCredit
+
+	// check and update credit of user
+	if remainingCredit < totalUsedCredit {
+		return errors.New("CREDIT_EXHAUSTED")
+	}
+
+	credit.RemainingCredit = credit.RemainingCredit - totalUsedCredit
+
+	if err = s.creditAuditRepo.CreateUserCreditAudit(&dbo.CreditAudits{
+		Id:            uuid.New().String(),
+		Category:      category,
+		SubCategory:   subCategory,
+		DeductedAmout: totalUsedCredit,
+		AddedAmount:   0,
+		CreditId:      credit.Id,
+		UserId:        credit.UserId,
+		UpdatedAt:     time.Now().Unix(),
+	}); err != nil {
+		return err
+	}
+
+	return s.creditRepo.CreateUserCredit(credit)
 }

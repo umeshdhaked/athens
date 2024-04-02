@@ -20,3 +20,11 @@ type SubscriptionResponse struct {
 	CreatedAt int64
 	DeletedAt int64
 }
+
+type CreditsResponse struct {
+	Id              string
+	UserMobile      string
+	InitialCredit   float32
+	RemainingCredit float32
+	CreatedAt       int64
+}
