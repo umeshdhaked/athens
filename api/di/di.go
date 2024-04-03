@@ -29,6 +29,8 @@ var subscriptionRepo *repositories.SubscriptionRepo
 var pricingRepo *repositories.PricingRepo
 var promoRepo *repositories.PromotionRepo
 var otpRepo *repositories.OtpRepo
+var creditRepo *repositories.CreditsRepo
+var creditAuditRepo *repositories.CreditsAuditRepo
 
 func InitialiseServices(conf *config.Config) {
 	crp = crypto.NewCrypto()
@@ -40,12 +42,14 @@ func InitialiseServices(conf *config.Config) {
 	pricingRepo = repositories.NewPricingRepo(dynamoDb)
 	promoRepo = repositories.NewPromotionRepo(dynamoDb)
 	otpRepo = repositories.NewOtpRepo(dynamoDb)
+	creditRepo = repositories.NewCreditsRepo(dynamoDb)
+	creditAuditRepo = repositories.NewCreditsAuditRepo(dynamoDb)
 	//services
 	regService = register.NewRegistrationService(userRepo, otpService, crp)
 	otpSender = otp.NewOtpSender(otpRepo)
 	otpService = otcSvc.NewOtpService(otpSender, crp)
 	promoSvc = promo.NewPromoService(promoRepo)
-	subService = subscription.NewSubscriptionService(pricingRepo, subscriptionRepo, userRepo)
+	subService = subscription.NewSubscriptionService(pricingRepo, subscriptionRepo, userRepo, creditRepo, creditAuditRepo)
 }
 
 func GetRegistrationService() *register.RegistrationService {

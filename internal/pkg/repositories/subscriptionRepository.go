@@ -2,7 +2,7 @@ package repositories
 
 import (
 	"errors"
-	"fmt"
+	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
@@ -43,10 +43,42 @@ func (s *SubscriptionRepo) FetchAllSubscriptionForAUser(userId string) ([]dbo.Us
 	if *resp.Count > 0 {
 		subscriptions := []dbo.UserSubscription{}
 		if err := dynamodbattribute.UnmarshalListOfMaps(resp.Items, &subscriptions); err != nil {
-			fmt.Println(err)
+			log.Println(err)
 			return nil, err
 		}
 		return subscriptions, nil
+	}
+	return nil, nil
+}
+
+func (s *SubscriptionRepo) GetSubscriptionFromId(subId string) (*dbo.UserSubscription, error) {
+	queryInput := &dynamodb.QueryInput{
+		TableName: aws.String("user_subscriptions"),
+		IndexName: aws.String("id-index"),
+		KeyConditions: map[string]*dynamodb.Condition{
+			"id": {
+				ComparisonOperator: aws.String("EQ"),
+				AttributeValueList: []*dynamodb.AttributeValue{
+					{
+						S: aws.String(subId),
+					},
+				},
+			},
+		},
+	}
+
+	var resp, err = s.svc.Query(queryInput)
+	if err != nil {
+		return nil, err
+	}
+
+	if *resp.Count > 0 {
+		subscriptions := []dbo.UserSubscription{}
+		if err := dynamodbattribute.UnmarshalListOfMaps(resp.Items, &subscriptions); err != nil {
+			log.Println(err)
+			return nil, err
+		}
+		return &subscriptions[0], nil
 	}
 	return nil, nil
 }
@@ -65,7 +97,7 @@ func (s *SubscriptionRepo) BatchCreateUserSubscription(ctx *gin.Context, userSub
 		},
 	}
 	output, er := s.svc.BatchWriteItemWithContext(ctx, &batchWrite)
-	fmt.Println(output)
+	log.Println(output)
 	if er != nil {
 		return errors.Join(er, errors.New("unable to add subscription to user"))
 	}
@@ -80,6 +112,6 @@ func (s *SubscriptionRepo) CreateUserSubscription(userSubsDto *dbo.UserSubscript
 	}
 
 	req, output := s.svc.PutItemRequest(params)
-	fmt.Print(output)
+	log.Print(output)
 	return req.Send()
 }

@@ -88,3 +88,64 @@ func HandleFetchAllActiveSubscriptionsForUser(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, resp)
 }
+
+func HandleDeactivateSubscriptionsForUser(ctx *gin.Context) {
+	var subRequest *requests.DeactivateSubscriptionRequest
+	if err := ctx.ShouldBindJSON(&subRequest); err != nil {
+		ctx.String(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	var sub *subscription.SubscriptionService = di.GetSubscriptionService()
+	err := sub.DeactivateSubscriptionsForUser(ctx, subRequest)
+	if nil != err {
+		ctx.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, "OK")
+
+}
+
+func HandleAddCreditToUser(ctx *gin.Context) {
+	var creditRequest *requests.AddCreditsRequest
+	if err := ctx.ShouldBindJSON(&creditRequest); err != nil {
+		ctx.String(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	var sub *subscription.SubscriptionService = di.GetSubscriptionService()
+	err := sub.AddCreditToUser(ctx, creditRequest)
+	if nil != err {
+		ctx.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+	ctx.JSON(http.StatusOK, "OK")
+}
+
+func HandleFetchCredits(ctx *gin.Context) {
+	var sub *subscription.SubscriptionService = di.GetSubscriptionService()
+	resp, err := sub.FetchCredit(ctx)
+	if nil != err {
+		ctx.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+	ctx.JSON(http.StatusOK, resp)
+}
+
+func HandleChargeUser(ctx *gin.Context) {
+	var chargeRequest *requests.ChargeUserRequest
+	if err := ctx.ShouldBindJSON(&chargeRequest); err != nil {
+		ctx.String(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	var sub *subscription.SubscriptionService = di.GetSubscriptionService()
+	err := sub.ChargeUser(chargeRequest.UserId, chargeRequest.Category, chargeRequest.SubCategory, chargeRequest.UnitCount)
+	if nil != err {
+		ctx.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, "OK")
+}
