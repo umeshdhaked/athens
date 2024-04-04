@@ -6,12 +6,12 @@ import (
 
 	"github.com/fastbiztech/hastinapura/api/di"
 	"github.com/fastbiztech/hastinapura/api/services/register"
-	"github.com/fastbiztech/hastinapura/pkg/models/requests"
+	"github.com/fastbiztech/hastinapura/pkg/models/dtos"
 	"github.com/gin-gonic/gin"
 )
 
 func HandleSendOtp(ctx *gin.Context) {
-	var user requests.RegisterUserRequest
+	var user dtos.RegisterUserRequest
 	if err := ctx.ShouldBindJSON(&user); err != nil {
 		fmt.Print(user)
 		ctx.Error(err)
@@ -28,7 +28,7 @@ func HandleSendOtp(ctx *gin.Context) {
 }
 
 func HandleRegisterUser(ctx *gin.Context) {
-	var user requests.RegisterUserRequest
+	var user dtos.RegisterUserRequest
 	if err := ctx.ShouldBindJSON(&user); err != nil {
 		ctx.Error(err)
 		ctx.AbortWithStatus(http.StatusBadRequest)
@@ -46,7 +46,7 @@ func HandleRegisterUser(ctx *gin.Context) {
 }
 
 func HandleLoginUser(ctx *gin.Context) {
-	var user requests.RegisterUserRequest
+	var user dtos.RegisterUserRequest
 	if err := ctx.ShouldBindJSON(&user); err != nil {
 		fmt.Print(user)
 		ctx.Error(err)

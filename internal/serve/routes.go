@@ -5,6 +5,7 @@ import (
 
 	"github.com/fastbiztech/hastinapura/api/handlers"
 	"github.com/fastbiztech/hastinapura/api/handlers/middleware"
+	"github.com/fastbiztech/hastinapura/internal/controllers"
 	"github.com/gin-gonic/gin"
 )
 
@@ -48,6 +49,13 @@ var routeList = [...]route{
 			{http.MethodPost, "/savePromoNumber", handlers.HandleSaveNumber},
 			{http.MethodPost, "/fetchPromoNumbers", handlers.HandleFetchPromoNumbers},
 			{http.MethodPost, "/markContacted", handlers.HandleMarkContactedNumber},
+		},
+	},
+	{
+		group:      "/v1/group",
+		middleware: []gin.HandlerFunc{},
+		endpoints: []endpoint{
+			{http.MethodPost, "/contacts", controllers.UploadGroupContacts},
 		},
 	},
 }

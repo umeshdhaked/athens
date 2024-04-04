@@ -10,8 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/fastbiztech/hastinapura/api/services/otp"
 	"github.com/fastbiztech/hastinapura/pkg/models/dbo"
-	"github.com/fastbiztech/hastinapura/pkg/models/requests"
-	"github.com/fastbiztech/hastinapura/pkg/models/responses"
+	"github.com/fastbiztech/hastinapura/pkg/models/dtos"
 	"github.com/fastbiztech/hastinapura/pkg/services/crypto"
 	"github.com/fastbiztech/hastinapura/pkg/services/jwt"
 	"github.com/google/uuid"
@@ -27,7 +26,7 @@ func NewRegistrationService(svc *dynamodb.DynamoDB, otpService *otp.OtpService, 
 	return &RegistrationService{svc: svc, otpService: otpService, cryp: cryp}
 }
 
-func (s *RegistrationService) SendOtp(user requests.RegisterUserRequest) error {
+func (s *RegistrationService) SendOtp(user dtos.RegisterUserRequest) error {
 	err := s.otpService.SendOtp(user.MobileNumber)
 	// add OTP send logic here.
 	log.Println("otp sent for user ", user.MobileNumber)
@@ -35,7 +34,7 @@ func (s *RegistrationService) SendOtp(user requests.RegisterUserRequest) error {
 	return err
 }
 
-func (s *RegistrationService) RegisterUser(user requests.RegisterUserRequest) (*responses.LoginSuccessResponse, error) {
+func (s *RegistrationService) RegisterUser(user dtos.RegisterUserRequest) (*dtos.LoginSuccessResponse, error) {
 	log.Println("Received register user request for user ", user)
 	if err := s.otpService.VerifyOtp(user.MobileNumber, user.Otp); err != nil {
 		return nil, err
@@ -60,10 +59,10 @@ func (s *RegistrationService) RegisterUser(user requests.RegisterUserRequest) (*
 		return nil, err
 	}
 
-	return &responses.LoginSuccessResponse{MobileNumber: user.MobileNumber, LoginToken: token}, nil
+	return &dtos.LoginSuccessResponse{MobileNumber: user.MobileNumber, LoginToken: token}, nil
 }
 
-func (s *RegistrationService) LoginUser(user requests.RegisterUserRequest) (*responses.LoginSuccessResponse, error) {
+func (s *RegistrationService) LoginUser(user dtos.RegisterUserRequest) (*dtos.LoginSuccessResponse, error) {
 
 	mobile := user.MobileNumber
 	password := user.Password
@@ -99,7 +98,7 @@ func (s *RegistrationService) LoginUser(user requests.RegisterUserRequest) (*res
 				return nil, err
 			}
 
-			return &responses.LoginSuccessResponse{MobileNumber: (users[0]).Mobile, LoginToken: token}, nil
+			return &dtos.LoginSuccessResponse{MobileNumber: (users[0]).Mobile, LoginToken: token}, nil
 		} else {
 			return nil, errors.New("password did not match")
 		}

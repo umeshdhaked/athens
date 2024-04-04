@@ -7,6 +7,9 @@ import (
 	"github.com/fastbiztech/hastinapura/api/services/promo"
 	"github.com/fastbiztech/hastinapura/api/services/register"
 	"github.com/fastbiztech/hastinapura/internal/config"
+	"github.com/fastbiztech/hastinapura/internal/pkg/db"
+	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
+	"github.com/fastbiztech/hastinapura/internal/services/group"
 	"github.com/fastbiztech/hastinapura/pkg/services/aws"
 	"github.com/fastbiztech/hastinapura/pkg/services/crypto"
 	"github.com/fastbiztech/hastinapura/pkg/services/dynamo"
@@ -22,7 +25,9 @@ var otpService *otcSvc.OtpService
 var crp *crypto.Crypto
 var promoSvc *promo.PromoService
 
-func InitialiseServices(conf *config.Config) {
+func InitialiseDeps() {
+	conf := config.GetConfig()
+
 	sess = aws.ConfigureAwsSdkSession(conf)
 	dynamoDb = dynamo.ConfigureDynamoSession(sess)
 	otpSender = otp.NewOtpSender(dynamoDb)
@@ -30,6 +35,12 @@ func InitialiseServices(conf *config.Config) {
 	otpService = otcSvc.NewOtpService(otpSender, crp)
 	regService = register.NewRegistrationService(dynamoDb, otpService, crp)
 	promoSvc = promo.NewPromoService(dynamoDb)
+
+	// Repo
+	repo.NewRepository(db.GetDb().Client)
+
+	// Group Service
+	group.InitialiseService()
 }
 
 func GetRegistrationService() *register.RegistrationService {
