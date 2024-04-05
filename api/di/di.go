@@ -8,6 +8,7 @@ import (
 	"github.com/fastbiztech/hastinapura/api/services/register"
 	"github.com/fastbiztech/hastinapura/api/services/subscription"
 	"github.com/fastbiztech/hastinapura/internal/config"
+	pkgAws "github.com/fastbiztech/hastinapura/internal/pkg/aws"
 	"github.com/fastbiztech/hastinapura/internal/pkg/db"
 	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
 	"github.com/fastbiztech/hastinapura/internal/pkg/repositories"
@@ -62,6 +63,9 @@ func InitialiseDeps() {
 
 	// Group Service
 	group.InitialiseService()
+
+	// Init services/dependencies
+	pkgAws.InitialiseS3Client()
 }
 
 func GetRegistrationService() *register.RegistrationService {

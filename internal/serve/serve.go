@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/fastbiztech/hastinapura/internal/config"
-	"github.com/fastbiztech/hastinapura/internal/pkg/aws"
 	"github.com/fastbiztech/hastinapura/internal/utils"
 	"github.com/gin-gonic/gin"
 )
@@ -14,9 +13,6 @@ import (
 func Serve() {
 	// Initialise gin engine
 	engine := gin.Default()
-
-	// Init services/dependencies
-	initDeps()
 
 	// Register routes
 	for _, routeGroup := range routeList {
@@ -52,8 +48,4 @@ func registerRouteGroup(router *gin.Engine, routeGroup route) {
 	for _, endpoint := range routeGroup.endpoints {
 		group.Handle(endpoint.method, endpoint.path, endpoint.handler)
 	}
-}
-
-func initDeps() {
-	aws.InitialiseS3Client()
 }
