@@ -35,6 +35,26 @@ func InitialiseService() {
 }
 
 func (s *Service) UploadGroupToS3(c *gin.Context, file multipart.File, request dtos.UploadGroupContactsRequest) (interface{}, error) {
+	//  add validation for same name already existed
+	conditions := dtos.DbConditions{
+		Index: "test_index1",
+		PKey: map[string]interface{}{
+			models.ColumnName: request.Name,
+		},
+		NonPKey: map[string]interface{}{
+			models.ColumnUserID: "USERID",
+		},
+	}
+
+	items, err := s.baseRepo.QueryItems(context.Background(), models.TableGroup, conditions)
+	if err != nil {
+		log.Fatalf("error fetching column item: %v", err)
+	}
+
+	if len(items) > 0 {
+		log.Fatalf("duplicate UserID/Name entry")
+	}
+
 	s3FileID := uuid.New().String()
 
 	// Add entry in group table
@@ -44,14 +64,14 @@ func (s *Service) UploadGroupToS3(c *gin.Context, file multipart.File, request d
 	}
 
 	entryGroupItem := map[string]types.AttributeValue{
-		"ID":   &types.AttributeValueMemberS{Value: s3FileID},
-		"Name": &types.AttributeValueMemberS{Value: request.Name},
+		models.ColumnID:   &types.AttributeValueMemberS{Value: s3FileID},
+		models.ColumnName: &types.AttributeValueMemberS{Value: request.Name},
 
 		// TODO fetch user id from token
-		"UserID": &types.AttributeValueMemberS{Value: "USERID"},
+		models.ColumnUserID: &types.AttributeValueMemberS{Value: "USERID"},
 
 		// Array of column names of csv file
-		"ColumnNames": &types.AttributeValueMemberSS{Value: columnNames},
+		models.ColumnColumnNames: &types.AttributeValueMemberSS{Value: columnNames},
 	}
 
 	// Insert item into the database
@@ -66,6 +86,23 @@ func (s *Service) UploadGroupToS3(c *gin.Context, file multipart.File, request d
 	}
 
 	return nil, nil
+}
+
+func (s *Service) GetGroupContacts(c *gin.Context, request dtos.GetGroupContactsRequest) (interface{}, error) {
+	conditions := dtos.DbConditions{
+		Index: "test_index1",
+		PKey: map[string]interface{}{
+			models.ColumnName: request.Name,
+		},
+	}
+
+	// Insert item into the database
+	items, err := s.baseRepo.QueryItems(context.Background(), models.TableGroup, conditions)
+	if err != nil {
+		log.Fatalf("error inserting item: %v", err)
+	}
+
+	return items, nil
 }
 
 func GetService() *Service {

@@ -56,6 +56,7 @@ var routeList = [...]route{
 		middleware: []gin.HandlerFunc{},
 		endpoints: []endpoint{
 			{http.MethodPost, "/contacts", controllers.UploadGroupContacts},
+			{http.MethodGet, "/contacts", controllers.GetGroupContacts},
 		},
 	},
 }

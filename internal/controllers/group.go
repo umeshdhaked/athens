@@ -37,3 +37,21 @@ func UploadGroupContacts(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "File uploaded to S3 successfully"})
 }
+
+func GetGroupContacts(c *gin.Context) {
+	var request = dtos.GetGroupContactsRequest{}
+
+	// Bind the form data into the FormInput struct
+	if err := c.BindQuery(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	response, err := group.GetService().GetGroupContacts(c, request)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": response})
+}

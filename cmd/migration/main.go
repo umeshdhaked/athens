@@ -15,10 +15,11 @@ import (
 )
 
 type TableSchema struct {
-	TableName             string                       `json:"TableName"`
-	KeySchema             []types.KeySchemaElement     `json:"KeySchema"`
-	AttributeDefinitions  []types.AttributeDefinition  `json:"AttributeDefinitions"`
-	ProvisionedThroughput *types.ProvisionedThroughput `json:"ProvisionedThroughput"`
+	TableName              string                       `json:"TableName"`
+	KeySchema              []types.KeySchemaElement     `json:"KeySchema"`
+	AttributeDefinitions   []types.AttributeDefinition  `json:"AttributeDefinitions"`
+	ProvisionedThroughput  *types.ProvisionedThroughput `json:"ProvisionedThroughput"`
+	GlobalSecondaryIndexes []types.GlobalSecondaryIndex `json:"GlobalSecondaryIndexes"`
 }
 
 func main() {
@@ -51,10 +52,11 @@ func main() {
 	// Create tables
 	for _, schema := range tableSchemas {
 		input := &dynamodb.CreateTableInput{
-			TableName:             &schema.TableName,
-			KeySchema:             schema.KeySchema,
-			AttributeDefinitions:  schema.AttributeDefinitions,
-			ProvisionedThroughput: schema.ProvisionedThroughput,
+			TableName:              &schema.TableName,
+			KeySchema:              schema.KeySchema,
+			AttributeDefinitions:   schema.AttributeDefinitions,
+			ProvisionedThroughput:  schema.ProvisionedThroughput,
+			GlobalSecondaryIndexes: schema.GlobalSecondaryIndexes,
 		}
 		_, err := client.CreateTable(context.Background(), input)
 		if err != nil {

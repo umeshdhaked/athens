@@ -18,12 +18,28 @@
       {"AttributeName": "ID", "KeyType": "HASH"}
     ],
     "AttributeDefinitions": [
-      {"AttributeName": "ID", "AttributeType": "S"}
+      {"AttributeName": "ID", "AttributeType": "S"},
+      {"AttributeName": "Name", "AttributeType": "S"}
     ],
     "ProvisionedThroughput": {
       "ReadCapacityUnits": 5,
       "WriteCapacityUnits": 5
-    }
+    },
+    "GlobalSecondaryIndexes": [
+      {
+        "IndexName": "test_index1",
+        "KeySchema": [
+          { "AttributeName": "Name", "KeyType": "HASH" }
+        ],
+        "Projection": {
+          "ProjectionType": "ALL"
+        },
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": 5,
+          "WriteCapacityUnits": 5
+        }
+      }
+    ]
   },
   {
     "TableName": "Contacts",
