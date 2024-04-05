@@ -5,6 +5,7 @@ type User struct { //user_table in dynamoDB
 	Mobile          string `json:"mobile"`
 	Hashed_password string `json:"hashed_password"`
 	Name            string `json:"name"`
+	Role            string `json:"role"`
 }
 
 type PromoPhone struct { //promo_phones_no table in dynamoDB
@@ -18,4 +19,5 @@ type Otp struct { // otp table in dynamoDB
 	Id     string `json:"id"`
 	Mobile string `json:"mobile"`
 	Otp    string `json:"otp"`
+	Exp    int64  `json:"exp"`
 }

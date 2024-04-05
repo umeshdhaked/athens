@@ -3,9 +3,10 @@ package otp
 import (
 	"errors"
 	"log"
+	"time"
 
-	"github.com/fastbiztech/hastinapura/pkg/services/crypto"
-	"github.com/fastbiztech/hastinapura/pkg/services/otp"
+	"github.com/fastbiztech/hastinapura/internal/pkg/services/crypto"
+	"github.com/fastbiztech/hastinapura/internal/pkg/services/otp"
 )
 
 type OtpService struct {
@@ -32,9 +33,10 @@ func (o *OtpService) SendOtp(mobile string) error {
 
 func (o *OtpService) VerifyOtp(mobile string, otp string) error {
 	currentHashedOtp := o.crypto.HashString(otp)
-	hashedOtp := o.otpSender.FetchOtp(mobile)
+	fetchedOtp := o.otpSender.FetchOtp(mobile)
 
-	if hashedOtp == currentHashedOtp {
+	currTime := time.Now().Unix()
+	if fetchedOtp != nil && fetchedOtp.Otp == currentHashedOtp && fetchedOtp.Exp > currTime {
 		return nil
 	}
 	return errors.New("otp verification failed")

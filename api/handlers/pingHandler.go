@@ -1,17 +1,13 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 
-	"github.com/fastbiztech/hastinapura/pkg/models"
+	"github.com/fastbiztech/hastinapura/internal/pkg/models"
 	"github.com/gin-gonic/gin"
 )
 
 func HandleGetServerPing(ctx *gin.Context) {
-	mobile, _ := ctx.Params.Get("username")
-	id, _ := ctx.Params.Get("id")
-
-	content := models.TestingResponse{Message: fmt.Sprintf("Ping Pong to %s %s", id, mobile)}
+	content := models.Testing{Message: "Pong"}
 	ctx.JSON(http.StatusOK, content)
 }
