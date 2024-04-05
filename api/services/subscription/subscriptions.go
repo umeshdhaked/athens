@@ -7,9 +7,8 @@ import (
 	"time"
 
 	"github.com/fastbiztech/hastinapura/internal/pkg/models/dbo"
-	"github.com/fastbiztech/hastinapura/internal/pkg/models/requests"
-	"github.com/fastbiztech/hastinapura/internal/pkg/models/responses"
 	"github.com/fastbiztech/hastinapura/internal/pkg/repositories"
+	"github.com/fastbiztech/hastinapura/pkg/models/dtos"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -26,7 +25,7 @@ func NewSubscriptionService(pricingRepo *repositories.PricingRepo, subRepo *repo
 	return &SubscriptionService{pricingRepo: pricingRepo, subRepo: subRepo, userRepo: userRepo, creditRepo: creditRepo, creditAuditRepo: creditAuditRepo}
 }
 
-func (s *SubscriptionService) CreateNewPricingSystem(ctx *gin.Context, pricing *requests.PricingRequest) (*responses.PricingResponse, error) {
+func (s *SubscriptionService) CreateNewPricingSystem(ctx *gin.Context, pricing *dtos.PricingRequest) (*dtos.PricingResponse, error) {
 
 	if role, exists := ctx.Params.Get("role"); !exists {
 		return nil, errors.New("internal server error, user role not found")
@@ -70,18 +69,18 @@ func (s *SubscriptionService) CreateNewPricingSystem(ctx *gin.Context, pricing *
 		return nil, er
 	}
 
-	return &responses.PricingResponse{Id: obj.Id}, nil
+	return &dtos.PricingResponse{Id: obj.Id}, nil
 }
 
-func (s *SubscriptionService) FetchAllActivePricingModel(ctx *gin.Context) ([]*responses.PricingResponse, error) {
+func (s *SubscriptionService) FetchAllActivePricingModel(ctx *gin.Context) ([]*dtos.PricingResponse, error) {
 	pricing, er := s.pricingRepo.FetchAllActivePricing()
 	if er != nil {
 		return nil, er
 	}
 
-	resp := []*responses.PricingResponse{}
+	resp := []*dtos.PricingResponse{}
 	for _, p := range pricing {
-		resp = append(resp, &responses.PricingResponse{
+		resp = append(resp, &dtos.PricingResponse{
 			Id:         p.Id,
 			Category:   p.Category,
 			SubCatgory: p.SubCatgory,
@@ -94,7 +93,7 @@ func (s *SubscriptionService) FetchAllActivePricingModel(ctx *gin.Context) ([]*r
 	return resp, nil
 }
 
-func (s *SubscriptionService) AddDefaultSubscriptionToUser(ctx *gin.Context, subReq *requests.UserDefaultSubscriptionRequest) error {
+func (s *SubscriptionService) AddDefaultSubscriptionToUser(ctx *gin.Context, subReq *dtos.UserDefaultSubscriptionRequest) error {
 	if role, exists := ctx.Params.Get("role"); !exists {
 		return errors.New("internal server error, user role not found")
 	} else if "admin" != role {
@@ -133,7 +132,7 @@ func (s *SubscriptionService) AddDefaultSubscriptionToUser(ctx *gin.Context, sub
 	return s.subRepo.BatchCreateUserSubscription(ctx, userSubsDto)
 }
 
-func (s *SubscriptionService) AddSubscriptionToUser(ctx *gin.Context, subReq *requests.UserSubscriptionRequest) error {
+func (s *SubscriptionService) AddSubscriptionToUser(ctx *gin.Context, subReq *dtos.UserSubscriptionRequest) error {
 	if role, exists := ctx.Params.Get("role"); !exists {
 		return errors.New("internal server error, user role not found")
 	} else if "admin" != role {
@@ -172,7 +171,7 @@ func (s *SubscriptionService) AddSubscriptionToUser(ctx *gin.Context, subReq *re
 	return nil
 }
 
-func (s *SubscriptionService) FetchAllActiveSubscriptionsForUser(ctx *gin.Context, req *requests.FetchSubscriptionRequest) ([]*responses.SubscriptionResponse, error) {
+func (s *SubscriptionService) FetchAllActiveSubscriptionsForUser(ctx *gin.Context, req *dtos.FetchSubscriptionRequest) ([]*dtos.SubscriptionResponse, error) {
 	// get User
 	user, er := s.userRepo.GetUserFromMobile(req.UserMobile)
 	if er != nil {
@@ -184,9 +183,9 @@ func (s *SubscriptionService) FetchAllActiveSubscriptionsForUser(ctx *gin.Contex
 		return nil, err
 	}
 
-	resp := []*responses.SubscriptionResponse{}
+	resp := []*dtos.SubscriptionResponse{}
 	for _, s := range subscriptions {
-		resp = append(resp, &responses.SubscriptionResponse{
+		resp = append(resp, &dtos.SubscriptionResponse{
 			Id:        s.Id,
 			PricingId: s.PricingId,
 			UserId:    s.UserId,
@@ -201,7 +200,7 @@ func (s *SubscriptionService) FetchAllActiveSubscriptionsForUser(ctx *gin.Contex
 	return resp, nil
 }
 
-func (s *SubscriptionService) DeactivateSubscriptionsForUser(ctx *gin.Context, subRequest *requests.DeactivateSubscriptionRequest) error {
+func (s *SubscriptionService) DeactivateSubscriptionsForUser(ctx *gin.Context, subRequest *dtos.DeactivateSubscriptionRequest) error {
 	subsription, err := s.subRepo.GetSubscriptionFromId(subRequest.Id)
 	if err != nil {
 		return err
@@ -212,7 +211,7 @@ func (s *SubscriptionService) DeactivateSubscriptionsForUser(ctx *gin.Context, s
 	return s.subRepo.CreateUserSubscription(subsription)
 }
 
-func (s *SubscriptionService) AddCreditToUser(ctx *gin.Context, subRequest *requests.AddCreditsRequest) error {
+func (s *SubscriptionService) AddCreditToUser(ctx *gin.Context, subRequest *dtos.AddCreditsRequest) error {
 	user, err := s.userRepo.GetUserFromMobile(subRequest.UserMobile)
 	if err != nil {
 		return err
@@ -252,7 +251,7 @@ func (s *SubscriptionService) AddCreditToUser(ctx *gin.Context, subRequest *requ
 	return s.creditRepo.CreateUserCredit(credit)
 }
 
-func (s *SubscriptionService) FetchCredit(ctx *gin.Context) (*responses.CreditsResponse, error) {
+func (s *SubscriptionService) FetchCredit(ctx *gin.Context) (*dtos.CreditsResponse, error) {
 	userId, exists := ctx.Params.Get("id")
 	if !exists { // create another version of this with payment validation with transaction ID
 		return nil, errors.New("internal server error, user id not found")
@@ -267,7 +266,7 @@ func (s *SubscriptionService) FetchCredit(ctx *gin.Context) (*responses.CreditsR
 		return nil, err
 	}
 
-	creditResp := &responses.CreditsResponse{
+	creditResp := &dtos.CreditsResponse{
 		Id:              credit.Id,
 		UserMobile:      mobile,
 		InitialCredit:   credit.InitialCredit,

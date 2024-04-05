@@ -3,14 +3,16 @@ package handlers
 import (
 	"github.com/fastbiztech/hastinapura/api/di"
 	"github.com/fastbiztech/hastinapura/api/services/register"
-	"github.com/fastbiztech/hastinapura/internal/pkg/models/requests"
 	"github.com/fastbiztech/hastinapura/internal/pkg/services/jwt"
-	"github.com/gin-gonic/gin"
+	"github.com/fastbiztech/hastinapura/pkg/models/dtos"
+
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func HandleSendOtp(ctx *gin.Context) {
-	var user requests.RegisterUserRequest
+	var user dtos.RegisterUserRequest
 	if err := ctx.ShouldBindJSON(&user); err != nil {
 		ctx.String(http.StatusBadRequest, err.Error())
 		return
@@ -25,7 +27,7 @@ func HandleSendOtp(ctx *gin.Context) {
 }
 
 func HandleRegisterUser(ctx *gin.Context) {
-	var user requests.RegisterUserRequest
+	var user dtos.RegisterUserRequest
 	if err := ctx.ShouldBindJSON(&user); err != nil {
 		ctx.String(http.StatusBadRequest, err.Error())
 		return
@@ -42,7 +44,7 @@ func HandleRegisterUser(ctx *gin.Context) {
 }
 
 func HandleLoginUser(ctx *gin.Context) {
-	var user requests.RegisterUserRequest
+	var user dtos.RegisterUserRequest
 	if err := ctx.ShouldBindJSON(&user); err != nil {
 		ctx.String(http.StatusBadRequest, err.Error())
 		return

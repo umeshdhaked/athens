@@ -1,4 +1,4 @@
-package responses
+package dtos
 
 type LoginSuccessResponse struct {
 	MobileNumber string `json:"mobile" binding:"required"`

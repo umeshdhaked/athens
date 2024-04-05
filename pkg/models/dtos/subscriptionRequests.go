@@ -1,4 +1,4 @@
-package requests
+package dtos
 
 type PricingRequest struct {
 	Category   string

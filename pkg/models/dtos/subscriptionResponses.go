@@ -1,4 +1,4 @@
-package responses
+package dtos
 
 type PricingResponse struct {
 	Id         string

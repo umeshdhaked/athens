@@ -8,11 +8,15 @@ import (
 	"github.com/fastbiztech/hastinapura/api/services/register"
 	"github.com/fastbiztech/hastinapura/api/services/subscription"
 	"github.com/fastbiztech/hastinapura/internal/config"
+	pkgAws "github.com/fastbiztech/hastinapura/internal/pkg/aws"
+	"github.com/fastbiztech/hastinapura/internal/pkg/db"
+	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
 	"github.com/fastbiztech/hastinapura/internal/pkg/repositories"
 	"github.com/fastbiztech/hastinapura/internal/pkg/services/aws"
 	"github.com/fastbiztech/hastinapura/internal/pkg/services/crypto"
 	"github.com/fastbiztech/hastinapura/internal/pkg/services/dynamo"
 	"github.com/fastbiztech/hastinapura/internal/pkg/services/otp"
+	"github.com/fastbiztech/hastinapura/internal/services/group"
 )
 
 // var dynamoConnection pkg.DynnamoConnection
@@ -32,8 +36,11 @@ var otpRepo *repositories.OtpRepo
 var creditRepo *repositories.CreditsRepo
 var creditAuditRepo *repositories.CreditsAuditRepo
 
-func InitialiseServices(conf *config.Config) {
+func InitialiseDeps() {
+	conf := config.GetConfig()
+
 	crp = crypto.NewCrypto()
+
 	sess = aws.ConfigureAwsSdkSession(conf)
 	dynamoDb = dynamo.ConfigureDynamoSession(sess)
 	//repos
@@ -50,6 +57,15 @@ func InitialiseServices(conf *config.Config) {
 	otpService = otcSvc.NewOtpService(otpSender, crp)
 	promoSvc = promo.NewPromoService(promoRepo)
 	subService = subscription.NewSubscriptionService(pricingRepo, subscriptionRepo, userRepo, creditRepo, creditAuditRepo)
+
+	// Repo
+	repo.NewRepository(db.GetDb().Client)
+
+	// Group Service
+	group.InitialiseService()
+
+	// Init services/dependencies
+	pkgAws.InitialiseS3Client()
 }
 
 func GetRegistrationService() *register.RegistrationService {

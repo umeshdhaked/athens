@@ -5,6 +5,7 @@ import (
 
 	"github.com/fastbiztech/hastinapura/api/handlers"
 	"github.com/fastbiztech/hastinapura/api/handlers/middleware"
+	"github.com/fastbiztech/hastinapura/internal/controllers"
 	"github.com/gin-gonic/gin"
 )
 
@@ -77,6 +78,14 @@ var routeList = [...]route{
 		endpoints: []endpoint{
 			{http.MethodPost, "/addCreditToUser", handlers.HandleAddCreditToUser}, // admin api
 			{http.MethodPost, "/chargeUser", handlers.HandleChargeUser},           //this was created just for testing
+		},
+	},
+	{
+		group:      "/v1/group",
+		middleware: []gin.HandlerFunc{},
+		endpoints: []endpoint{
+			{http.MethodPost, "/contacts", controllers.UploadGroupContacts},
+			{http.MethodGet, "/contacts", controllers.GetGroupContacts},
 		},
 	},
 }

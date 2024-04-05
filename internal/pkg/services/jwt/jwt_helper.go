@@ -3,10 +3,12 @@ package jwt
 import (
 	"errors"
 	"fmt"
-	"github.com/fastbiztech/hastinapura/internal/pkg/models/responses"
-	"github.com/gin-gonic/gin"
+
 	"log"
 	"time"
+
+	"github.com/fastbiztech/hastinapura/pkg/models/dtos"
+	"github.com/gin-gonic/gin"
 
 	"github.com/golang-jwt/jwt"
 )
@@ -59,7 +61,7 @@ func DecodeToken(tokenString string) (jwt.MapClaims, error) {
 	return claims, nil
 }
 
-func RefreshToken(ctx *gin.Context) (*responses.LoginSuccessResponse, error) {
+func RefreshToken(ctx *gin.Context) (*dtos.LoginSuccessResponse, error) {
 	jwtToken := ctx.Request.Header["Token"][0]
 
 	if er := VerifyToken(jwtToken); er != nil {
@@ -80,7 +82,7 @@ func RefreshToken(ctx *gin.Context) (*responses.LoginSuccessResponse, error) {
 		if err != nil {
 			return nil, errors.Join(err, errors.New("internal server error"))
 		}
-		return &responses.LoginSuccessResponse{MobileNumber: userNme, LoginToken: tkn}, nil
+		return &dtos.LoginSuccessResponse{MobileNumber: userNme, LoginToken: tkn}, nil
 	} else {
 		return nil, errors.New("TOKEN_REFRESH_NOT_ALLOWED")
 	}

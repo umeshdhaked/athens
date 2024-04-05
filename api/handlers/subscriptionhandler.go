@@ -5,12 +5,12 @@ import (
 
 	"github.com/fastbiztech/hastinapura/api/di"
 	"github.com/fastbiztech/hastinapura/api/services/subscription"
-	"github.com/fastbiztech/hastinapura/internal/pkg/models/requests"
+	"github.com/fastbiztech/hastinapura/pkg/models/dtos"
 	"github.com/gin-gonic/gin"
 )
 
 func HandleCreateNewPricingSystem(ctx *gin.Context) {
-	var pricingRequest requests.PricingRequest
+	var pricingRequest dtos.PricingRequest
 	if err := ctx.ShouldBindJSON(&pricingRequest); err != nil {
 		ctx.String(http.StatusBadRequest, err.Error())
 		return
@@ -39,7 +39,7 @@ func HandleFetchAllActivePricingModel(ctx *gin.Context) {
 }
 
 func HandleAddDefaultSubscriptionToUser(ctx *gin.Context) {
-	var subRequest *requests.UserDefaultSubscriptionRequest
+	var subRequest *dtos.UserDefaultSubscriptionRequest
 	if err := ctx.ShouldBindJSON(&subRequest); err != nil {
 		ctx.String(http.StatusBadRequest, err.Error())
 		return
@@ -56,7 +56,7 @@ func HandleAddDefaultSubscriptionToUser(ctx *gin.Context) {
 }
 
 func HandleAddSubscriptionToUser(ctx *gin.Context) {
-	var subRequest *requests.UserSubscriptionRequest
+	var subRequest *dtos.UserSubscriptionRequest
 	if err := ctx.ShouldBindJSON(&subRequest); err != nil {
 		ctx.String(http.StatusBadRequest, err.Error())
 		return
@@ -73,7 +73,7 @@ func HandleAddSubscriptionToUser(ctx *gin.Context) {
 }
 
 func HandleFetchAllActiveSubscriptionsForUser(ctx *gin.Context) {
-	var subRequest *requests.FetchSubscriptionRequest
+	var subRequest *dtos.FetchSubscriptionRequest
 	if err := ctx.ShouldBindJSON(&subRequest); err != nil {
 		ctx.String(http.StatusBadRequest, err.Error())
 		return
@@ -90,7 +90,7 @@ func HandleFetchAllActiveSubscriptionsForUser(ctx *gin.Context) {
 }
 
 func HandleDeactivateSubscriptionsForUser(ctx *gin.Context) {
-	var subRequest *requests.DeactivateSubscriptionRequest
+	var subRequest *dtos.DeactivateSubscriptionRequest
 	if err := ctx.ShouldBindJSON(&subRequest); err != nil {
 		ctx.String(http.StatusBadRequest, err.Error())
 		return
@@ -108,7 +108,7 @@ func HandleDeactivateSubscriptionsForUser(ctx *gin.Context) {
 }
 
 func HandleAddCreditToUser(ctx *gin.Context) {
-	var creditRequest *requests.AddCreditsRequest
+	var creditRequest *dtos.AddCreditsRequest
 	if err := ctx.ShouldBindJSON(&creditRequest); err != nil {
 		ctx.String(http.StatusBadRequest, err.Error())
 		return
@@ -134,7 +134,7 @@ func HandleFetchCredits(ctx *gin.Context) {
 }
 
 func HandleChargeUser(ctx *gin.Context) {
-	var chargeRequest *requests.ChargeUserRequest
+	var chargeRequest *dtos.ChargeUserRequest
 	if err := ctx.ShouldBindJSON(&chargeRequest); err != nil {
 		ctx.String(http.StatusBadRequest, err.Error())
 		return

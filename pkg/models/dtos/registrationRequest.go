@@ -1,4 +1,4 @@
-package requests
+package dtos
 
 type RegisterUserRequest struct {
 	MobileNumber string `json:"mobile" binding:"required"`

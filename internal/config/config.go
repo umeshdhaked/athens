@@ -19,8 +19,16 @@ type AwsDbConfig struct {
 	Region    string
 }
 
+type AwsS3Config struct {
+	EndPoint  string
+	KeyID     string
+	AccessKey string
+	Region    string
+}
+
 type AwsConfig struct {
 	Db AwsDbConfig
+	S3 AwsS3Config
 }
 
 type AppConfig struct {

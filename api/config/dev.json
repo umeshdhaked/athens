@@ -5,6 +5,12 @@
             "access_key": "DUMMY",
             "region": "ap-south-1",
             "endpoint": "http://localhost:8000"
+        },
+        "s3": {
+            "key_id": "DUMMY",
+            "access_key": "DUMMY",
+            "region": "ap-south-1",
+            "endpoint": "http://localhost:4566"
         }
     },
 
