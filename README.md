@@ -3,7 +3,7 @@
 # env variable required for local run
     Need go 1.22.0 version in your system
     ```
-    -> export APP_ENV=local
+    -> export APP_ENV=dev
     -> export AWS_ACCESS_KEY_ID=DUMMY
     -> export AWS_SECRET_ACCESS_KEY=DUMMY
     -> export AWS_REGION=us-west-2

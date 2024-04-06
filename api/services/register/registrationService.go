@@ -1,6 +1,7 @@
 package register
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -78,4 +79,14 @@ func (s *RegistrationService) LoginUser(ctx *gin.Context, user dtos.RegisterUser
 			return nil, errors.New("password did not match")
 		}
 	}
+}
+
+func (s *RegistrationService) GetUser(ctx context.Context, mobile string) (*dbo.User, error) {
+
+	usr, err := s.userRepo.GetUserFromMobile(ctx, mobile)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	return usr, nil
 }

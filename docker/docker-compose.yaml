@@ -21,8 +21,6 @@ services:
       AWS_SECRET_ACCESS_KEY: 'DUMMY'
     command:
       # dynamodb describe-limits --endpoint-url http://dynamodb-local:8000 --region us-west-2
-#       dynamodb list-tables --endpoint-url http://dynamodb-local:8000 --region us-west-2
+       dynamodb list-tables --endpoint-url http://dynamodb-local:8000 --region us-west-2
       # dynamodb scan --table-name otp --endpoint-url http://dynamodb-local:8000 --region us-west-2
       # dynamodb scan --table-name Contacts --endpoint-url http://dynamodb-local:8000 --region us-west-2
-      # dynamodb update-table --table-name otp --attribute-definitions AttributeName=mobile,AttributeType=S --global-secondary-index-updates "[ { \"Create\":: {\"IndexName\":: \"mobile-index\", \"KeySchema\":: [{\"AttributeName\"::\"GameTitle\",\"KeyType\"::\"HASH\"},{\"AttributeName\"::\"TopScore\",\"KeyType\"::\"RANGE\"}],\"Projection\"::{ \"ProjectionType\"::\"INCLUDE\",\"NonKeyAttributes\"::[\"UserId\"] } }
-       dynamodb update-table --region us-west-2 --attribute-definitions AttributeName=TopScore,AttributeType=N --endpoint-url http://dynamodb-local:8000 --table-name otp --global-secondary-index-updates "[{\"Create\":{\"IndexName\":\"mobile-index\", \"KeySchema\":[{\"AttributeName\":\"ID\",\"KeyType\":\"HASH\"}],\"Projection\":{\"ProjectionType\":\"INCLUDE\",\"NonKeyAttributes\":[\"UserId\"]}}}]"

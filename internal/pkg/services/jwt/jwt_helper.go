@@ -3,7 +3,6 @@ package jwt
 import (
 	"errors"
 	"fmt"
-
 	"log"
 	"time"
 

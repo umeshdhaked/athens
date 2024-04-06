@@ -148,23 +148,52 @@
   {
     "TableName": "credit",
     "KeySchema": [
-      {"AttributeName": "ID", "KeyType": "HASH"}
+      {"AttributeName": "id", "KeyType": "HASH"}
     ],
     "AttributeDefinitions": [
-      {"AttributeName": "ID", "AttributeType": "S"}
+      {"AttributeName": "id", "AttributeType": "S"},
+      {"AttributeName": "user_id", "AttributeType": "S"}
     ],
     "ProvisionedThroughput": {
       "ReadCapacityUnits": 5,
       "WriteCapacityUnits": 5
-    }
+    },
+    "GlobalSecondaryIndexes": [
+      {
+        "IndexName": "id-index",
+        "KeySchema": [
+          { "AttributeName": "id", "KeyType": "HASH" }
+        ],
+        "Projection": {
+          "ProjectionType": "ALL"
+        },
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": 5,
+          "WriteCapacityUnits": 5
+        }
+      },
+      {
+        "IndexName": "user_id-index",
+        "KeySchema": [
+          { "AttributeName": "user_id", "KeyType": "HASH" }
+        ],
+        "Projection": {
+          "ProjectionType": "ALL"
+        },
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": 5,
+          "WriteCapacityUnits": 5
+        }
+      }
+    ]
   },
   {
     "TableName": "credits_audit",
     "KeySchema": [
-      {"AttributeName": "ID", "KeyType": "HASH"}
+      {"AttributeName": "id", "KeyType": "HASH"}
     ],
     "AttributeDefinitions": [
-      {"AttributeName": "ID", "AttributeType": "S"}
+      {"AttributeName": "id", "AttributeType": "S"}
     ],
     "ProvisionedThroughput": {
       "ReadCapacityUnits": 5,
@@ -177,51 +206,168 @@
       {"AttributeName": "id", "KeyType": "HASH"}
     ],
     "AttributeDefinitions": [
-      {"AttributeName": "id", "AttributeType": "S"}
+      {"AttributeName": "id", "AttributeType": "S"},
+      {"AttributeName": "mobile", "AttributeType": "S"}
     ],
     "ProvisionedThroughput": {
       "ReadCapacityUnits": 5,
       "WriteCapacityUnits": 5
-    }
+    },
+    "GlobalSecondaryIndexes": [
+      {
+        "IndexName": "mobile-index",
+        "KeySchema": [
+          { "AttributeName": "mobile", "KeyType": "HASH" }
+        ],
+        "Projection": {
+          "ProjectionType": "ALL"
+        },
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": 5,
+          "WriteCapacityUnits": 5
+        }
+      }
+    ]
   },
   {
     "TableName": "pricing",
     "KeySchema": [
-      {"AttributeName": "ID", "KeyType": "HASH"}
+      {"AttributeName": "id", "KeyType": "HASH"}
     ],
     "AttributeDefinitions": [
-      {"AttributeName": "ID", "AttributeType": "S"}
+      {"AttributeName": "id", "AttributeType": "S"},
+      {"AttributeName": "category", "AttributeType": "S"},
+      {"AttributeName": "pricing_state", "AttributeType": "S"}
     ],
     "ProvisionedThroughput": {
       "ReadCapacityUnits": 5,
       "WriteCapacityUnits": 5
-    }
+    },
+    "GlobalSecondaryIndexes": [
+      {
+        "IndexName": "id-index",
+        "KeySchema": [
+          { "AttributeName": "id", "KeyType": "HASH" }
+        ],
+        "Projection": {
+          "ProjectionType": "ALL"
+        },
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": 5,
+          "WriteCapacityUnits": 5
+        }
+      },
+      {
+        "IndexName": "category-index",
+        "KeySchema": [
+          { "AttributeName": "category", "KeyType": "HASH" }
+        ],
+        "Projection": {
+          "ProjectionType": "ALL"
+        },
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": 5,
+          "WriteCapacityUnits": 5
+        }
+      },
+      {
+        "IndexName": "pricing_state-index",
+        "KeySchema": [
+          { "AttributeName": "pricing_state", "KeyType": "HASH" }
+        ],
+        "Projection": {
+          "ProjectionType": "ALL"
+        },
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": 5,
+          "WriteCapacityUnits": 5
+        }
+      }
+    ]
   },
   {
     "TableName": "promo_phones_no",
     "KeySchema": [
-      {"AttributeName": "ID", "KeyType": "HASH"}
+      {"AttributeName": "mobile", "KeyType": "HASH"}
     ],
     "AttributeDefinitions": [
-      {"AttributeName": "ID", "AttributeType": "S"}
+      {"AttributeName": "is_already_contacted", "AttributeType": "S"},
+      {"AttributeName": "mobile", "AttributeType": "S"}
     ],
     "ProvisionedThroughput": {
       "ReadCapacityUnits": 5,
       "WriteCapacityUnits": 5
-    }
+    },
+    "GlobalSecondaryIndexes": [
+      {
+        "IndexName": "is_already_contacted-index",
+        "KeySchema": [
+          { "AttributeName": "is_already_contacted", "KeyType": "HASH" }
+        ],
+        "Projection": {
+          "ProjectionType": "ALL"
+        },
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": 5,
+          "WriteCapacityUnits": 5
+        }
+      },
+      {
+        "IndexName": "mobile-index",
+        "KeySchema": [
+          { "AttributeName": "mobile", "KeyType": "HASH" }
+        ],
+        "Projection": {
+          "ProjectionType": "ALL"
+        },
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": 5,
+          "WriteCapacityUnits": 5
+        }
+      }
+    ]
   },
   {
     "TableName": "user_subscriptions",
     "KeySchema": [
-      {"AttributeName": "ID", "KeyType": "HASH"}
+      {"AttributeName": "id", "KeyType": "HASH"}
     ],
     "AttributeDefinitions": [
-      {"AttributeName": "ID", "AttributeType": "S"}
+      {"AttributeName": "id", "AttributeType": "S"},
+      {"AttributeName": "user_id", "AttributeType": "S"}
     ],
     "ProvisionedThroughput": {
       "ReadCapacityUnits": 5,
       "WriteCapacityUnits": 5
-    }
+    },
+    "GlobalSecondaryIndexes": [
+      {
+        "IndexName": "id-index",
+        "KeySchema": [
+          { "AttributeName": "id", "KeyType": "HASH" }
+        ],
+        "Projection": {
+          "ProjectionType": "ALL"
+        },
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": 5,
+          "WriteCapacityUnits": 5
+        }
+      },
+      {
+        "IndexName": "user_id-index",
+        "KeySchema": [
+          { "AttributeName": "user_id", "KeyType": "HASH" }
+        ],
+        "Projection": {
+          "ProjectionType": "ALL"
+        },
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": 5,
+          "WriteCapacityUnits": 5
+        }
+      }
+    ]
   },
   {
     "TableName": "user_table",
@@ -229,11 +375,27 @@
       {"AttributeName": "id", "KeyType": "HASH"}
     ],
     "AttributeDefinitions": [
-      {"AttributeName": "id", "AttributeType": "S"}
+      {"AttributeName": "id", "AttributeType": "S"},
+      {"AttributeName": "mobile", "AttributeType": "S"}
     ],
     "ProvisionedThroughput": {
       "ReadCapacityUnits": 5,
       "WriteCapacityUnits": 5
-    }
+    },
+    "GlobalSecondaryIndexes": [
+      {
+        "IndexName": "mobile-index",
+        "KeySchema": [
+          { "AttributeName": "mobile", "KeyType": "HASH" }
+        ],
+        "Projection": {
+          "ProjectionType": "ALL"
+        },
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": 5,
+          "WriteCapacityUnits": 5
+        }
+      }
+    ]
   }
 ]

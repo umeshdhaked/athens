@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
@@ -21,7 +22,7 @@ func NewUserRepo(client *dynamodb.Client) *UserRepo {
 	return &UserRepo{client: client}
 }
 
-func (u *UserRepo) GetUserFromMobile(ctx *gin.Context, mobile string) (*dbo.User, error) {
+func (u *UserRepo) GetUserFromMobile(ctx context.Context, mobile string) (*dbo.User, error) {
 	var queryInput = &dynamodb.QueryInput{
 		TableName: aws.String("user_table"),
 		IndexName: aws.String("mobile-index"),

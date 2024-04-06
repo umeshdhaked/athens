@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"context"
+	"github.com/fastbiztech/hastinapura/api/di"
 	"net/http"
 	"time"
 
@@ -36,6 +38,14 @@ func TokenAuthMiddleware() gin.HandlerFunc {
 		userNme := claims["username"]
 		id := claims["id"]
 		role := claims["role"]
+
+		usr, err := di.GetRegistrationService().GetUser(context.Background(), userNme.(string))
+		if err != nil || usr == nil {
+			ctx.JSON(http.StatusUnauthorized, gin.H{"message": "USER_NOT_EXIST"})
+			ctx.Abort()
+			return
+		}
+
 		ctx.AddParam("username", userNme.(string))
 		ctx.AddParam("id", id.(string))
 		ctx.AddParam("role", role.(string))
