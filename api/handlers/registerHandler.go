@@ -19,7 +19,7 @@ func HandleSendOtp(ctx *gin.Context) {
 	}
 
 	var reg *register.RegistrationService = di.GetRegistrationService()
-	if err := reg.SendOtp(user); err != nil {
+	if err := reg.SendOtp(ctx, user); err != nil {
 		ctx.String(http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -34,7 +34,7 @@ func HandleRegisterUser(ctx *gin.Context) {
 	}
 
 	var reg *register.RegistrationService = di.GetRegistrationService()
-	registerResp, err := reg.RegisterUser(user)
+	registerResp, err := reg.RegisterUser(ctx, user)
 	if nil != err {
 		ctx.String(http.StatusInternalServerError, err.Error())
 		return
@@ -51,7 +51,7 @@ func HandleLoginUser(ctx *gin.Context) {
 	}
 
 	var reg *register.RegistrationService = di.GetRegistrationService()
-	loginResp, err := reg.LoginUser(user)
+	loginResp, err := reg.LoginUser(ctx, user)
 	if nil != err {
 		ctx.String(http.StatusInternalServerError, err.Error())
 		return

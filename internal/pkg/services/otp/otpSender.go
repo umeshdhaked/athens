@@ -2,6 +2,7 @@ package otp
 
 import (
 	"crypto/rand"
+	"github.com/gin-gonic/gin"
 	"io"
 	"log"
 
@@ -38,15 +39,15 @@ func (o *OtpSender) SendOtp(otp string) error {
 	return nil
 }
 
-func (o *OtpSender) SaveOtp(mobile string, hashedOtp string) error {
-	if err := o.otpRepo.SaveOtp(mobile, hashedOtp); err != nil {
+func (o *OtpSender) SaveOtp(ctx *gin.Context, mobile string, hashedOtp string) error {
+	if err := o.otpRepo.SaveOtp(ctx, mobile, hashedOtp); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (o *OtpSender) FetchOtp(mobileNo string) *dbo.Otp {
-	if otp, err := o.otpRepo.GetOtp(mobileNo); err != nil {
+func (o *OtpSender) FetchOtp(ctx *gin.Context, mobileNo string) *dbo.Otp {
+	if otp, err := o.otpRepo.GetOtp(ctx, mobileNo); err != nil {
 		return nil
 	} else {
 		return otp

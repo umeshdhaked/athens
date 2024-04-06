@@ -1,27 +1,28 @@
 package repositories
 
 import (
-	"fmt"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/gin-gonic/gin"
 	"log"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/fastbiztech/hastinapura/internal/pkg/models/dbo"
 	"github.com/google/uuid"
 )
 
 type OtpRepo struct {
-	svc *dynamodb.DynamoDB
+	client *dynamodb.Client
 }
 
-func NewOtpRepo(svc *dynamodb.DynamoDB) *OtpRepo {
-	return &OtpRepo{svc: svc}
+func NewOtpRepo(client *dynamodb.Client) *OtpRepo {
+	return &OtpRepo{client: client}
 }
 
-func (o *OtpRepo) SaveOtp(mobile string, hashedOtp string) error {
-	item, er := dynamodbattribute.MarshalMap(
+func (o *OtpRepo) SaveOtp(ctx *gin.Context, mobile string, hashedOtp string) error {
+	item, er := attributevalue.MarshalMap(
 		dbo.Otp{
 			Id:     uuid.New().String(),
 			Mobile: mobile,
@@ -36,34 +37,30 @@ func (o *OtpRepo) SaveOtp(mobile string, hashedOtp string) error {
 		Item:      item,
 	}
 
-	req, output := o.svc.PutItemRequest(params)
-	fmt.Print(output)
-	return req.Send()
+	output, err := o.client.PutItem(ctx, params)
+	log.Print(output)
+	return err
 }
 
-func (o *OtpRepo) GetOtp(mobile string) (*dbo.Otp, error) {
+func (o *OtpRepo) GetOtp(ctx *gin.Context, mobile string) (*dbo.Otp, error) {
 	var queryInput = &dynamodb.QueryInput{
 		TableName: aws.String("otp"),
 		IndexName: aws.String("mobile-index"),
-		KeyConditions: map[string]*dynamodb.Condition{
+		KeyConditions: map[string]types.Condition{
 			"mobile": {
-				ComparisonOperator: aws.String("EQ"),
-				AttributeValueList: []*dynamodb.AttributeValue{
-					{
-						S: aws.String(mobile),
-					},
-				},
+				ComparisonOperator: types.ComparisonOperatorEq,
+				AttributeValueList: []types.AttributeValue{&types.AttributeValueMemberS{Value: mobile}},
 			},
 		},
 	}
 
-	var resp, err = o.svc.Query(queryInput)
+	var resp, err = o.client.Query(ctx, queryInput)
 	if err != nil {
 		return nil, err
 	}
-	if *resp.Count > 0 {
+	if resp.Count > 0 {
 		otp := []dbo.Otp{}
-		if err := dynamodbattribute.UnmarshalListOfMaps(resp.Items, &otp); err != nil {
+		if err := attributevalue.UnmarshalListOfMaps(resp.Items, &otp); err != nil {
 			log.Println(err)
 			return nil, err
 		}

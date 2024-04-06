@@ -1,58 +1,56 @@
 package repositories
 
 import (
-	"fmt"
-	"log"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/fastbiztech/hastinapura/internal/pkg/models/dbo"
+	"github.com/gin-gonic/gin"
+	"log"
 )
 
 type CreditsRepo struct {
-	svc *dynamodb.DynamoDB
+	client *dynamodb.Client
 }
 
-func NewCreditsRepo(svc *dynamodb.DynamoDB) *CreditsRepo {
-	return &CreditsRepo{svc: svc}
+func NewCreditsRepo(client *dynamodb.Client) *CreditsRepo {
+	return &CreditsRepo{client: client}
 }
 
-func (c *CreditsRepo) CreateUserCredit(credit *dbo.Credits) error {
-	item, _ := dynamodbattribute.MarshalMap(credit)
+func (c *CreditsRepo) CreateUserCredit(ctx *gin.Context, credit *dbo.Credits) error {
+	item, _ := attributevalue.MarshalMap(credit)
 	params := &dynamodb.PutItemInput{
 		TableName: aws.String("credit"),
 		Item:      item,
 	}
 
-	req, output := c.svc.PutItemRequest(params)
-	fmt.Print(output)
-	return req.Send()
+	output, er := c.client.PutItem(ctx, params)
+	log.Println(output)
+	return er
 }
 
-func (c *CreditsRepo) FetchUserCredit(userId string) (*dbo.Credits, error) {
+func (c *CreditsRepo) FetchUserCredit(ctx *gin.Context, userId string) (*dbo.Credits, error) {
 	queryInput := &dynamodb.QueryInput{
 		TableName: aws.String("credit"),
 		IndexName: aws.String("user_id-index"),
-		KeyConditions: map[string]*dynamodb.Condition{
+		KeyConditions: map[string]types.Condition{
 			"user_id": {
-				ComparisonOperator: aws.String("EQ"),
-				AttributeValueList: []*dynamodb.AttributeValue{
-					{
-						S: aws.String(userId),
-					},
+				ComparisonOperator: types.ComparisonOperatorEq,
+				AttributeValueList: []types.AttributeValue{
+					&types.AttributeValueMemberS{Value: userId},
 				},
 			},
 		},
 	}
-	var resp, err = c.svc.Query(queryInput)
+	var resp, err = c.client.Query(ctx, queryInput)
 	if err != nil {
 		return nil, err
 	}
 
-	if *resp.Count > 0 {
+	if resp.Count > 0 {
 		credits := []dbo.Credits{}
-		if err := dynamodbattribute.UnmarshalListOfMaps(resp.Items, &credits); err != nil {
+		if err := attributevalue.UnmarshalListOfMaps(resp.Items, &credits); err != nil {
 			log.Println(err)
 			return nil, err
 		}

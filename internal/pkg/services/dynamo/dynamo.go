@@ -1,12 +1,12 @@
 package dynamo
 
 import (
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
 
-func ConfigureDynamoSession(sess *session.Session) *dynamodb.DynamoDB {
-	svc := dynamodb.New(sess, aws.NewConfig().WithLogLevel(aws.LogDebugWithRequestErrors))
-	return svc
+func ConfigureDynamoClient(cfg aws.Config) *dynamodb.Client {
+	// Create DynamoDB Client
+	client := dynamodb.NewFromConfig(cfg)
+	return client
 }

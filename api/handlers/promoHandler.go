@@ -18,7 +18,7 @@ func HandleSaveNumber(ctx *gin.Context) {
 	}
 
 	var reg *promo.PromoService = di.GetPromoService()
-	err := reg.SavePhoneNo(user.MobileNumber)
+	err := reg.SavePhoneNo(ctx, user.MobileNumber)
 	if nil != err {
 		ctx.String(http.StatusInternalServerError, err.Error())
 		return
@@ -33,7 +33,7 @@ func HandleFetchPromoNumbers(ctx *gin.Context) {
 		return
 	}
 	var reg *promo.PromoService = di.GetPromoService()
-	list, err := reg.FetchPromoNumbers(user.Is_already_contacted)
+	list, err := reg.FetchPromoNumbers(ctx, user.Is_already_contacted)
 	if nil != err {
 		ctx.String(http.StatusInternalServerError, err.Error())
 		return
@@ -49,7 +49,7 @@ func HandleMarkContactedNumber(ctx *gin.Context) {
 	}
 
 	var reg *promo.PromoService = di.GetPromoService()
-	err := reg.MarkContacted(user.MobileNumber, user.Comment)
+	err := reg.MarkContacted(ctx, user.MobileNumber, user.Comment)
 	if nil != err {
 		ctx.String(http.StatusInternalServerError, err.Error())
 		return

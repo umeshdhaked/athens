@@ -7,6 +7,10 @@ type PricingRequest struct {
 	Rates      float32
 }
 
+type DeactivatePricingRequest struct {
+	Id string
+}
+
 type UserDefaultSubscriptionRequest struct {
 	UserMobile string
 }

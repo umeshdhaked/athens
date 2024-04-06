@@ -2,6 +2,7 @@ package otp
 
 import (
 	"errors"
+	"github.com/gin-gonic/gin"
 	"log"
 	"time"
 
@@ -18,22 +19,22 @@ func NewOtpService(otpSender *otp.OtpSender, crypto *crypto.Crypto) *OtpService 
 	return &OtpService{otpSender: otpSender, crypto: crypto}
 }
 
-func (o *OtpService) SendOtp(mobile string) error {
+func (o *OtpService) SendOtp(ctx *gin.Context, mobile string) error {
 	generatedOtp := o.otpSender.GenerateOtp()
 	log.Printf("generated otp %s", generatedOtp)
 	if err := o.otpSender.SendOtp(generatedOtp); err != nil {
 		return err
 	}
 	hashedOtp := o.crypto.HashString(generatedOtp)
-	if err := o.otpSender.SaveOtp(mobile, hashedOtp); err != nil {
+	if err := o.otpSender.SaveOtp(ctx, mobile, hashedOtp); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (o *OtpService) VerifyOtp(mobile string, otp string) error {
+func (o *OtpService) VerifyOtp(ctx *gin.Context, mobile string, otp string) error {
 	currentHashedOtp := o.crypto.HashString(otp)
-	fetchedOtp := o.otpSender.FetchOtp(mobile)
+	fetchedOtp := o.otpSender.FetchOtp(ctx, mobile)
 
 	currTime := time.Now().Unix()
 	if fetchedOtp != nil && fetchedOtp.Otp == currentHashedOtp && fetchedOtp.Exp > currTime {

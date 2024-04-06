@@ -62,6 +62,7 @@ var routeList = [...]route{
 		middleware: []gin.HandlerFunc{middleware.TokenAuthMiddleware()},
 		endpoints: []endpoint{
 			{http.MethodPost, "/createNewPricingSystem", handlers.HandleCreateNewPricingSystem}, //admin api
+			{http.MethodPost, "/deactivatePricing", handlers.HandleDeactivatePricing},           //admin api
 			{http.MethodGet, "/fetchAllActivePricingModel", handlers.HandleFetchAllActivePricingModel},
 			{http.MethodPost, "/addDefaultSubscriptions", handlers.HandleAddDefaultSubscriptionToUser}, //admin api
 			{http.MethodPost, "/addCustomSubscriptions", handlers.HandleAddSubscriptionToUser},         //admin api

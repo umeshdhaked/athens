@@ -1,30 +1,38 @@
 package aws
 
 import (
+	"context"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	internalConfig "github.com/fastbiztech/hastinapura/internal/config"
 	"log"
 	"os"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/fastbiztech/hastinapura/internal/config"
 )
 
-func ConfigureAwsSdkSession(config *config.Config) *session.Session {
-	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String(os.Getenv("AWS_REGION")),
-	})
-	session.Must(session.NewSessionWithOptions(session.Options{
-		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
-	}))
+func ConfigureAwsSdkConfig(internalConfig *internalConfig.Config) aws.Config {
+	var cfg aws.Config
+	var err error
+	if os.Getenv("env") == "local" {
+		cfg, err = config.LoadDefaultConfig(
+			context.Background(),
+			config.WithRegion(internalConfig.Aws.Db.Region),
+			config.WithEndpointResolverWithOptions(aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+				return aws.Endpoint{URL: internalConfig.Aws.Db.EndPoint}, nil
+			})),
+			//config.WithCredentialsProvider(aws.CredentialsProviderFunc(func(context.Context) (aws.Credentials, error) {
+			//	return aws.Credentials{
+			//		AccessKeyID:     internalConfig.Aws.Db.KeyID,
+			//		SecretAccessKey: internalConfig.Aws.Db.AccessKey,
+			//		SessionToken:    "TOKEN",
+			//	}, nil
+			//})),
+		)
+	} else {
+		cfg, err = config.LoadDefaultConfig(context.Background())
+	}
 
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Error loading AWS config:", err)
 	}
-	_, err = sess.Config.Credentials.Get()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return sess
+	return cfg
 }

@@ -27,7 +27,25 @@ func HandleCreateNewPricingSystem(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, resp)
 }
 
+func HandleDeactivatePricing(ctx *gin.Context) {
+	var pricingRequest dtos.DeactivatePricingRequest
+	if err := ctx.ShouldBindJSON(&pricingRequest); err != nil {
+		ctx.String(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	var sub *subscription.SubscriptionService = di.GetSubscriptionService()
+	err := sub.DeactivatePricing(ctx, &pricingRequest)
+	if nil != err {
+		ctx.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, "OK")
+}
+
 func HandleFetchAllActivePricingModel(ctx *gin.Context) {
+
 	var sub *subscription.SubscriptionService = di.GetSubscriptionService()
 	resp, err := sub.FetchAllActivePricingModel(ctx)
 	if nil != err {
@@ -141,7 +159,7 @@ func HandleChargeUser(ctx *gin.Context) {
 	}
 
 	var sub *subscription.SubscriptionService = di.GetSubscriptionService()
-	err := sub.ChargeUser(chargeRequest.UserId, chargeRequest.Category, chargeRequest.SubCategory, chargeRequest.UnitCount)
+	err := sub.ChargeUser(ctx, chargeRequest.UserId, chargeRequest.Category, chargeRequest.SubCategory, chargeRequest.UnitCount)
 	if nil != err {
 		ctx.String(http.StatusInternalServerError, err.Error())
 		return

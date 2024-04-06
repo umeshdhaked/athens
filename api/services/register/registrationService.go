@@ -3,6 +3,7 @@ package register
 import (
 	"errors"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"log"
 
 	"github.com/fastbiztech/hastinapura/api/services/otp"
@@ -24,28 +25,28 @@ func NewRegistrationService(userRepo *repositories.UserRepo, otpService *otp.Otp
 	return &RegistrationService{userRepo: userRepo, otpService: otpService, cryp: cryp}
 }
 
-func (s *RegistrationService) SendOtp(user dtos.RegisterUserRequest) error {
-	err := s.otpService.SendOtp(user.MobileNumber)
+func (s *RegistrationService) SendOtp(ctx *gin.Context, user dtos.RegisterUserRequest) error {
+	err := s.otpService.SendOtp(ctx, user.MobileNumber)
 	// add OTP send logic here.
 	log.Println("otp sent for user ", user.MobileNumber)
 	// save hashed otp after sending otp....
 	return err
 }
 
-func (s *RegistrationService) RegisterUser(user dtos.RegisterUserRequest) (*dtos.LoginSuccessResponse, error) {
+func (s *RegistrationService) RegisterUser(ctx *gin.Context, user dtos.RegisterUserRequest) (*dtos.LoginSuccessResponse, error) {
 	log.Println("Received register user request for user ", user)
-	if err := s.otpService.VerifyOtp(user.MobileNumber, user.Otp); err != nil {
+	if err := s.otpService.VerifyOtp(ctx, user.MobileNumber, user.Otp); err != nil {
 		return nil, err
 	}
 
-	if usr, er := s.userRepo.GetUserFromMobile(user.MobileNumber); er != nil {
+	if usr, er := s.userRepo.GetUserFromMobile(ctx, user.MobileNumber); er != nil {
 		return nil, er
 	} else if usr != nil {
 		return nil, errors.New("user already exists")
 	}
 
 	usrObj := &dbo.User{Id: uuid.New().String(), Mobile: user.MobileNumber, Hashed_password: s.cryp.HashString(user.Password)}
-	if er := s.userRepo.CreateUser(usrObj); er != nil {
+	if er := s.userRepo.CreateUser(ctx, usrObj); er != nil {
 		return nil, er
 	}
 
@@ -57,12 +58,11 @@ func (s *RegistrationService) RegisterUser(user dtos.RegisterUserRequest) (*dtos
 	return &dtos.LoginSuccessResponse{MobileNumber: user.MobileNumber, LoginToken: token}, nil
 }
 
-func (s *RegistrationService) LoginUser(user dtos.RegisterUserRequest) (*dtos.LoginSuccessResponse, error) {
-
+func (s *RegistrationService) LoginUser(ctx *gin.Context, user dtos.RegisterUserRequest) (*dtos.LoginSuccessResponse, error) {
 	mobile := user.MobileNumber
 	password := user.Password
 
-	usr, err := s.userRepo.GetUserFromMobile(mobile)
+	usr, err := s.userRepo.GetUserFromMobile(ctx, mobile)
 	if err != nil {
 		fmt.Println(err)
 		return nil, err
@@ -77,6 +77,5 @@ func (s *RegistrationService) LoginUser(user dtos.RegisterUserRequest) (*dtos.Lo
 		} else {
 			return nil, errors.New("password did not match")
 		}
-
 	}
 }

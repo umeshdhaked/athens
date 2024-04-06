@@ -1,6 +1,7 @@
 package promo
 
 import (
+	"github.com/gin-gonic/gin"
 	"log"
 	"time"
 
@@ -16,8 +17,8 @@ func NewPromoService(promoRepo *repositories.PromotionRepo) *PromoService {
 	return &PromoService{promoRepo: promoRepo}
 }
 
-func (s *PromoService) SavePhoneNo(phoneNo string) error {
-	exPromoPh, err := s.promoRepo.GetPromoFromMobile(phoneNo)
+func (s *PromoService) SavePhoneNo(ctx *gin.Context, phoneNo string) error {
+	exPromoPh, err := s.promoRepo.GetPromoFromMobile(ctx, phoneNo)
 	if err != nil {
 		return err
 	}
@@ -30,16 +31,16 @@ func (s *PromoService) SavePhoneNo(phoneNo string) error {
 		obj.IsAlreadyContacted = "false"
 	}
 
-	return s.promoRepo.AddPromoContact(&obj)
+	return s.promoRepo.AddPromoContact(ctx, &obj)
 }
 
-func (s *PromoService) FetchPromoNumbers(isAlreadyConnected string) ([]dbo.PromoPhone, error) {
-	return s.promoRepo.GetAlreadyContactedPromo(isAlreadyConnected)
+func (s *PromoService) FetchPromoNumbers(ctx *gin.Context, isAlreadyConnected string) ([]dbo.PromoPhone, error) {
+	return s.promoRepo.GetAlreadyContactedPromo(ctx, isAlreadyConnected)
 }
 
-func (s *PromoService) MarkContacted(mobile string, comment string) error {
+func (s *PromoService) MarkContacted(ctx *gin.Context, mobile string, comment string) error {
 	obj := dbo.PromoPhone{Mobile: mobile,
 		Timestamp: time.Now().Format(time.RFC850), IsAlreadyContacted: "true", Comment: comment}
 
-	return s.promoRepo.MarkContacted(&obj)
+	return s.promoRepo.MarkContacted(ctx, &obj)
 }

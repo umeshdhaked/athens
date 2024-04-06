@@ -3,7 +3,7 @@
         "db": {
             "key_id": "DUMMY",
             "access_key": "DUMMY",
-            "region": "ap-south-1",
+            "region": "us-west-2",
             "endpoint": "http://localhost:8000"
         },
         "s3": {

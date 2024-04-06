@@ -1,30 +1,29 @@
 package repositories
 
 import (
-	"fmt"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/fastbiztech/hastinapura/internal/pkg/models/dbo"
+	"github.com/gin-gonic/gin"
+	"log"
 )
 
 type CreditsAuditRepo struct {
-	svc *dynamodb.DynamoDB
+	client *dynamodb.Client
 }
 
-func NewCreditsAuditRepo(svc *dynamodb.DynamoDB) *CreditsAuditRepo {
-	return &CreditsAuditRepo{svc: svc}
+func NewCreditsAuditRepo(client *dynamodb.Client) *CreditsAuditRepo {
+	return &CreditsAuditRepo{client: client}
 }
 
-func (c *CreditsAuditRepo) CreateUserCreditAudit(creditAudit *dbo.CreditAudits) error {
-	item, _ := dynamodbattribute.MarshalMap(creditAudit)
+func (c *CreditsAuditRepo) CreateUserCreditAudit(ctx *gin.Context, creditAudit *dbo.CreditAudits) error {
+	item, _ := attributevalue.MarshalMap(creditAudit)
 	params := &dynamodb.PutItemInput{
 		TableName: aws.String("credits_audit"),
 		Item:      item,
 	}
-
-	req, output := c.svc.PutItemRequest(params)
-	fmt.Print(output)
-	return req.Send()
+	output, er := c.client.PutItem(ctx, params)
+	log.Print(output)
+	return er
 }

@@ -1,45 +1,45 @@
 package repositories
 
 import (
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/gin-gonic/gin"
 	"log"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/fastbiztech/hastinapura/internal/pkg/models/dbo"
 )
 
 type PromotionRepo struct {
-	svc *dynamodb.DynamoDB
+	client *dynamodb.Client
 }
 
-func NewPromotionRepo(svc *dynamodb.DynamoDB) *PromotionRepo {
-	return &PromotionRepo{svc: svc}
+func NewPromotionRepo(client *dynamodb.Client) *PromotionRepo {
+	return &PromotionRepo{client: client}
 }
 
-func (p *PromotionRepo) GetPromoFromMobile(mobile string) (*dbo.PromoPhone, error) {
+func (p *PromotionRepo) GetPromoFromMobile(ctx *gin.Context, mobile string) (*dbo.PromoPhone, error) {
 	var queryInput = &dynamodb.QueryInput{
 		TableName: aws.String("promo_phones_no"),
 		IndexName: aws.String("mobile-index"),
-		KeyConditions: map[string]*dynamodb.Condition{
+		KeyConditions: map[string]types.Condition{
 			"mobile": {
-				ComparisonOperator: aws.String("EQ"),
-				AttributeValueList: []*dynamodb.AttributeValue{
-					{
-						S: aws.String(mobile),
-					},
+				ComparisonOperator: types.ComparisonOperatorEq,
+				AttributeValueList: []types.AttributeValue{
+					&types.AttributeValueMemberS{Value: mobile},
 				},
 			},
 		},
 	}
-	var resp, er = p.svc.Query(queryInput)
+	var resp, er = p.client.Query(ctx, queryInput)
 	if er != nil {
 		return nil, er
 	}
 
-	if *resp.Count > 0 {
+	if resp.Count > 0 {
 		exPromoPh := []dbo.PromoPhone{}
-		if err := dynamodbattribute.UnmarshalListOfMaps(resp.Items, &exPromoPh); err != nil {
+		if err := attributevalue.UnmarshalListOfMaps(resp.Items, &exPromoPh); err != nil {
 			log.Println(err)
 		}
 
@@ -50,8 +50,8 @@ func (p *PromotionRepo) GetPromoFromMobile(mobile string) (*dbo.PromoPhone, erro
 
 }
 
-func (p *PromotionRepo) AddPromoContact(obj *dbo.PromoPhone) error {
-	item, er := dynamodbattribute.MarshalMap(obj)
+func (p *PromotionRepo) AddPromoContact(ctx *gin.Context, obj *dbo.PromoPhone) error {
+	item, er := attributevalue.MarshalMap(obj)
 	if er != nil {
 		return er
 	}
@@ -60,34 +60,32 @@ func (p *PromotionRepo) AddPromoContact(obj *dbo.PromoPhone) error {
 		Item:      item,
 	}
 
-	req, output := p.svc.PutItemRequest(params)
+	output, err := p.client.PutItem(ctx, params)
 	log.Print(output)
-	return req.Send()
+	return err
 }
 
-func (p *PromotionRepo) GetAlreadyContactedPromo(isAlreadyConnected string) ([]dbo.PromoPhone, error) {
+func (p *PromotionRepo) GetAlreadyContactedPromo(ctx *gin.Context, isAlreadyConnected string) ([]dbo.PromoPhone, error) {
 	var queryInput = &dynamodb.QueryInput{
 		TableName: aws.String("promo_phones_no"),
 		IndexName: aws.String("is_already_contacted-index"),
-		KeyConditions: map[string]*dynamodb.Condition{
+		KeyConditions: map[string]types.Condition{
 			"is_already_contacted": {
-				ComparisonOperator: aws.String("EQ"),
-				AttributeValueList: []*dynamodb.AttributeValue{
-					{
-						S: aws.String(isAlreadyConnected),
-					},
+				ComparisonOperator: types.ComparisonOperatorEq,
+				AttributeValueList: []types.AttributeValue{
+					&types.AttributeValueMemberS{Value: isAlreadyConnected},
 				},
 			},
 		},
 	}
-	var resp, er = p.svc.Query(queryInput)
+	var resp, er = p.client.Query(ctx, queryInput)
 	if er != nil {
 		return nil, er
 	}
 
-	if *resp.Count > 0 {
+	if resp.Count > 0 {
 		exPromoPh := []dbo.PromoPhone{}
-		if err := dynamodbattribute.UnmarshalListOfMaps(resp.Items, &exPromoPh); err != nil {
+		if err := attributevalue.UnmarshalListOfMaps(resp.Items, &exPromoPh); err != nil {
 			log.Println(err)
 			return nil, err
 		}
@@ -97,8 +95,8 @@ func (p *PromotionRepo) GetAlreadyContactedPromo(isAlreadyConnected string) ([]d
 	}
 }
 
-func (p *PromotionRepo) MarkContacted(obj *dbo.PromoPhone) error {
-	item, er := dynamodbattribute.MarshalMap(obj)
+func (p *PromotionRepo) MarkContacted(ctx *gin.Context, obj *dbo.PromoPhone) error {
+	item, er := attributevalue.MarshalMap(obj)
 	if er != nil {
 		return er
 	}
@@ -107,7 +105,7 @@ func (p *PromotionRepo) MarkContacted(obj *dbo.PromoPhone) error {
 		Item:      item,
 	}
 
-	req, output := p.svc.PutItemRequest(params)
+	output, err := p.client.PutItem(ctx, params)
 	log.Print(output)
-	return req.Send()
+	return err
 }

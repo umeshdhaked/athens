@@ -45,7 +45,7 @@ func (s *SubscriptionService) CreateNewPricingSystem(ctx *gin.Context, pricing *
 
 	// search in DB if default exists.
 	if pricing.Type == "DEFAULT" {
-		resp, err := s.pricingRepo.GetDefaultPricingsForCategoryAndSubCategory(pricing.Category, pricing.SubCatgory)
+		resp, err := s.pricingRepo.GetDefaultPricingsForCategoryAndSubCategory(ctx, pricing.Category, pricing.SubCatgory)
 		if err != nil {
 			return nil, err
 		}
@@ -65,7 +65,7 @@ func (s *SubscriptionService) CreateNewPricingSystem(ctx *gin.Context, pricing *
 		CreatedAt:    time.Now().Unix(),
 	}
 
-	if er := s.pricingRepo.CreatePricing(&obj); er != nil {
+	if er := s.pricingRepo.CreatePricing(ctx, &obj); er != nil {
 		return nil, er
 	}
 
@@ -73,7 +73,7 @@ func (s *SubscriptionService) CreateNewPricingSystem(ctx *gin.Context, pricing *
 }
 
 func (s *SubscriptionService) FetchAllActivePricingModel(ctx *gin.Context) ([]*dtos.PricingResponse, error) {
-	pricing, er := s.pricingRepo.FetchAllActivePricing()
+	pricing, er := s.pricingRepo.FetchAllActivePricing(ctx)
 	if er != nil {
 		return nil, er
 	}
@@ -93,6 +93,23 @@ func (s *SubscriptionService) FetchAllActivePricingModel(ctx *gin.Context) ([]*d
 	return resp, nil
 }
 
+func (s *SubscriptionService) DeactivatePricing(ctx *gin.Context, pricingReq *dtos.DeactivatePricingRequest) error {
+	if role, exists := ctx.Params.Get("role"); !exists {
+		return errors.New("internal server error, user role not found")
+	} else if "admin" != role {
+		return errors.New("only admin user allowed to add pricing")
+	}
+
+	pricing, err := s.pricingRepo.GetPricingByPricingID(ctx, pricingReq.Id)
+	if err != nil {
+		return err
+	}
+
+	pricing.PricingState = "INACTIVE"
+
+	return s.pricingRepo.CreatePricing(ctx, pricing)
+}
+
 func (s *SubscriptionService) AddDefaultSubscriptionToUser(ctx *gin.Context, subReq *dtos.UserDefaultSubscriptionRequest) error {
 	if role, exists := ctx.Params.Get("role"); !exists {
 		return errors.New("internal server error, user role not found")
@@ -102,13 +119,13 @@ func (s *SubscriptionService) AddDefaultSubscriptionToUser(ctx *gin.Context, sub
 
 	// get User
 	mobile := subReq.UserMobile
-	user, er := s.userRepo.GetUserFromMobile(mobile)
+	user, er := s.userRepo.GetUserFromMobile(ctx, mobile)
 	if er != nil {
 		return er
 	}
 
 	// get default Pricing models
-	defaultPricings, err := s.pricingRepo.GetAllDefaultActivePricings()
+	defaultPricings, err := s.pricingRepo.GetAllDefaultActivePricings(ctx)
 	if err != nil {
 		return err
 	}
@@ -141,12 +158,12 @@ func (s *SubscriptionService) AddSubscriptionToUser(ctx *gin.Context, subReq *dt
 
 	// get User
 	mobile := subReq.UserMobile
-	user, er := s.userRepo.GetUserFromMobile(mobile)
+	user, er := s.userRepo.GetUserFromMobile(ctx, mobile)
 	if er != nil {
 		return er
 	}
 
-	pricing, err := s.pricingRepo.GetPricingByPricingID(subReq.PricingId)
+	pricing, err := s.pricingRepo.GetPricingByPricingID(ctx, subReq.PricingId)
 	if err != nil {
 		return err
 	}
@@ -165,7 +182,7 @@ func (s *SubscriptionService) AddSubscriptionToUser(ctx *gin.Context, subReq *dt
 		CreatedAt: time.Now().Unix(),
 	}
 
-	if er := s.subRepo.CreateUserSubscription(&userSubsDto); er != nil {
+	if er := s.subRepo.CreateUserSubscription(ctx, &userSubsDto); er != nil {
 		return errors.Join(er, errors.New("unable to create subscription for user"))
 	}
 	return nil
@@ -173,12 +190,12 @@ func (s *SubscriptionService) AddSubscriptionToUser(ctx *gin.Context, subReq *dt
 
 func (s *SubscriptionService) FetchAllActiveSubscriptionsForUser(ctx *gin.Context, req *dtos.FetchSubscriptionRequest) ([]*dtos.SubscriptionResponse, error) {
 	// get User
-	user, er := s.userRepo.GetUserFromMobile(req.UserMobile)
+	user, er := s.userRepo.GetUserFromMobile(ctx, req.UserMobile)
 	if er != nil {
 		return nil, er
 	}
 
-	subscriptions, err := s.subRepo.FetchAllSubscriptionForAUser(user.Id)
+	subscriptions, err := s.subRepo.FetchAllSubscriptionForAUser(ctx, user.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -201,23 +218,23 @@ func (s *SubscriptionService) FetchAllActiveSubscriptionsForUser(ctx *gin.Contex
 }
 
 func (s *SubscriptionService) DeactivateSubscriptionsForUser(ctx *gin.Context, subRequest *dtos.DeactivateSubscriptionRequest) error {
-	subsription, err := s.subRepo.GetSubscriptionFromId(subRequest.Id)
+	subsription, err := s.subRepo.GetSubscriptionFromId(ctx, subRequest.Id)
 	if err != nil {
 		return err
 	}
 
 	subsription.Status = "INACTIVE"
 
-	return s.subRepo.CreateUserSubscription(subsription)
+	return s.subRepo.CreateUserSubscription(ctx, subsription)
 }
 
 func (s *SubscriptionService) AddCreditToUser(ctx *gin.Context, subRequest *dtos.AddCreditsRequest) error {
-	user, err := s.userRepo.GetUserFromMobile(subRequest.UserMobile)
+	user, err := s.userRepo.GetUserFromMobile(ctx, subRequest.UserMobile)
 	if err != nil {
 		return err
 	}
 
-	credit, err := s.creditRepo.FetchUserCredit(user.Id)
+	credit, err := s.creditRepo.FetchUserCredit(ctx, user.Id)
 	if err != nil {
 		return err
 	}
@@ -237,7 +254,7 @@ func (s *SubscriptionService) AddCreditToUser(ctx *gin.Context, subRequest *dtos
 		credit.RemainingCredit = credit.RemainingCredit + subRequest.InitialCredit
 	}
 
-	if err = s.creditAuditRepo.CreateUserCreditAudit(&dbo.CreditAudits{
+	if err = s.creditAuditRepo.CreateUserCreditAudit(ctx, &dbo.CreditAudits{
 		Id:            uuid.New().String(),
 		DeductedAmout: 0,
 		AddedAmount:   subRequest.InitialCredit,
@@ -248,7 +265,7 @@ func (s *SubscriptionService) AddCreditToUser(ctx *gin.Context, subRequest *dtos
 		return err
 	}
 
-	return s.creditRepo.CreateUserCredit(credit)
+	return s.creditRepo.CreateUserCredit(ctx, credit)
 }
 
 func (s *SubscriptionService) FetchCredit(ctx *gin.Context) (*dtos.CreditsResponse, error) {
@@ -261,7 +278,7 @@ func (s *SubscriptionService) FetchCredit(ctx *gin.Context) (*dtos.CreditsRespon
 		return nil, errors.New("internal server error, user mobile not found")
 	}
 
-	credit, err := s.creditRepo.FetchUserCredit(userId)
+	credit, err := s.creditRepo.FetchUserCredit(ctx, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -277,9 +294,9 @@ func (s *SubscriptionService) FetchCredit(ctx *gin.Context) (*dtos.CreditsRespon
 	return creditResp, nil
 }
 
-func (s *SubscriptionService) ChargeUser(userId string, category string, subCategory string, unitCount float32) error {
+func (s *SubscriptionService) ChargeUser(ctx *gin.Context, userId string, category string, subCategory string, unitCount float32) error {
 	// get subscription (recent one for typ,subtype,userId)
-	usersSubscription, er := s.subRepo.FetchAllSubscriptionForAUser(userId)
+	usersSubscription, er := s.subRepo.FetchAllSubscriptionForAUser(ctx, userId)
 	if er != nil {
 		return er
 	}
@@ -297,13 +314,13 @@ func (s *SubscriptionService) ChargeUser(userId string, category string, subCate
 	pricingId := currentActiveSub.PricingId
 
 	// get pricing from subscription
-	pricing, err := s.pricingRepo.GetPricingByPricingID(pricingId)
+	pricing, err := s.pricingRepo.GetPricingByPricingID(ctx, pricingId)
 	if err != nil {
 		return er
 	}
 
 	// fetch credit for user_id
-	credit, err := s.creditRepo.FetchUserCredit(userId)
+	credit, err := s.creditRepo.FetchUserCredit(ctx, userId)
 	if err != nil {
 		return err
 	}
@@ -321,7 +338,7 @@ func (s *SubscriptionService) ChargeUser(userId string, category string, subCate
 
 	credit.RemainingCredit = credit.RemainingCredit - totalUsedCredit
 
-	if err = s.creditAuditRepo.CreateUserCreditAudit(&dbo.CreditAudits{
+	if err = s.creditAuditRepo.CreateUserCreditAudit(ctx, &dbo.CreditAudits{
 		Id:            uuid.New().String(),
 		Category:      category,
 		SubCategory:   subCategory,
@@ -334,5 +351,5 @@ func (s *SubscriptionService) ChargeUser(userId string, category string, subCate
 		return err
 	}
 
-	return s.creditRepo.CreateUserCredit(credit)
+	return s.creditRepo.CreateUserCredit(ctx, credit)
 }
