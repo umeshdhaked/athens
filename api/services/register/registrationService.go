@@ -4,14 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/fastbiztech/hastinapura/internal/pkg/crypto"
+	"github.com/fastbiztech/hastinapura/internal/pkg/jwt"
 	"github.com/gin-gonic/gin"
 	"log"
 
 	"github.com/fastbiztech/hastinapura/api/services/otp"
 	"github.com/fastbiztech/hastinapura/internal/pkg/models/dbo"
 	"github.com/fastbiztech/hastinapura/internal/pkg/repositories"
-	"github.com/fastbiztech/hastinapura/internal/pkg/services/crypto"
-	"github.com/fastbiztech/hastinapura/internal/pkg/services/jwt"
 	"github.com/fastbiztech/hastinapura/pkg/models/dtos"
 	"github.com/google/uuid"
 )

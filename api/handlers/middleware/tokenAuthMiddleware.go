@@ -3,10 +3,10 @@ package middleware
 import (
 	"context"
 	"github.com/fastbiztech/hastinapura/api/di"
+	"github.com/fastbiztech/hastinapura/internal/pkg/jwt"
 	"net/http"
 	"time"
 
-	"github.com/fastbiztech/hastinapura/internal/pkg/services/jwt"
 	"github.com/gin-gonic/gin"
 )
 

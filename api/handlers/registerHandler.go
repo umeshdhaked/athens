@@ -3,7 +3,7 @@ package handlers
 import (
 	"github.com/fastbiztech/hastinapura/api/di"
 	"github.com/fastbiztech/hastinapura/api/services/register"
-	"github.com/fastbiztech/hastinapura/internal/pkg/services/jwt"
+	"github.com/fastbiztech/hastinapura/internal/pkg/jwt"
 	"github.com/fastbiztech/hastinapura/pkg/models/dtos"
 
 	"net/http"

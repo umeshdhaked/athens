@@ -6,11 +6,11 @@ import (
 	"github.com/fastbiztech/hastinapura/api/services/register"
 	"github.com/fastbiztech/hastinapura/api/services/subscription"
 	pkgAws "github.com/fastbiztech/hastinapura/internal/pkg/aws"
+	"github.com/fastbiztech/hastinapura/internal/pkg/crypto"
 	"github.com/fastbiztech/hastinapura/internal/pkg/db"
+	"github.com/fastbiztech/hastinapura/internal/pkg/otp"
 	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
 	"github.com/fastbiztech/hastinapura/internal/pkg/repositories"
-	"github.com/fastbiztech/hastinapura/internal/pkg/services/crypto"
-	"github.com/fastbiztech/hastinapura/internal/pkg/services/otp"
 	"github.com/fastbiztech/hastinapura/internal/services/group"
 )
 
@@ -46,8 +46,8 @@ func InitialiseDeps() {
 	repo.NewRepository(db.GetDb().Client)
 
 	//services
-	otpSender = otp.NewOtpSender(otpRepo)
-	otpService = otcSvc.NewOtpService(otpSender, crp)
+	otpSender = otp.NewOtpSender()
+	otpService = otcSvc.NewOtpService(otpSender, crp, otpRepo)
 	regService = register.NewRegistrationService(userRepo, otpService, crp)
 	promoSvc = promo.NewPromoService(promoRepo)
 	subService = subscription.NewSubscriptionService(pricingRepo, subscriptionRepo, userRepo, creditRepo, creditAuditRepo)

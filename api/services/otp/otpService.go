@@ -2,21 +2,24 @@ package otp
 
 import (
 	"errors"
+	"github.com/fastbiztech/hastinapura/internal/pkg/crypto"
+	"github.com/fastbiztech/hastinapura/internal/pkg/models/dbo"
+	"github.com/fastbiztech/hastinapura/internal/pkg/otp"
+	"github.com/fastbiztech/hastinapura/internal/pkg/repositories"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"log"
 	"time"
-
-	"github.com/fastbiztech/hastinapura/internal/pkg/services/crypto"
-	"github.com/fastbiztech/hastinapura/internal/pkg/services/otp"
 )
 
 type OtpService struct {
 	otpSender *otp.OtpSender
 	crypto    *crypto.Crypto
+	otpRepo   *repositories.OtpRepo
 }
 
-func NewOtpService(otpSender *otp.OtpSender, crypto *crypto.Crypto) *OtpService {
-	return &OtpService{otpSender: otpSender, crypto: crypto}
+func NewOtpService(otpSender *otp.OtpSender, crypto *crypto.Crypto, otpRepo *repositories.OtpRepo) *OtpService {
+	return &OtpService{otpSender: otpSender, crypto: crypto, otpRepo: otpRepo}
 }
 
 func (o *OtpService) SendOtp(ctx *gin.Context, mobile string) error {
@@ -26,15 +29,26 @@ func (o *OtpService) SendOtp(ctx *gin.Context, mobile string) error {
 		return err
 	}
 	hashedOtp := o.crypto.HashString(generatedOtp)
-	if err := o.otpSender.SaveOtp(ctx, mobile, hashedOtp); err != nil {
+
+	otp := dbo.Otp{
+		Id:     uuid.New().String(),
+		Mobile: mobile,
+		Otp:    hashedOtp,
+		Exp:    time.Now().Add(2 * time.Minute).Unix(),
+	}
+	if err := o.otpRepo.SaveOtp(ctx, otp); err != nil {
 		return err
 	}
+
 	return nil
 }
 
 func (o *OtpService) VerifyOtp(ctx *gin.Context, mobile string, otp string) error {
 	currentHashedOtp := o.crypto.HashString(otp)
-	fetchedOtp := o.otpSender.FetchOtp(ctx, mobile)
+	fetchedOtp, err := o.otpRepo.GetOtp(ctx, mobile)
+	if err != nil {
+		return err
+	}
 
 	currTime := time.Now().Unix()
 	if fetchedOtp != nil && fetchedOtp.Otp == currentHashedOtp && fetchedOtp.Exp > currTime {
