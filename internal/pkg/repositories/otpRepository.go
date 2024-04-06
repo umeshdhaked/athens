@@ -5,12 +5,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/fastbiztech/hastinapura/internal/pkg/models/dbo"
 	"github.com/gin-gonic/gin"
 	"log"
-	"time"
-
-	"github.com/fastbiztech/hastinapura/internal/pkg/models/dbo"
-	"github.com/google/uuid"
 )
 
 type OtpRepo struct {
@@ -21,17 +18,12 @@ func NewOtpRepo(client *dynamodb.Client) *OtpRepo {
 	return &OtpRepo{client: client}
 }
 
-func (o *OtpRepo) SaveOtp(ctx *gin.Context, mobile string, hashedOtp string) error {
-	item, er := attributevalue.MarshalMap(
-		dbo.Otp{
-			Id:     uuid.New().String(),
-			Mobile: mobile,
-			Otp:    hashedOtp,
-			Exp:    time.Now().Add(2 * time.Minute).Unix(),
-		})
+func (o *OtpRepo) SaveOtp(ctx *gin.Context, otp dbo.Otp) error {
+	item, er := attributevalue.MarshalMap(otp)
 	if er != nil {
 		return er
 	}
+
 	params := &dynamodb.PutItemInput{
 		TableName: aws.String("otp"),
 		Item:      item,

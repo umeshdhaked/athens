@@ -3,8 +3,10 @@ package otp
 import (
 	"crypto/rand"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"io"
 	"log"
+	"time"
 
 	"github.com/fastbiztech/hastinapura/internal/pkg/models/dbo"
 	"github.com/fastbiztech/hastinapura/internal/pkg/repositories"
@@ -40,7 +42,13 @@ func (o *OtpSender) SendOtp(otp string) error {
 }
 
 func (o *OtpSender) SaveOtp(ctx *gin.Context, mobile string, hashedOtp string) error {
-	if err := o.otpRepo.SaveOtp(ctx, mobile, hashedOtp); err != nil {
+	otp := dbo.Otp{
+		Id:     uuid.New().String(),
+		Mobile: mobile,
+		Otp:    hashedOtp,
+		Exp:    time.Now().Add(2 * time.Minute).Unix(),
+	}
+	if err := o.otpRepo.SaveOtp(ctx, otp); err != nil {
 		return err
 	}
 	return nil

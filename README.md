@@ -3,11 +3,12 @@
 # env variable required for local run
     Need go 1.22.0 version in your system
     ```
-    -> export ENV=local
-    -> export AWS_ACCESS_KEY_ID=<ACCESS_KEY>
-    -> export AWS_SECRET_ACCESS_KEY=<SECRET>
-    -> export AWS_REGION=<REGION>
+    -> export APP_ENV=local
+    -> export AWS_ACCESS_KEY_ID=DUMMY
+    -> export AWS_SECRET_ACCESS_KEY=DUMMY
+    -> export AWS_REGION=us-west-2
     ```
+    ``` Run docker-compose file and migration script for initial setup ```
 
 
 # ec2 deployment guide

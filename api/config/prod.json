@@ -1,7 +1,20 @@
 {
-    "AwsSecretConfig" : {
-        "AccessKeyID":"",
-        "SecretAccessKey":"",
-        "Region":"us-east-1"
+    "Aws" : {
+        "db": {
+            "keyId": "DUMMY",
+            "accessKey": "DUMMY",
+            "region": "us-west-2",
+            "endpoint": "http://localhost:8000"
+        },
+        "s3": {
+            "keyId": "DUMMY",
+            "accessKey": "DUMMY",
+            "region": "ap-south-1",
+            "endpoint": "http://localhost:4566"
+        }
+    },
+
+    "App": {
+        "Port" : "8080"
     }
 }

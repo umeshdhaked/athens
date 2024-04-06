@@ -1,27 +1,20 @@
 package di
 
 import (
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	otcSvc "github.com/fastbiztech/hastinapura/api/services/otp"
 	"github.com/fastbiztech/hastinapura/api/services/promo"
 	"github.com/fastbiztech/hastinapura/api/services/register"
 	"github.com/fastbiztech/hastinapura/api/services/subscription"
-	"github.com/fastbiztech/hastinapura/internal/config"
 	pkgAws "github.com/fastbiztech/hastinapura/internal/pkg/aws"
 	"github.com/fastbiztech/hastinapura/internal/pkg/db"
 	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
 	"github.com/fastbiztech/hastinapura/internal/pkg/repositories"
-	servAws "github.com/fastbiztech/hastinapura/internal/pkg/services/aws"
 	"github.com/fastbiztech/hastinapura/internal/pkg/services/crypto"
-	"github.com/fastbiztech/hastinapura/internal/pkg/services/dynamo"
 	"github.com/fastbiztech/hastinapura/internal/pkg/services/otp"
 	"github.com/fastbiztech/hastinapura/internal/services/group"
 )
 
 var regService *register.RegistrationService
-var awsConf aws.Config
-var dynamoClient *dynamodb.Client
 var otpSender *otp.OtpSender
 var otpService *otcSvc.OtpService
 var crp *crypto.Crypto
@@ -37,22 +30,19 @@ var creditAuditRepo *repositories.CreditsAuditRepo
 
 // InitialiseServices *Make sure service are in correct order based on their dependency on each other* //
 func InitialiseDeps() {
-	conf := config.GetConfig()
-
-	crp = crypto.NewCrypto()
-	awsConf = servAws.ConfigureAwsSdkConfig(conf)
-	dynamoClient = dynamo.ConfigureDynamoClient(awsConf)
-	// Init services/dependencies
+	//conf := config.GetConfig()
+	db.NewDb()
 	pkgAws.InitialiseS3Client()
+	crp = crypto.NewCrypto()
 
 	//repos
-	userRepo = repositories.NewUserRepo(dynamoClient)
-	subscriptionRepo = repositories.NewSubscriptionRepo(dynamoClient)
-	pricingRepo = repositories.NewPricingRepo(dynamoClient)
-	promoRepo = repositories.NewPromotionRepo(dynamoClient)
-	otpRepo = repositories.NewOtpRepo(dynamoClient)
-	creditRepo = repositories.NewCreditsRepo(dynamoClient)
-	creditAuditRepo = repositories.NewCreditsAuditRepo(dynamoClient)
+	userRepo = repositories.NewUserRepo(db.GetDb().Client)
+	subscriptionRepo = repositories.NewSubscriptionRepo(db.GetDb().Client)
+	pricingRepo = repositories.NewPricingRepo(db.GetDb().Client)
+	promoRepo = repositories.NewPromotionRepo(db.GetDb().Client)
+	otpRepo = repositories.NewOtpRepo(db.GetDb().Client)
+	creditRepo = repositories.NewCreditsRepo(db.GetDb().Client)
+	creditAuditRepo = repositories.NewCreditsAuditRepo(db.GetDb().Client)
 	repo.NewRepository(db.GetDb().Client)
 
 	//services

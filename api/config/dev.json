@@ -1,14 +1,14 @@
 {
     "Aws" : {
         "db": {
-            "key_id": "DUMMY",
-            "access_key": "DUMMY",
+            "keyId": "DUMMY",
+            "accessKey": "DUMMY",
             "region": "us-west-2",
             "endpoint": "http://localhost:8000"
         },
         "s3": {
-            "key_id": "DUMMY",
-            "access_key": "DUMMY",
+            "keyId": "DUMMY",
+            "accessKey": "DUMMY",
             "region": "ap-south-1",
             "endpoint": "http://localhost:4566"
         }
