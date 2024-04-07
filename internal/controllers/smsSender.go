@@ -8,9 +8,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func PostSenderID(c *gin.Context) {
+func PostSenderCode(c *gin.Context) {
 	var (
-		request = dtos.PostSenderIDRequest{}
+		request = dtos.PostSenderCodeRequest{}
 		err     error
 	)
 	// Bind data into the struct
@@ -19,7 +19,7 @@ func PostSenderID(c *gin.Context) {
 		return
 	}
 
-	_, err = sms.GetService().AddSenderID(c, request)
+	_, err = sms.GetService().AddSenderCode(c, request)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -28,8 +28,8 @@ func PostSenderID(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Sender ID added successfully"})
 }
 
-func GetSenderID(c *gin.Context) {
-	var request = dtos.GetSenderIDRequest{}
+func GetSenderCode(c *gin.Context) {
+	var request = dtos.GetSenderCodeRequest{}
 
 	// Bind data into the struct
 	if err := c.BindQuery(&request); err != nil {
@@ -37,7 +37,7 @@ func GetSenderID(c *gin.Context) {
 		return
 	}
 
-	response, err := sms.GetService().GetSenderID(c, request)
+	response, err := sms.GetService().GetSenderCode(c, request)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -46,9 +46,9 @@ func GetSenderID(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": response})
 }
 
-func DeActivateSenderID(c *gin.Context) {
+func DeActivateSenderCode(c *gin.Context) {
 	var (
-		request = dtos.DeleteSenderIDRequest{}
+		request = dtos.DeleteSenderCodeRequest{}
 		err     error
 	)
 	// Bind data into the struct
@@ -57,7 +57,7 @@ func DeActivateSenderID(c *gin.Context) {
 		return
 	}
 
-	_, err = sms.GetService().DeActivateSenderID(c, request)
+	_, err = sms.GetService().DeActivateSenderCode(c, request)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -66,9 +66,9 @@ func DeActivateSenderID(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Sender ID deleted successfully"})
 }
 
-func ApproveSenderID(c *gin.Context) {
+func ApproveSenderCode(c *gin.Context) {
 	var (
-		request = dtos.ApproveSenderIDRequest{}
+		request = dtos.ApproveSenderCodeRequest{}
 		err     error
 	)
 	// Bind data into the struct
@@ -77,7 +77,7 @@ func ApproveSenderID(c *gin.Context) {
 		return
 	}
 
-	_, err = sms.GetService().ApproveSenderID(c, request)
+	_, err = sms.GetService().ApproveSenderCode(c, request)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

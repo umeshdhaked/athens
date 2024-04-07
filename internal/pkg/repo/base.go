@@ -110,10 +110,12 @@ func (r *Repository) QueryItems(ctx context.Context, tableName string, condition
 		input.FilterExpression = aws.String(filterExpr)
 	}
 
+	if !utils.IsEmpty(conditions.Index) {
+		input.IndexName = aws.String(conditions.Index)
+	}
+
 	input.ExpressionAttributeNames = expressionAttributeNames
 	input.ExpressionAttributeValues = expressionAttributeValues
-
-	input.IndexName = aws.String(conditions.Index)
 
 	resp, err := r.dbClient.Query(ctx, input)
 	if err != nil {
@@ -281,7 +283,11 @@ func buildFilterExpression(conditions map[string]interface{}, expressionAttribut
 // generateUpdateExpression generates the update expression string
 func generateUpdateExpressionForUpdate(updateAttributes map[string]types.AttributeValue) string {
 	var expr strings.Builder
-	for key := range updateAttributes {
+	for key, value := range updateAttributes {
+		if utils.IsEmptyAttributeValue(value) {
+			continue
+		}
+
 		expr.WriteString("#" + key + " = :" + key + ", ")
 	}
 	return strings.TrimSuffix(expr.String(), ", ")
@@ -290,7 +296,11 @@ func generateUpdateExpressionForUpdate(updateAttributes map[string]types.Attribu
 // generateUpdateExpression generates the update expression string
 func generateUpdateExpressionNameForUpdate(updateAttributes map[string]types.AttributeValue) map[string]string {
 	var expr = make(map[string]string)
-	for key := range updateAttributes {
+	for key, value := range updateAttributes {
+		if utils.IsEmptyAttributeValue(value) {
+			continue
+		}
+
 		expr["#"+key] = key
 	}
 	return expr
@@ -300,6 +310,10 @@ func generateUpdateExpressionNameForUpdate(updateAttributes map[string]types.Att
 func generateExpressionAttributeValuesForUpdate(updateAttributes map[string]types.AttributeValue) map[string]types.AttributeValue {
 	expressionAttributeValues := make(map[string]types.AttributeValue)
 	for key, value := range updateAttributes {
+		if utils.IsEmptyAttributeValue(value) {
+			continue
+		}
+
 		expressionAttributeValues[":"+key] = value
 	}
 	return expressionAttributeValues

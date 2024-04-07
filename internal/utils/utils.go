@@ -6,6 +6,8 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/fastbiztech/hastinapura/internal/constants"
 )
 
@@ -62,4 +64,18 @@ func Ternary(condition bool, trueValue, falseValue interface{}) interface{} {
 		return trueValue
 	}
 	return falseValue
+}
+
+func IsEmptyAttributeValue(value types.AttributeValue) bool {
+	var valueMap interface{}
+	err := attributevalue.Unmarshal(value, &valueMap)
+	if err != nil {
+		return false
+	}
+
+	if IsEmpty(valueMap) {
+		return true
+	}
+
+	return false
 }

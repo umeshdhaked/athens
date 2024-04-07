@@ -6,6 +6,9 @@ const (
 
 	IndexTableGroupIndexName       = "index_group_name"
 	IndexTableSmsSenderIndexUserID = "index_smssender_userid"
+
+	// indexes: sms template table
+	IndexTableSmsTemplateIndexUserID = "index_smstemplate_userid"
 )
 
 type BaseModel struct {
