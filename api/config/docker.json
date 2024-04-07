@@ -1,0 +1,28 @@
+{
+  "aws" : {
+    "db": {
+      "key_id": "DUMMY1",
+      "access_key": "DUMMY",
+      "region": "ap-south-1",
+      "endpoint": "http://dynamodb-local:8000"
+    },
+    "s3": {
+      "key_id": "DUMMY",
+      "access_key": "DUMMY",
+      "region": "ap-south-1",
+      "endpoint": "http://localstack-main:4566"
+    }
+  },
+
+  "app": {
+    "port" : "8080"
+  },
+
+  "api": {
+    "sms_header": {
+      "base_url": "https://smsheader.trai.gov.in/",
+      "path": "query_header",
+      "method": "POST"
+    }
+  }
+}

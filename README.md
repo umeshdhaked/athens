@@ -8,8 +8,14 @@
     -> export AWS_SECRET_ACCESS_KEY=DUMMY
     -> export AWS_REGION=us-west-2
     ```
-    ``` Run docker-compose file and migration script for initial setup ```
+    ``` Run docker-compose file and migration script for initial setup dynamo and localstack setup (comment hastinapur from docker-compose)```
 
+# local run with docker
+    ```
+    build docker image with "docker build -t hastinapura ."
+    go to docker directory "cd docker"
+    run application stack with "docker-compose up -d"
+    ```
 
 # ec2 deployment guide
     1. ssh to ec2 ssh -i "aws_local_connect.pem" ec2-user@ec2-18-215-149-126.compute-1.amazonaws.com
