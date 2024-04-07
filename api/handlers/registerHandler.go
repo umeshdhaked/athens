@@ -1,12 +1,12 @@
 package handlers
 
 import (
+	"net/http"
+
 	"github.com/fastbiztech/hastinapura/api/di"
 	"github.com/fastbiztech/hastinapura/api/services/register"
 	"github.com/fastbiztech/hastinapura/internal/pkg/jwt"
-	"github.com/fastbiztech/hastinapura/pkg/models/dtos"
-
-	"net/http"
+	"github.com/fastbiztech/hastinapura/pkg/dtos"
 
 	"github.com/gin-gonic/gin"
 )

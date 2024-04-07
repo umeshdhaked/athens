@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 	"fmt"
-	"github.com/fastbiztech/hastinapura/internal/utils"
 	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -23,22 +22,13 @@ type Db struct {
 
 func NewDb() {
 	once.Do(func() {
-
-		var cfg aws.Config
-		var err error
-
-		if utils.GetEnv() == "dev" {
-			// Create DynamoDB client
-			cfg, err = awsConfig.LoadDefaultConfig(context.Background(),
-				awsConfig.WithRegion(config.GetConfig().Aws.Db.Region),
-				awsConfig.WithEndpointResolverWithOptions(aws.EndpointResolverWithOptionsFunc(
-					func(service, region string, options ...interface{}) (aws.Endpoint, error) {
-						return aws.Endpoint{URL: config.GetConfig().Aws.Db.EndPoint}, nil
-					})))
-		} else {
-			// this will user secrets from env variable and connect to aws cloud default endpoints.
-			cfg, err = awsConfig.LoadDefaultConfig(context.Background())
-		}
+		// Create DynamoDB client
+		cfg, err := awsConfig.LoadDefaultConfig(context.Background(),
+			awsConfig.WithRegion(config.GetConfig().Aws.Db.Region),
+			awsConfig.WithEndpointResolverWithOptions(aws.EndpointResolverWithOptionsFunc(
+				func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+					return aws.Endpoint{URL: config.GetConfig().Aws.Db.EndPoint}, nil
+				})))
 
 		if err != nil {
 			fmt.Println("Error loading AWS config:", err)

@@ -12,6 +12,7 @@ import (
 	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
 	"github.com/fastbiztech/hastinapura/internal/pkg/repositories"
 	"github.com/fastbiztech/hastinapura/internal/services/group"
+	"github.com/fastbiztech/hastinapura/internal/services/sms"
 )
 
 var regService *register.RegistrationService
@@ -28,14 +29,18 @@ var otpRepo *repositories.OtpRepo
 var creditRepo *repositories.CreditsRepo
 var creditAuditRepo *repositories.CreditsAuditRepo
 
-// InitialiseServices *Make sure service are in correct order based on their dependency on each other* //
+// InitialiseDeps *Make sure service are in correct order based on their dependency on each other* //
 func InitialiseDeps() {
-	//conf := config.GetConfig()
+
+	// db initialisation
 	db.NewDb()
+
+	// pkg initialisation
 	pkgAws.InitialiseS3Client()
 	crp = crypto.NewCrypto()
 
-	//repos
+	// repos
+	repo.NewRepository(db.GetDb().Client)
 	userRepo = repositories.NewUserRepo(db.GetDb().Client)
 	subscriptionRepo = repositories.NewSubscriptionRepo(db.GetDb().Client)
 	pricingRepo = repositories.NewPricingRepo(db.GetDb().Client)
@@ -43,16 +48,16 @@ func InitialiseDeps() {
 	otpRepo = repositories.NewOtpRepo(db.GetDb().Client)
 	creditRepo = repositories.NewCreditsRepo(db.GetDb().Client)
 	creditAuditRepo = repositories.NewCreditsAuditRepo(db.GetDb().Client)
-	repo.NewRepository(db.GetDb().Client)
 
-	//services
+	// services
 	otpSender = otp.NewOtpSender()
 	otpService = otcSvc.NewOtpService(otpSender, crp, otpRepo)
 	regService = register.NewRegistrationService(userRepo, otpService, crp)
 	promoSvc = promo.NewPromoService(promoRepo)
 	subService = subscription.NewSubscriptionService(pricingRepo, subscriptionRepo, userRepo, creditRepo, creditAuditRepo)
-	// Group Service
+
 	group.InitialiseService()
+	sms.InitialiseService()
 
 }
 

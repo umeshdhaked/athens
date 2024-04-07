@@ -8,7 +8,7 @@ import (
 
 	"github.com/fastbiztech/hastinapura/internal/pkg/models/dbo"
 	"github.com/fastbiztech/hastinapura/internal/pkg/repositories"
-	"github.com/fastbiztech/hastinapura/pkg/models/dtos"
+	"github.com/fastbiztech/hastinapura/pkg/dtos"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )

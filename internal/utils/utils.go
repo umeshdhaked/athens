@@ -56,3 +56,10 @@ func GetFilePath(name string) string {
 
 	return fmt.Sprintf("%s/%s", dirPath, name)
 }
+
+func Ternary(condition bool, trueValue, falseValue interface{}) interface{} {
+	if condition {
+		return trueValue
+	}
+	return falseValue
+}

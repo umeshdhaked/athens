@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/fastbiztech/hastinapura/pkg/models/dtos"
+	"github.com/fastbiztech/hastinapura/pkg/dtos"
 	"github.com/gin-gonic/gin"
 
 	"github.com/golang-jwt/jwt"

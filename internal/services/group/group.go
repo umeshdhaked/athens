@@ -12,7 +12,7 @@ import (
 	"github.com/fastbiztech/hastinapura/internal/models"
 	"github.com/fastbiztech/hastinapura/internal/pkg/aws"
 	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
-	"github.com/fastbiztech/hastinapura/pkg/models/dtos"
+	"github.com/fastbiztech/hastinapura/pkg/dtos"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -34,10 +34,14 @@ func InitialiseService() {
 	})
 }
 
+func GetService() *Service {
+	return service
+}
+
 func (s *Service) UploadGroupToS3(c *gin.Context, file multipart.File, request dtos.UploadGroupContactsRequest) (interface{}, error) {
 	//  add validation for same name already existed
 	conditions := dtos.DbConditions{
-		Index: "test_index1",
+		Index: models.IndexTableGroupIndexName,
 		PKey: map[string]interface{}{
 			models.ColumnName: request.Name,
 		},
@@ -90,7 +94,7 @@ func (s *Service) UploadGroupToS3(c *gin.Context, file multipart.File, request d
 
 func (s *Service) GetGroupContacts(c *gin.Context, request dtos.GetGroupContactsRequest) (interface{}, error) {
 	conditions := dtos.DbConditions{
-		Index: "test_index1",
+		Index: models.IndexTableGroupIndexName,
 		PKey: map[string]interface{}{
 			models.ColumnName: request.Name,
 		},
@@ -103,10 +107,6 @@ func (s *Service) GetGroupContacts(c *gin.Context, request dtos.GetGroupContacts
 	}
 
 	return items, nil
-}
-
-func GetService() *Service {
-	return service
 }
 
 func getCsvColumnNames(file multipart.File) ([]string, error) {

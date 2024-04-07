@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"log"
+	"sync"
 
 	"github.com/fastbiztech/hastinapura/internal/utils"
 	"github.com/spf13/viper"
@@ -10,50 +11,74 @@ import (
 
 var (
 	config *Config
+	once   sync.Once
 )
 
 type AwsDbConfig struct {
-	EndPoint  string
-	KeyID     string
-	AccessKey string
-	Region    string
+	EndPoint  string `mapstructure:"endpoint"`
+	KeyID     string `mapstructure:"key_id"`
+	AccessKey string `mapstructure:"access_key"`
+	Region    string `mapstructure:"region"`
 }
 
 type AwsS3Config struct {
-	EndPoint  string
-	KeyID     string
-	AccessKey string
-	Region    string
+	EndPoint  string `mapstructure:"endpoint"`
+	KeyID     string `mapstructure:"key_id"`
+	AccessKey string `mapstructure:"access_key"`
+	Region    string `mapstructure:"region"`
 }
 
 type AwsConfig struct {
-	Db AwsDbConfig
-	S3 AwsS3Config
+	Db AwsDbConfig `mapstructure:"db"`
+	S3 AwsS3Config `mapstructure:"s3"`
+}
+
+type EndpointConfig struct {
+	Method  string `mapstructure:"method"`
+	BaseUrl string `mapstructure:"base_url"`
+	Path    string `mapstructure:"path"`
+}
+
+type ApiConfig struct {
+	SmsHeader EndpointConfig `mapstructure:"sms_header"`
 }
 
 type AppConfig struct {
-	Port string
+	Port string `mapstructure:"port"`
 }
 
 type Config struct {
-	App AppConfig
-	Aws AwsConfig
+	App AppConfig `mapstructure:"app"`
+	Aws AwsConfig `mapstructure:"aws"`
+	Api ApiConfig `mapstructure:"api"`
 }
 
 func LoadConfig() {
-	viper.AddConfigPath(utils.GetFilePath("api/config"))
-	viper.SetConfigName(utils.GetEnv())
+	once.Do(func() {
+		viper.AddConfigPath(utils.GetFilePath("api/config"))
 
-	err := viper.ReadInConfig()
-	if err != nil {
-		log.Fatal(err.Error())
-	}
+		// Load values from default file first.
+		viper.SetConfigName("default")
 
-	err = viper.Unmarshal(&config)
-	if err != nil {
-		fmt.Printf("unable to decode into config struct, %v", err)
-		panic("failed to load config")
-	}
+		err := viper.ReadInConfig()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+
+		// Load env specific values and merge.
+		viper.SetConfigName(utils.GetEnv())
+
+		err = viper.MergeInConfig() // This will merge env.json with default.json
+		if err != nil {
+			log.Fatalf("Error reading env config: %s", err)
+		}
+
+		err = viper.Unmarshal(&config)
+		if err != nil {
+			fmt.Printf("unable to decode into config struct, %v", err)
+			panic("failed to load config")
+		}
+	})
 }
 
 func GetConfig() *Config {

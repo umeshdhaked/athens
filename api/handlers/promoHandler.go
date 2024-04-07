@@ -5,8 +5,7 @@ import (
 
 	"github.com/fastbiztech/hastinapura/api/di"
 	"github.com/fastbiztech/hastinapura/api/services/promo"
-	"github.com/fastbiztech/hastinapura/pkg/models/dtos"
-
+	"github.com/fastbiztech/hastinapura/pkg/dtos"
 	"github.com/gin-gonic/gin"
 )
 

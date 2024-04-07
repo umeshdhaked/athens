@@ -89,4 +89,22 @@ var routeList = [...]route{
 			{http.MethodGet, "/contacts", controllers.GetGroupContacts},
 		},
 	},
+	{
+		group:      "/v1/sms",
+		middleware: []gin.HandlerFunc{},
+		endpoints: []endpoint{
+			// Sender Id related apis
+			{http.MethodPost, "/senderid", controllers.PostSenderID},
+			{http.MethodPost, "/senderid/approve", controllers.ApproveSenderID},
+			{http.MethodGet, "/senderid", controllers.GetSenderID},
+			{http.MethodPatch, "/senderid/deactivate", controllers.DeActivateSenderID},
+
+			//{http.MethodPost, "/template", controllers.UploadGroupContacts},
+			//{http.MethodGet, "/template", controllers.UploadGroupContacts},
+			//{http.MethodPatch, "/template", controllers.UploadGroupContacts},
+			//{http.MethodDelete, "/template", controllers.UploadGroupContacts},
+			//{http.MethodPost, "", controllers.UploadGroupContacts}, // Instant Sms
+			//{http.MethodGet, "", controllers.UploadGroupContacts},  // Sms Reporting
+		},
+	},
 }

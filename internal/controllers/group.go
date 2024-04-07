@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/fastbiztech/hastinapura/internal/services/group"
-	"github.com/fastbiztech/hastinapura/pkg/models/dtos"
+	"github.com/fastbiztech/hastinapura/pkg/dtos"
 	"github.com/gin-gonic/gin"
 )
 
