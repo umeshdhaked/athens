@@ -10,7 +10,7 @@ import (
 	"github.com/fastbiztech/hastinapura/internal/pkg/crypto"
 	"github.com/fastbiztech/hastinapura/internal/pkg/jwt"
 	"github.com/fastbiztech/hastinapura/internal/pkg/models/dbo"
-	"github.com/fastbiztech/hastinapura/internal/pkg/repositories"
+	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
 	"github.com/fastbiztech/hastinapura/pkg/dtos"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -19,10 +19,10 @@ import (
 type RegistrationService struct {
 	otpService *otp.OtpService
 	cryp       *crypto.Crypto
-	userRepo   *repositories.UserRepo
+	userRepo   *repo.UserRepo
 }
 
-func NewRegistrationService(userRepo *repositories.UserRepo, otpService *otp.OtpService, cryp *crypto.Crypto) *RegistrationService {
+func NewRegistrationService(userRepo *repo.UserRepo, otpService *otp.OtpService, cryp *crypto.Crypto) *RegistrationService {
 	return &RegistrationService{userRepo: userRepo, otpService: otpService, cryp: cryp}
 }
 

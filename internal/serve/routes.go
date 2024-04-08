@@ -99,15 +99,19 @@ var routeList = [...]route{
 			{http.MethodPost, "/senderid/approve", controllers.ApproveSenderCode},
 			{http.MethodPatch, "/senderid/deactivate", controllers.DeActivateSenderCode},
 
+			// Template related apis
 			{http.MethodPost, "/template", controllers.PostSmsTemplate},
 			{http.MethodPost, "/template/approve", controllers.ApproveSmsTemplate},
 			{http.MethodGet, "/template", controllers.GetSmsTemplate},
 			{http.MethodPatch, "/template", controllers.UpdateSmsTemplate},
 			{http.MethodPatch, "/template/deactivate", controllers.DeActivateSmsTemplate},
 
-			// Template related apis
-			//{http.MethodPost, "", controllers.UploadGroupContacts}, // Instant Sms
-			//{http.MethodGet, "", controllers.UploadGroupContacts},  // Sms Reporting
+			// instant sms api
+			{http.MethodPost, "", controllers.PostSms},
+			{http.MethodPost, "/retry", controllers.PostSms}, // TODO validate if new method needed for retry sms
+
+			// Sms Reporting
+			//{http.MethodGet, "", controllers.UploadGroupContacts},
 		},
 	},
 }

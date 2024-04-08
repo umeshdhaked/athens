@@ -54,3 +54,12 @@ type DeActivateSmsTemplateRequest struct {
 	TemplateID string `json:"template_id"`
 	UserID     string `json:"user_id"`
 }
+
+type PostSmsRequest struct {
+	SenderCode string `json:"sender_code"`
+	Type       string `json:"type"`
+	Language   string `json:"language"`
+	Mobile     string `json:"mobile"`
+	Body       string `json:"body"`
+	TemplateID string `json:"template_id"`
+}

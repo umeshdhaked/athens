@@ -10,7 +10,6 @@ import (
 	"github.com/fastbiztech/hastinapura/internal/pkg/db"
 	"github.com/fastbiztech/hastinapura/internal/pkg/otp"
 	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
-	"github.com/fastbiztech/hastinapura/internal/pkg/repositories"
 	"github.com/fastbiztech/hastinapura/internal/services/group"
 	"github.com/fastbiztech/hastinapura/internal/services/sms"
 )
@@ -21,13 +20,13 @@ var otpService *otcSvc.OtpService
 var crp *crypto.Crypto
 var promoSvc *promo.PromoService
 var subService *subscription.SubscriptionService
-var userRepo *repositories.UserRepo
-var subscriptionRepo *repositories.SubscriptionRepo
-var pricingRepo *repositories.PricingRepo
-var promoRepo *repositories.PromotionRepo
-var otpRepo *repositories.OtpRepo
-var creditRepo *repositories.CreditsRepo
-var creditAuditRepo *repositories.CreditsAuditRepo
+var userRepo *repo.UserRepo
+var subscriptionRepo *repo.SubscriptionRepo
+var pricingRepo *repo.PricingRepo
+var promoRepo *repo.PromotionRepo
+var otpRepo *repo.OtpRepo
+var creditRepo *repo.CreditsRepo
+var creditAuditRepo *repo.CreditsAuditRepo
 
 // InitialiseDeps *Make sure service are in correct order based on their dependency on each other* //
 func InitialiseDeps() {
@@ -41,13 +40,13 @@ func InitialiseDeps() {
 
 	// repos
 	repo.NewRepository(db.GetDb().Client)
-	userRepo = repositories.NewUserRepo(db.GetDb().Client)
-	subscriptionRepo = repositories.NewSubscriptionRepo(db.GetDb().Client)
-	pricingRepo = repositories.NewPricingRepo(db.GetDb().Client)
-	promoRepo = repositories.NewPromotionRepo(db.GetDb().Client)
-	otpRepo = repositories.NewOtpRepo(db.GetDb().Client)
-	creditRepo = repositories.NewCreditsRepo(db.GetDb().Client)
-	creditAuditRepo = repositories.NewCreditsAuditRepo(db.GetDb().Client)
+	userRepo = repo.NewUserRepo(db.GetDb().Client)
+	subscriptionRepo = repo.NewSubscriptionRepo(db.GetDb().Client)
+	pricingRepo = repo.NewPricingRepo(db.GetDb().Client)
+	promoRepo = repo.NewPromotionRepo(db.GetDb().Client)
+	otpRepo = repo.NewOtpRepo(db.GetDb().Client)
+	creditRepo = repo.NewCreditsRepo(db.GetDb().Client)
+	creditAuditRepo = repo.NewCreditsAuditRepo(db.GetDb().Client)
 
 	// services
 	otpSender = otp.NewOtpSender()

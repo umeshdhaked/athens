@@ -7,21 +7,21 @@ import (
 	"time"
 
 	"github.com/fastbiztech/hastinapura/internal/pkg/models/dbo"
-	"github.com/fastbiztech/hastinapura/internal/pkg/repositories"
+	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
 	"github.com/fastbiztech/hastinapura/pkg/dtos"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
 type SubscriptionService struct {
-	pricingRepo     *repositories.PricingRepo
-	subRepo         *repositories.SubscriptionRepo
-	userRepo        *repositories.UserRepo
-	creditRepo      *repositories.CreditsRepo
-	creditAuditRepo *repositories.CreditsAuditRepo
+	pricingRepo     *repo.PricingRepo
+	subRepo         *repo.SubscriptionRepo
+	userRepo        *repo.UserRepo
+	creditRepo      *repo.CreditsRepo
+	creditAuditRepo *repo.CreditsAuditRepo
 }
 
-func NewSubscriptionService(pricingRepo *repositories.PricingRepo, subRepo *repositories.SubscriptionRepo, userRepo *repositories.UserRepo, creditRepo *repositories.CreditsRepo, creditAuditRepo *repositories.CreditsAuditRepo) *SubscriptionService {
+func NewSubscriptionService(pricingRepo *repo.PricingRepo, subRepo *repo.SubscriptionRepo, userRepo *repo.UserRepo, creditRepo *repo.CreditsRepo, creditAuditRepo *repo.CreditsAuditRepo) *SubscriptionService {
 	return &SubscriptionService{pricingRepo: pricingRepo, subRepo: subRepo, userRepo: userRepo, creditRepo: creditRepo, creditAuditRepo: creditAuditRepo}
 }
 
@@ -234,7 +234,7 @@ func (s *SubscriptionService) AddCreditToUser(ctx *gin.Context, subRequest *dtos
 		return err
 	}
 
-	credit, err := s.creditRepo.FetchUserCredit(ctx, user.Id)
+	credit, err := s.creditRepo.FetchCreditByUserID(ctx, user.Id)
 	if err != nil {
 		return err
 	}
@@ -278,7 +278,7 @@ func (s *SubscriptionService) FetchCredit(ctx *gin.Context) (*dtos.CreditsRespon
 		return nil, errors.New("internal server error, user mobile not found")
 	}
 
-	credit, err := s.creditRepo.FetchUserCredit(ctx, userId)
+	credit, err := s.creditRepo.FetchCreditByUserID(ctx, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -320,7 +320,7 @@ func (s *SubscriptionService) ChargeUser(ctx *gin.Context, userId string, catego
 	}
 
 	// fetch credit for user_id
-	credit, err := s.creditRepo.FetchUserCredit(ctx, userId)
+	credit, err := s.creditRepo.FetchCreditByUserID(ctx, userId)
 	if err != nil {
 		return err
 	}

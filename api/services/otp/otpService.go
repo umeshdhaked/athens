@@ -2,23 +2,24 @@ package otp
 
 import (
 	"errors"
+	"log"
+	"time"
+
 	"github.com/fastbiztech/hastinapura/internal/pkg/crypto"
 	"github.com/fastbiztech/hastinapura/internal/pkg/models/dbo"
 	"github.com/fastbiztech/hastinapura/internal/pkg/otp"
-	"github.com/fastbiztech/hastinapura/internal/pkg/repositories"
+	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"log"
-	"time"
 )
 
 type OtpService struct {
 	otpSender *otp.OtpSender
 	crypto    *crypto.Crypto
-	otpRepo   *repositories.OtpRepo
+	otpRepo   *repo.OtpRepo
 }
 
-func NewOtpService(otpSender *otp.OtpSender, crypto *crypto.Crypto, otpRepo *repositories.OtpRepo) *OtpService {
+func NewOtpService(otpSender *otp.OtpSender, crypto *crypto.Crypto, otpRepo *repo.OtpRepo) *OtpService {
 	return &OtpService{otpSender: otpSender, crypto: crypto, otpRepo: otpRepo}
 }
 

@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"log"
+	"strings"
 	"sync"
 
 	"github.com/fastbiztech/hastinapura/internal/utils"
@@ -33,14 +34,21 @@ type AwsConfig struct {
 	S3 AwsS3Config `mapstructure:"s3"`
 }
 
+type AuthConfig struct {
+	Key    string `mapstructure:"key"`
+	Secret string `mapstructure:"secret"`
+}
+
 type EndpointConfig struct {
-	Method  string `mapstructure:"method"`
-	BaseUrl string `mapstructure:"base_url"`
-	Path    string `mapstructure:"path"`
+	Method  string     `mapstructure:"method"`
+	BaseUrl string     `mapstructure:"base_url"`
+	Path    string     `mapstructure:"path"`
+	Auth    AuthConfig `mapstructure:"auth"`
 }
 
 type ApiConfig struct {
-	SmsHeader EndpointConfig `mapstructure:"sms_header"`
+	SmsHeader  EndpointConfig `mapstructure:"sms_header"`
+	InstantSms EndpointConfig `mapstructure:"instant_sms"`
 }
 
 type AppConfig struct {
@@ -56,6 +64,11 @@ type Config struct {
 func LoadConfig() {
 	once.Do(func() {
 		viper.AddConfigPath(utils.GetFilePath("api/config"))
+		// Set the environment variable prefix
+		viper.SetEnvPrefix("ENV_VAR")
+		// Enable automatic environment variable binding
+		viper.AutomaticEnv()
+		viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
 		// Load values from default file first.
 		viper.SetConfigName("default")

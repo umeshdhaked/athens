@@ -30,9 +30,6 @@ var (
 func InitialiseS3Client() {
 	once.Do(
 		func() {
-			// Load config
-			config.LoadConfig()
-
 			// Create DynamoDB client
 			cfg, err := awsConfig.LoadDefaultConfig(context.Background(),
 				awsConfig.WithRegion(config.GetConfig().Aws.S3.Region),

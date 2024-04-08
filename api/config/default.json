@@ -23,6 +23,15 @@
             "base_url": "https://smsheader.trai.gov.in/",
             "path": "query_header",
             "method": "POST"
+        },
+        "instant_sms": {
+            "base_url": "https://smsheader.trai.gov.in/",
+            "path": "query_header",
+            "method": "POST",
+            "auth" : {
+                "key": "${API_INSTANT_SMS_AUTH_KEY}",
+                "secret": ""
+            }
         }
     }
 }

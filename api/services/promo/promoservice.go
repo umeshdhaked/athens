@@ -1,19 +1,20 @@
 package promo
 
 import (
-	"github.com/gin-gonic/gin"
 	"log"
 	"time"
 
+	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
+	"github.com/gin-gonic/gin"
+
 	"github.com/fastbiztech/hastinapura/internal/pkg/models/dbo"
-	"github.com/fastbiztech/hastinapura/internal/pkg/repositories"
 )
 
 type PromoService struct {
-	promoRepo *repositories.PromotionRepo
+	promoRepo *repo.PromotionRepo
 }
 
-func NewPromoService(promoRepo *repositories.PromotionRepo) *PromoService {
+func NewPromoService(promoRepo *repo.PromotionRepo) *PromoService {
 	return &PromoService{promoRepo: promoRepo}
 }
 

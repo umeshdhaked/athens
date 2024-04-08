@@ -9,6 +9,12 @@ const (
 
 	// indexes: sms template table
 	IndexTableSmsTemplateIndexUserID = "index_smstemplate_userid"
+
+	// indexes: credits table
+	IndexTableCreditsIndexUserID = "index_credits_userid"
+
+	// indexes: credits table
+	IndexTableUserSubscriptionIndexUserID = "index_usersub_userid"
 )
 
 type BaseModel struct {

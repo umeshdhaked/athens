@@ -178,13 +178,13 @@
     }
   },
   {
-    "TableName": "credit",
+    "TableName": "Credits",
     "KeySchema": [
       {"AttributeName": "id", "KeyType": "HASH"}
     ],
     "AttributeDefinitions": [
       {"AttributeName": "id", "AttributeType": "S"},
-      {"AttributeName": "user_id", "AttributeType": "S"}
+      {"AttributeName": "UserID", "AttributeType": "S"}
     ],
     "ProvisionedThroughput": {
       "ReadCapacityUnits": 5,
@@ -192,22 +192,9 @@
     },
     "GlobalSecondaryIndexes": [
       {
-        "IndexName": "id-index",
+        "IndexName": "index_credits_userid",
         "KeySchema": [
-          { "AttributeName": "id", "KeyType": "HASH" }
-        ],
-        "Projection": {
-          "ProjectionType": "ALL"
-        },
-        "ProvisionedThroughput": {
-          "ReadCapacityUnits": 5,
-          "WriteCapacityUnits": 5
-        }
-      },
-      {
-        "IndexName": "user_id-index",
-        "KeySchema": [
-          { "AttributeName": "user_id", "KeyType": "HASH" }
+          { "AttributeName": "UserID", "KeyType": "HASH" }
         ],
         "Projection": {
           "ProjectionType": "ALL"
@@ -276,19 +263,6 @@
       "WriteCapacityUnits": 5
     },
     "GlobalSecondaryIndexes": [
-      {
-        "IndexName": "id-index",
-        "KeySchema": [
-          { "AttributeName": "id", "KeyType": "HASH" }
-        ],
-        "Projection": {
-          "ProjectionType": "ALL"
-        },
-        "ProvisionedThroughput": {
-          "ReadCapacityUnits": 5,
-          "WriteCapacityUnits": 5
-        }
-      },
       {
         "IndexName": "category-index",
         "KeySchema": [
@@ -374,20 +348,7 @@
     },
     "GlobalSecondaryIndexes": [
       {
-        "IndexName": "id-index",
-        "KeySchema": [
-          { "AttributeName": "id", "KeyType": "HASH" }
-        ],
-        "Projection": {
-          "ProjectionType": "ALL"
-        },
-        "ProvisionedThroughput": {
-          "ReadCapacityUnits": 5,
-          "WriteCapacityUnits": 5
-        }
-      },
-      {
-        "IndexName": "user_id-index",
+        "IndexName": "index_usersub_userid",
         "KeySchema": [
           { "AttributeName": "user_id", "KeyType": "HASH" }
         ],

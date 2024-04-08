@@ -12,6 +12,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/fastbiztech/hastinapura/internal/config"
 	"github.com/fastbiztech/hastinapura/internal/models"
+	"github.com/fastbiztech/hastinapura/internal/pkg/apiClient"
+	"github.com/fastbiztech/hastinapura/internal/pkg/db"
 	"github.com/fastbiztech/hastinapura/internal/pkg/http"
 	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
 	"github.com/fastbiztech/hastinapura/internal/utils"
@@ -23,7 +25,11 @@ import (
 )
 
 type Service struct {
-	baseRepo *repo.Repository
+	baseRepo        *repo.Repository
+	creditsRepo     *repo.CreditsRepo
+	smsAuditRepo    *repo.SmsAuditRepo
+	smsSenderRepo   *repo.SmsSenderRepo
+	smsTemplateRepo *repo.SmsTemplateRepo
 }
 
 var (
@@ -34,7 +40,11 @@ var (
 func InitialiseService() {
 	once.Do(func() {
 		service = &Service{
-			baseRepo: repo.GetRepository(),
+			baseRepo:        repo.GetRepository(),
+			creditsRepo:     repo.NewCreditsRepo(db.GetDb().Client),
+			smsAuditRepo:    repo.NewSmsAuditRepo(db.GetDb().Client),
+			smsSenderRepo:   repo.NewSmsSenderRepo(db.GetDb().Client),
+			smsTemplateRepo: repo.NewSmsTemplateRepo(db.GetDb().Client),
 		}
 	})
 }
@@ -146,7 +156,7 @@ func (s *Service) ApproveSenderCode(c *gin.Context, request dtos.ApproveSenderCo
 	}
 
 	// Insert item into the database
-	err = s.baseRepo.UpdateItem(context.Background(), models.TableSmsSender, updateConditions)
+	_, err = s.baseRepo.UpdateItem(context.Background(), models.TableSmsSender, updateConditions)
 	if err != nil {
 		log.Fatalf("error inserting item: %v", err)
 	}
@@ -188,7 +198,7 @@ func (s *Service) DeActivateSenderCode(c *gin.Context, request dtos.DeleteSender
 	}
 
 	// Insert item into the database
-	err = s.baseRepo.UpdateItem(context.Background(), models.TableSmsSender, updateConditions)
+	_, err = s.baseRepo.UpdateItem(context.Background(), models.TableSmsSender, updateConditions)
 	if err != nil {
 		log.Fatalf("error inserting item: %v", err)
 	}
@@ -378,7 +388,7 @@ func (s *Service) ApproveSmsTemplate(c *gin.Context, request dtos.ApproveSmsTemp
 	}
 
 	// Insert item into the database
-	err = s.baseRepo.UpdateItem(context.Background(), models.TableSmsTemplate, updateConditions)
+	_, err = s.baseRepo.UpdateItem(context.Background(), models.TableSmsTemplate, updateConditions)
 	if err != nil {
 		log.Fatalf("error inserting item: %v", err)
 	}
@@ -419,7 +429,7 @@ func (s *Service) UpdateSmsTemplate(c *gin.Context, request dtos.UpdateSmsTempla
 	}
 
 	// Insert item into the database
-	err = s.baseRepo.UpdateItem(context.Background(), models.TableSmsTemplate, updateConditions)
+	_, err = s.baseRepo.UpdateItem(context.Background(), models.TableSmsTemplate, updateConditions)
 	if err != nil {
 		log.Fatalf("error inserting item: %v", err)
 	}
@@ -440,4 +450,64 @@ func (s *Service) DeActivateSmsTemplate(c *gin.Context, request dtos.DeActivateS
 	}
 
 	return nil, nil
+}
+
+func (s *Service) SendInstantSms(c *gin.Context, request dtos.PostSmsRequest) (interface{}, error) {
+	// Verify Template ID
+	_, err := s.smsTemplateRepo.FetchSmsTemplateByUserIDTemplateID(c, "USERID", request.TemplateID)
+	if err != nil {
+		log.Fatalf("error: %v", err)
+	}
+
+	// verify sender code
+	_, err = s.smsSenderRepo.FetchSmsSenderByUserIDSenderCode(c, "USERID", request.SenderCode)
+	if err != nil {
+		log.Fatalf("error: %v", err)
+	}
+
+	// TODO create contact id
+
+	// Send SMS
+	_, err = (&apiClient.InstantSmsApiClient{}).SendInstantSms(c)
+	if err != nil {
+		return nil, err
+	}
+
+	// get credits usage
+	creditsUsed := getSmsCreditUsage()
+
+	// fetch credit entry
+	creditItem, err := s.creditsRepo.FetchCreditByUserID(c, "USERID")
+	if err != nil {
+		log.Fatalf("error: %v", err)
+	}
+
+	// Deduct Credits
+	creditItem, err = s.creditsRepo.UpdateCreditsLeftByID(c, creditItem.ID, creditItem.CreditsLeft-creditsUsed)
+	if err != nil {
+		log.Fatalf("error: %v", err)
+	}
+
+	// Create sms audit
+	entrySmsAuditItem := models.SmsAudit{
+		ID:              uuid.New().String(),
+		UserID:          "USERID", // ToDO get userid from token
+		CreditsConsumed: creditsUsed,
+		TemplateID:      request.TemplateID,
+		SenderCode:      request.SenderCode,
+		//ContactID:       "", // TODO
+		Status:        models.SmsAuditStatusDelivered,
+		TriggeredMode: models.ModeSmsAuditInstant,
+	}
+
+	err = s.smsAuditRepo.CreateSmsAudit(c, &entrySmsAuditItem)
+	if err != nil {
+		log.Fatalf("error: %v", err)
+	}
+
+	return nil, nil
+}
+
+func getSmsCreditUsage() float64 {
+	return 0.0 // TODO
 }

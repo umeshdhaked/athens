@@ -1,13 +1,14 @@
-package repositories
+package repo
 
 import (
+	"log"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/fastbiztech/hastinapura/internal/pkg/models/dbo"
 	"github.com/gin-gonic/gin"
-	"log"
 )
 
 type OtpRepo struct {

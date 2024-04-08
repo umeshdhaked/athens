@@ -1,12 +1,14 @@
-package repositories
+package repo
 
 import (
 	"errors"
+	"log"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"log"
+	"github.com/fastbiztech/hastinapura/internal/models"
 
 	"github.com/fastbiztech/hastinapura/internal/pkg/models/dbo"
 	"github.com/gin-gonic/gin"
@@ -23,7 +25,7 @@ func NewSubscriptionRepo(client *dynamodb.Client) *SubscriptionRepo {
 func (s *SubscriptionRepo) FetchAllSubscriptionForAUser(ctx *gin.Context, userId string) ([]dbo.UserSubscription, error) {
 	queryInput := &dynamodb.QueryInput{
 		TableName: aws.String("user_subscriptions"),
-		IndexName: aws.String("user_id-index"),
+		IndexName: aws.String(models.IndexTableUserSubscriptionIndexUserID),
 		KeyConditions: map[string]types.Condition{
 			"user_id": {
 				ComparisonOperator: types.ComparisonOperatorEq,

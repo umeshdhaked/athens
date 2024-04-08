@@ -58,7 +58,7 @@ func (r *Repository) GetItemByID(ctx context.Context, tableName string, key map[
 }
 
 // UpdateItem updates an existing item in the database
-func (r *Repository) UpdateItem(ctx context.Context, tableName string, dbUpdateQueryConditions dtos.DbUpdateQueryConditions) error {
+func (r *Repository) UpdateItem(ctx context.Context, tableName string, dbUpdateQueryConditions dtos.DbUpdateQueryConditions) (*dynamodb.UpdateItemOutput, error) {
 	// Extract key and attributes to update from inputMap
 	keyAttributes := dbUpdateQueryConditions.Key
 
@@ -74,12 +74,12 @@ func (r *Repository) UpdateItem(ctx context.Context, tableName string, dbUpdateQ
 	}
 
 	// Send the UpdateItem request
-	_, err := r.dbClient.UpdateItem(ctx, input)
+	updateItem, err := r.dbClient.UpdateItem(ctx, input)
 	if err != nil {
-		return fmt.Errorf("failed to update item in DynamoDB: %w", err)
+		return nil, fmt.Errorf("failed to update item in DynamoDB: %w", err)
 	}
 
-	return nil
+	return updateItem, nil
 }
 
 // DeleteItem deletes an item from the database
