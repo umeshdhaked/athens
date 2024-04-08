@@ -1,7 +1,7 @@
 {
     "aws" : {
         "db": {
-            "key_id": "DUMMY1",
+            "key_id": "DUMMY",
             "access_key": "DUMMY",
             "region": "ap-south-1",
             "endpoint": "http://localhost:8000"
