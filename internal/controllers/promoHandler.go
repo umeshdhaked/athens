@@ -1,10 +1,10 @@
-package handlers
+package controllers
 
 import (
+	"github.com/fastbiztech/hastinapura/internal"
+	"github.com/fastbiztech/hastinapura/internal/services/promo"
 	"net/http"
 
-	"github.com/fastbiztech/hastinapura/api/di"
-	"github.com/fastbiztech/hastinapura/api/services/promo"
 	"github.com/fastbiztech/hastinapura/pkg/dtos"
 	"github.com/gin-gonic/gin"
 )
@@ -16,7 +16,7 @@ func HandleSaveNumber(ctx *gin.Context) {
 		return
 	}
 
-	var reg *promo.PromoService = di.GetPromoService()
+	var reg *promo.PromoService = internal.GetPromoService()
 	err := reg.SavePhoneNo(ctx, user.MobileNumber)
 	if nil != err {
 		ctx.String(http.StatusInternalServerError, err.Error())
@@ -31,7 +31,7 @@ func HandleFetchPromoNumbers(ctx *gin.Context) {
 		ctx.String(http.StatusBadRequest, err.Error())
 		return
 	}
-	var reg *promo.PromoService = di.GetPromoService()
+	var reg *promo.PromoService = internal.GetPromoService()
 	list, err := reg.FetchPromoNumbers(ctx, user.Is_already_contacted)
 	if nil != err {
 		ctx.String(http.StatusInternalServerError, err.Error())
@@ -47,7 +47,7 @@ func HandleMarkContactedNumber(ctx *gin.Context) {
 		return
 	}
 
-	var reg *promo.PromoService = di.GetPromoService()
+	var reg *promo.PromoService = internal.GetPromoService()
 	err := reg.MarkContacted(ctx, user.MobileNumber, user.Comment)
 	if nil != err {
 		ctx.String(http.StatusInternalServerError, err.Error())

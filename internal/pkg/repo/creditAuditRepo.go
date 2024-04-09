@@ -6,7 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/fastbiztech/hastinapura/internal/pkg/models/dbo"
+	"github.com/fastbiztech/hastinapura/internal/models"
 	"github.com/gin-gonic/gin"
 )
 
@@ -18,7 +18,7 @@ func NewCreditsAuditRepo(client *dynamodb.Client) *CreditsAuditRepo {
 	return &CreditsAuditRepo{client: client}
 }
 
-func (c *CreditsAuditRepo) CreateUserCreditAudit(ctx *gin.Context, creditAudit *dbo.CreditAudits) error {
+func (c *CreditsAuditRepo) CreateUserCreditAudit(ctx *gin.Context, creditAudit *models.CreditAudits) error {
 	item, _ := attributevalue.MarshalMap(creditAudit)
 	params := &dynamodb.PutItemInput{
 		TableName: aws.String("credits_audit"),

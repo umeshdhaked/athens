@@ -1,10 +1,10 @@
-package handlers
+package controllers
 
 import (
+	"github.com/fastbiztech/hastinapura/internal"
+	"github.com/fastbiztech/hastinapura/internal/services/register"
 	"net/http"
 
-	"github.com/fastbiztech/hastinapura/api/di"
-	"github.com/fastbiztech/hastinapura/api/services/register"
 	"github.com/fastbiztech/hastinapura/internal/pkg/jwt"
 	"github.com/fastbiztech/hastinapura/pkg/dtos"
 
@@ -18,7 +18,7 @@ func HandleSendOtp(ctx *gin.Context) {
 		return
 	}
 
-	var reg *register.RegistrationService = di.GetRegistrationService()
+	var reg *register.RegistrationService = internal.GetRegistrationService()
 	if err := reg.SendOtp(ctx, user); err != nil {
 		ctx.String(http.StatusInternalServerError, err.Error())
 		return
@@ -33,7 +33,7 @@ func HandleRegisterUser(ctx *gin.Context) {
 		return
 	}
 
-	var reg *register.RegistrationService = di.GetRegistrationService()
+	var reg *register.RegistrationService = internal.GetRegistrationService()
 	registerResp, err := reg.RegisterUser(ctx, user)
 	if nil != err {
 		ctx.String(http.StatusInternalServerError, err.Error())
@@ -50,7 +50,7 @@ func HandleLoginUser(ctx *gin.Context) {
 		return
 	}
 
-	var reg *register.RegistrationService = di.GetRegistrationService()
+	var reg *register.RegistrationService = internal.GetRegistrationService()
 	loginResp, err := reg.LoginUser(ctx, user)
 	if nil != err {
 		ctx.String(http.StatusInternalServerError, err.Error())

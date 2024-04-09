@@ -14,13 +14,13 @@ import (
 
 var secretKey = []byte("my-jwt-secret-key")
 
-func CreateToken(id string, username string, role string) (string, error) {
+func CreateToken(id string, mobile string, role string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
-			"id":       id,
-			"username": username,
-			"role":     role,
-			"exp":      time.Now().Add(time.Hour * 24).Unix(),
+			"id":     id,
+			"mobile": mobile,
+			"role":   role,
+			"exp":    time.Now().Add(time.Hour * 24).Unix(),
 		})
 
 	tokenString, err := token.SignedString(secretKey)
@@ -61,7 +61,7 @@ func DecodeToken(tokenString string) (jwt.MapClaims, error) {
 }
 
 func RefreshToken(ctx *gin.Context) (*dtos.LoginSuccessResponse, error) {
-	jwtToken := ctx.Request.Header["Token"][0]
+	jwtToken := ctx.Request.Header["Authorization"][0]
 
 	if er := VerifyToken(jwtToken); er != nil {
 		log.Println("INVALID_TOKEN")
@@ -70,7 +70,7 @@ func RefreshToken(ctx *gin.Context) (*dtos.LoginSuccessResponse, error) {
 	claims, _ := DecodeToken(jwtToken)
 	exp := claims["exp"].(float64)
 	currTime := time.Now().Unix()
-	userNme := claims["username"].(string)
+	userNme := claims["mobile"].(string)
 	role := claims["role"].(string)
 	id := claims["id"].(string)
 	if int64(exp) < currTime {

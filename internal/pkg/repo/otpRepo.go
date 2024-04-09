@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"github.com/fastbiztech/hastinapura/internal/pkg/models/dbo"
+	"github.com/fastbiztech/hastinapura/internal/models"
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,7 +19,7 @@ func NewOtpRepo(client *dynamodb.Client) *OtpRepo {
 	return &OtpRepo{client: client}
 }
 
-func (o *OtpRepo) SaveOtp(ctx *gin.Context, otp dbo.Otp) error {
+func (o *OtpRepo) SaveOtp(ctx *gin.Context, otp models.Otp) error {
 	item, er := attributevalue.MarshalMap(otp)
 	if er != nil {
 		return er
@@ -35,7 +35,7 @@ func (o *OtpRepo) SaveOtp(ctx *gin.Context, otp dbo.Otp) error {
 	return err
 }
 
-func (o *OtpRepo) GetOtp(ctx *gin.Context, mobile string) (*dbo.Otp, error) {
+func (o *OtpRepo) GetOtp(ctx *gin.Context, mobile string) (*models.Otp, error) {
 	var queryInput = &dynamodb.QueryInput{
 		TableName: aws.String("otp"),
 		IndexName: aws.String("mobile-index"),
@@ -52,7 +52,7 @@ func (o *OtpRepo) GetOtp(ctx *gin.Context, mobile string) (*dbo.Otp, error) {
 		return nil, err
 	}
 	if resp.Count > 0 {
-		otp := []dbo.Otp{}
+		otp := []models.Otp{}
 		if err := attributevalue.UnmarshalListOfMaps(resp.Items, &otp); err != nil {
 			log.Println(err)
 			return nil, err

@@ -4,7 +4,7 @@ type PricingRequest struct {
 	Category   string
 	SubCatgory string
 	Type       string
-	Rates      float32
+	Rates      float64
 }
 
 type DeactivatePricingRequest struct {
@@ -30,12 +30,12 @@ type DeactivateSubscriptionRequest struct {
 
 type AddCreditsRequest struct {
 	UserMobile    string
-	InitialCredit float32
+	InitialCredit float64
 }
 
 type ChargeUserRequest struct {
 	UserId      string
 	Category    string
 	SubCategory string
-	UnitCount   float32
+	UnitCount   float64
 }

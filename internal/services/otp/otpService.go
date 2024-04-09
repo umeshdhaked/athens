@@ -5,8 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/fastbiztech/hastinapura/internal/models"
 	"github.com/fastbiztech/hastinapura/internal/pkg/crypto"
-	"github.com/fastbiztech/hastinapura/internal/pkg/models/dbo"
 	"github.com/fastbiztech/hastinapura/internal/pkg/otp"
 	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
 	"github.com/gin-gonic/gin"
@@ -31,7 +31,7 @@ func (o *OtpService) SendOtp(ctx *gin.Context, mobile string) error {
 	}
 	hashedOtp := o.crypto.HashString(generatedOtp)
 
-	otp := dbo.Otp{
+	otp := models.Otp{
 		Id:     uuid.New().String(),
 		Mobile: mobile,
 		Otp:    hashedOtp,

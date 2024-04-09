@@ -18,7 +18,7 @@ const (
 )
 
 type BaseModel struct {
-	CreatedAt int `json:"created_at"` // Unix timestamps
-	UpdatedAt int `json:"updated_at"`
-	DeletedAt int `json:"deleted_at"`
+	CreatedAt int64 `json:"created_at"` // Unix timestamps
+	UpdatedAt int64 `json:"updated_at"`
+	DeletedAt int64 `json:"deleted_at"`
 }

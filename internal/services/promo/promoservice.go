@@ -1,13 +1,12 @@
 package promo
 
 import (
+	"github.com/fastbiztech/hastinapura/internal/models"
+	"github.com/gin-gonic/gin"
 	"log"
 	"time"
 
 	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
-	"github.com/gin-gonic/gin"
-
-	"github.com/fastbiztech/hastinapura/internal/pkg/models/dbo"
 )
 
 type PromoService struct {
@@ -24,7 +23,7 @@ func (s *PromoService) SavePhoneNo(ctx *gin.Context, phoneNo string) error {
 		return err
 	}
 
-	obj := dbo.PromoPhone{Mobile: phoneNo, Timestamp: time.Now().Format(time.RFC850)}
+	obj := models.PromoPhone{Mobile: phoneNo, Timestamp: time.Now().Format(time.RFC850)}
 	if exPromoPh != nil && exPromoPh.IsAlreadyContacted == "true" {
 		log.Print("promo phone existed and already contacted")
 		return nil
@@ -35,12 +34,12 @@ func (s *PromoService) SavePhoneNo(ctx *gin.Context, phoneNo string) error {
 	return s.promoRepo.AddPromoContact(ctx, &obj)
 }
 
-func (s *PromoService) FetchPromoNumbers(ctx *gin.Context, isAlreadyConnected string) ([]dbo.PromoPhone, error) {
+func (s *PromoService) FetchPromoNumbers(ctx *gin.Context, isAlreadyConnected string) ([]models.PromoPhone, error) {
 	return s.promoRepo.GetAlreadyContactedPromo(ctx, isAlreadyConnected)
 }
 
 func (s *PromoService) MarkContacted(ctx *gin.Context, mobile string, comment string) error {
-	obj := dbo.PromoPhone{Mobile: mobile,
+	obj := models.PromoPhone{Mobile: mobile,
 		Timestamp: time.Now().Format(time.RFC850), IsAlreadyContacted: "true", Comment: comment}
 
 	return s.promoRepo.MarkContacted(ctx, &obj)

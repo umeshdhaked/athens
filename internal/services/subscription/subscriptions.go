@@ -2,11 +2,11 @@ package subscription
 
 import (
 	"errors"
+	"github.com/fastbiztech/hastinapura/internal/models"
 	"log"
 	"sort"
 	"time"
 
-	"github.com/fastbiztech/hastinapura/internal/pkg/models/dbo"
 	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
 	"github.com/fastbiztech/hastinapura/pkg/dtos"
 	"github.com/gin-gonic/gin"
@@ -37,10 +37,10 @@ func (s *SubscriptionService) CreateNewPricingSystem(ctx *gin.Context, pricing *
 		return nil, errors.New("invalid input")
 	}
 	if !(pricing.Category == "SMS" || pricing.Category == "EMAIL" || pricing.Category == "WHATSAPP") {
-		return nil, errors.New("inavaid category")
+		return nil, errors.New("invalid category")
 	}
 	if pricing.Category == "SMS" && pricing.SubCatgory != "PROMOTIONAL" && pricing.SubCatgory != "TRANSACTIONAL" {
-		return nil, errors.New("inavaid sub_category for SMS")
+		return nil, errors.New("invalid sub_category for SMS")
 	}
 
 	// search in DB if default exists.
@@ -55,14 +55,14 @@ func (s *SubscriptionService) CreateNewPricingSystem(ctx *gin.Context, pricing *
 	}
 
 	// save pricing to db.
-	obj := dbo.Pricing{
+	obj := models.Pricing{
 		Id:           uuid.New().String(),
 		Category:     pricing.Category,
 		SubCatgory:   pricing.SubCatgory,
 		PricingType:  pricing.Type,
 		Rates:        pricing.Rates,
 		PricingState: "ACTIVE",
-		CreatedAt:    time.Now().Unix(),
+		BaseModel:    models.BaseModel{CreatedAt: time.Now().Unix()},
 	}
 
 	if er := s.pricingRepo.CreatePricing(ctx, &obj); er != nil {
@@ -132,9 +132,9 @@ func (s *SubscriptionService) AddDefaultSubscriptionToUser(ctx *gin.Context, sub
 	admin, _ := ctx.Params.Get("id")
 
 	// create Subscriptions to USER
-	userSubsDto := []dbo.UserSubscription{}
+	userSubsDto := []models.UserSubscription{}
 	for _, dp := range defaultPricings {
-		userSubsDto = append(userSubsDto, dbo.UserSubscription{
+		userSubsDto = append(userSubsDto, models.UserSubscription{
 			Id:        uuid.New().String(),
 			PricingId: dp.Id,
 			UserId:    user.Id,
@@ -142,7 +142,7 @@ func (s *SubscriptionService) AddDefaultSubscriptionToUser(ctx *gin.Context, sub
 			SubType:   dp.SubCatgory,
 			Status:    "ACTIVE",
 			AddedBy:   admin,
-			CreatedAt: time.Now().Unix(),
+			BaseModel: models.BaseModel{CreatedAt: time.Now().Unix()},
 		})
 	}
 
@@ -171,7 +171,7 @@ func (s *SubscriptionService) AddSubscriptionToUser(ctx *gin.Context, subReq *dt
 	// create Subscriptions to USER
 	admin, _ := ctx.Params.Get("id")
 
-	userSubsDto := dbo.UserSubscription{
+	userSubsDto := models.UserSubscription{
 		Id:        uuid.New().String(),
 		PricingId: pricing.Id,
 		UserId:    user.Id,
@@ -179,7 +179,7 @@ func (s *SubscriptionService) AddSubscriptionToUser(ctx *gin.Context, subReq *dt
 		SubType:   pricing.SubCatgory,
 		Status:    "ACTIVE",
 		AddedBy:   admin,
-		CreatedAt: time.Now().Unix(),
+		BaseModel: models.BaseModel{CreatedAt: time.Now().Unix()},
 	}
 
 	if er := s.subRepo.CreateUserSubscription(ctx, &userSubsDto); er != nil {
@@ -242,25 +242,24 @@ func (s *SubscriptionService) AddCreditToUser(ctx *gin.Context, subRequest *dtos
 	log.Println("credit added", subRequest)
 
 	if credit == nil {
-		credit = &dbo.Credits{
-			Id:              uuid.New().String(),
-			UserId:          user.Id,
-			InitialCredit:   subRequest.InitialCredit,
-			RemainingCredit: subRequest.InitialCredit,
-			CreatedAt:       time.Now().Unix(),
+		credit = &models.Credits{
+			ID:          uuid.New().String(),
+			UserID:      user.Id,
+			Credits:     subRequest.InitialCredit,
+			CreditsLeft: subRequest.InitialCredit,
 		}
 	} else {
-		credit.InitialCredit = credit.InitialCredit + subRequest.InitialCredit
-		credit.RemainingCredit = credit.RemainingCredit + subRequest.InitialCredit
+		credit.Credits = credit.Credits + subRequest.InitialCredit
+		credit.CreditsLeft = credit.CreditsLeft + subRequest.InitialCredit
 	}
 
-	if err = s.creditAuditRepo.CreateUserCreditAudit(ctx, &dbo.CreditAudits{
+	if err = s.creditAuditRepo.CreateUserCreditAudit(ctx, &models.CreditAudits{
 		Id:            uuid.New().String(),
 		DeductedAmout: 0,
 		AddedAmount:   subRequest.InitialCredit,
-		CreditId:      credit.Id,
-		UserId:        credit.UserId,
-		UpdatedAt:     time.Now().Unix(),
+		CreditId:      credit.ID,
+		UserId:        credit.UserID,
+		BaseModel:     models.BaseModel{UpdatedAt: time.Now().Unix()},
 	}); err != nil {
 		return err
 	}
@@ -273,7 +272,7 @@ func (s *SubscriptionService) FetchCredit(ctx *gin.Context) (*dtos.CreditsRespon
 	if !exists { // create another version of this with payment validation with transaction ID
 		return nil, errors.New("internal server error, user id not found")
 	}
-	mobile, exists := ctx.Params.Get("username")
+	mobile, exists := ctx.Params.Get("mobile")
 	if !exists { // create another version of this with payment validation with transaction ID
 		return nil, errors.New("internal server error, user mobile not found")
 	}
@@ -284,17 +283,17 @@ func (s *SubscriptionService) FetchCredit(ctx *gin.Context) (*dtos.CreditsRespon
 	}
 
 	creditResp := &dtos.CreditsResponse{
-		Id:              credit.Id,
+		Id:              credit.ID,
 		UserMobile:      mobile,
-		InitialCredit:   credit.InitialCredit,
-		RemainingCredit: credit.RemainingCredit,
+		InitialCredit:   credit.Credits,
+		RemainingCredit: credit.CreditsLeft,
 		CreatedAt:       credit.CreatedAt,
 	}
 
 	return creditResp, nil
 }
 
-func (s *SubscriptionService) ChargeUser(ctx *gin.Context, userId string, category string, subCategory string, unitCount float32) error {
+func (s *SubscriptionService) ChargeUser(ctx *gin.Context, userId string, category string, subCategory string, unitCount float64) error {
 	// get subscription (recent one for typ,subtype,userId)
 	usersSubscription, er := s.subRepo.FetchAllSubscriptionForAUser(ctx, userId)
 	if er != nil {
@@ -303,7 +302,7 @@ func (s *SubscriptionService) ChargeUser(ctx *gin.Context, userId string, catego
 	sort.Slice(usersSubscription[:], func(i, j int) bool {
 		return usersSubscription[i].CreatedAt > usersSubscription[j].CreatedAt
 	})
-	var currentActiveSub dbo.UserSubscription
+	var currentActiveSub models.UserSubscription
 	for _, sub := range usersSubscription {
 		if sub.Status == "ACTIVE" && sub.Type == category && sub.SubType == subCategory {
 			currentActiveSub = sub
@@ -329,24 +328,24 @@ func (s *SubscriptionService) ChargeUser(ctx *gin.Context, userId string, catego
 	}
 
 	totalUsedCredit := pricing.Rates * unitCount
-	remainingCredit := credit.RemainingCredit
+	remainingCredit := credit.CreditsLeft
 
 	// check and update credit of user
 	if remainingCredit < totalUsedCredit {
 		return errors.New("CREDIT_EXHAUSTED")
 	}
 
-	credit.RemainingCredit = credit.RemainingCredit - totalUsedCredit
+	credit.CreditsLeft = credit.CreditsLeft - totalUsedCredit
 
-	if err = s.creditAuditRepo.CreateUserCreditAudit(ctx, &dbo.CreditAudits{
+	if err = s.creditAuditRepo.CreateUserCreditAudit(ctx, &models.CreditAudits{
 		Id:            uuid.New().String(),
 		Category:      category,
 		SubCategory:   subCategory,
 		DeductedAmout: totalUsedCredit,
 		AddedAmount:   0,
-		CreditId:      credit.Id,
-		UserId:        credit.UserId,
-		UpdatedAt:     time.Now().Unix(),
+		CreditId:      credit.ID,
+		UserId:        credit.UserID,
+		BaseModel:     models.BaseModel{UpdatedAt: time.Now().Unix()},
 	}); err != nil {
 		return err
 	}

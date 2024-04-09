@@ -1,9 +1,9 @@
 package main
 
 import (
+	"github.com/fastbiztech/hastinapura/internal"
 	"log"
 
-	"github.com/fastbiztech/hastinapura/api/di"
 	"github.com/fastbiztech/hastinapura/internal/config"
 	"github.com/fastbiztech/hastinapura/internal/serve"
 )
@@ -13,7 +13,7 @@ func main() {
 
 	config.LoadConfig()
 
-	di.InitialiseDeps()
+	internal.InitialiseDeps()
 
 	serve.Serve()
 }

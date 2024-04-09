@@ -1,4 +1,4 @@
-api/config/dev.json
+config/dev.json
 
 # JetBrains project folders.
 .idea/

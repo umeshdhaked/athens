@@ -4,14 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/fastbiztech/hastinapura/internal/models"
+	"github.com/fastbiztech/hastinapura/internal/services/otp"
 	"log"
 
-	"github.com/fastbiztech/hastinapura/api/services/otp"
 	"github.com/fastbiztech/hastinapura/internal/pkg/crypto"
 	"github.com/fastbiztech/hastinapura/internal/pkg/jwt"
-	"github.com/fastbiztech/hastinapura/internal/pkg/models/dbo"
-	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
 	"github.com/fastbiztech/hastinapura/pkg/dtos"
+	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -46,7 +46,7 @@ func (s *RegistrationService) RegisterUser(ctx *gin.Context, user dtos.RegisterU
 		return nil, errors.New("user already exists")
 	}
 
-	usrObj := &dbo.User{Id: uuid.New().String(), Mobile: user.MobileNumber, Hashed_password: s.cryp.HashString(user.Password)}
+	usrObj := &models.User{Id: uuid.New().String(), Mobile: user.MobileNumber, Hashed_password: s.cryp.HashString(user.Password)}
 	if er := s.userRepo.CreateUser(ctx, usrObj); er != nil {
 		return nil, er
 	}
@@ -81,7 +81,7 @@ func (s *RegistrationService) LoginUser(ctx *gin.Context, user dtos.RegisterUser
 	}
 }
 
-func (s *RegistrationService) GetUser(ctx context.Context, mobile string) (*dbo.User, error) {
+func (s *RegistrationService) GetUser(ctx context.Context, mobile string) (*models.User, error) {
 
 	usr, err := s.userRepo.GetUserFromMobile(ctx, mobile)
 	if err != nil {

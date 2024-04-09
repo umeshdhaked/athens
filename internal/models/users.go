@@ -1,4 +1,4 @@
-package dbo
+package models
 
 type User struct { //user_table in dynamoDB
 	Id              string `json:"id" dynamodbav:"id"`

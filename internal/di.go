@@ -1,17 +1,17 @@
-package di
+package internal
 
 import (
-	otcSvc "github.com/fastbiztech/hastinapura/api/services/otp"
-	"github.com/fastbiztech/hastinapura/api/services/promo"
-	"github.com/fastbiztech/hastinapura/api/services/register"
-	"github.com/fastbiztech/hastinapura/api/services/subscription"
 	pkgAws "github.com/fastbiztech/hastinapura/internal/pkg/aws"
 	"github.com/fastbiztech/hastinapura/internal/pkg/crypto"
 	"github.com/fastbiztech/hastinapura/internal/pkg/db"
 	"github.com/fastbiztech/hastinapura/internal/pkg/otp"
 	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
 	"github.com/fastbiztech/hastinapura/internal/services/group"
+	otcSvc "github.com/fastbiztech/hastinapura/internal/services/otp"
+	"github.com/fastbiztech/hastinapura/internal/services/promo"
+	"github.com/fastbiztech/hastinapura/internal/services/register"
 	"github.com/fastbiztech/hastinapura/internal/services/sms"
+	"github.com/fastbiztech/hastinapura/internal/services/subscription"
 )
 
 var regService *register.RegistrationService

@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/fastbiztech/hastinapura/internal/models"
 	"github.com/gin-gonic/gin"
 
-	"github.com/fastbiztech/hastinapura/internal/pkg/models/dbo"
 )
 
 type PricingRepo struct {
@@ -20,7 +20,7 @@ func NewPricingRepo(client *dynamodb.Client) *PricingRepo {
 	return &PricingRepo{client: client}
 }
 
-func (p *PricingRepo) GetDefaultPricingsForCategoryAndSubCategory(ctx *gin.Context, category string, subCategory string) ([]dbo.Pricing, error) {
+func (p *PricingRepo) GetDefaultPricingsForCategoryAndSubCategory(ctx *gin.Context, category string, subCategory string) ([]models.Pricing, error) {
 	var queryInput = &dynamodb.QueryInput{
 		TableName:              aws.String("pricing"),
 		IndexName:              aws.String("category-index"),
@@ -37,7 +37,7 @@ func (p *PricingRepo) GetDefaultPricingsForCategoryAndSubCategory(ctx *gin.Conte
 		return nil, err
 	}
 	if resp.Count > 0 {
-		pricing := []dbo.Pricing{}
+		pricing := []models.Pricing{}
 		if err := attributevalue.UnmarshalListOfMaps(resp.Items, &pricing); err != nil {
 			log.Println(err)
 			return nil, err
@@ -48,7 +48,7 @@ func (p *PricingRepo) GetDefaultPricingsForCategoryAndSubCategory(ctx *gin.Conte
 	return nil, nil
 }
 
-func (p *PricingRepo) FetchAllActivePricing(ctx *gin.Context) ([]dbo.Pricing, error) {
+func (p *PricingRepo) FetchAllActivePricing(ctx *gin.Context) ([]models.Pricing, error) {
 
 	var queryInput = &dynamodb.QueryInput{
 		TableName: aws.String("pricing"),
@@ -70,7 +70,7 @@ func (p *PricingRepo) FetchAllActivePricing(ctx *gin.Context) ([]dbo.Pricing, er
 	}
 
 	if resp.Count > 0 {
-		pricing := []dbo.Pricing{}
+		pricing := []models.Pricing{}
 		if err := attributevalue.UnmarshalListOfMaps(resp.Items, &pricing); err != nil {
 			log.Println(err)
 			return nil, err
@@ -81,7 +81,7 @@ func (p *PricingRepo) FetchAllActivePricing(ctx *gin.Context) ([]dbo.Pricing, er
 	return nil, nil
 }
 
-func (p *PricingRepo) GetAllDefaultActivePricings(ctx *gin.Context) ([]dbo.Pricing, error) {
+func (p *PricingRepo) GetAllDefaultActivePricings(ctx *gin.Context) ([]models.Pricing, error) {
 	var queryInput1 = &dynamodb.QueryInput{
 		TableName:              aws.String("pricing"),
 		IndexName:              aws.String("pricing_state-index"),
@@ -99,7 +99,7 @@ func (p *PricingRepo) GetAllDefaultActivePricings(ctx *gin.Context) ([]dbo.Prici
 	}
 
 	if pricingResp.Count > 0 {
-		defaultPricings := []dbo.Pricing{}
+		defaultPricings := []models.Pricing{}
 		if err := attributevalue.UnmarshalListOfMaps(pricingResp.Items, &defaultPricings); err != nil {
 			log.Println(err)
 			return nil, err
@@ -110,7 +110,7 @@ func (p *PricingRepo) GetAllDefaultActivePricings(ctx *gin.Context) ([]dbo.Prici
 	return nil, nil
 }
 
-func (p *PricingRepo) GetPricingByPricingID(ctx *gin.Context, pricingId string) (*dbo.Pricing, error) {
+func (p *PricingRepo) GetPricingByPricingID(ctx *gin.Context, pricingId string) (*models.Pricing, error) {
 	var queryInput1 = &dynamodb.QueryInput{
 		TableName:              aws.String("pricing"),
 		IndexName:              aws.String("pricing_state-index"),
@@ -128,7 +128,7 @@ func (p *PricingRepo) GetPricingByPricingID(ctx *gin.Context, pricingId string) 
 	}
 
 	if pricingResp.Count > 0 {
-		pricings := []dbo.Pricing{}
+		pricings := []models.Pricing{}
 		if err := attributevalue.UnmarshalListOfMaps(pricingResp.Items, &pricings); err != nil {
 			log.Println(err)
 			return nil, err
@@ -138,7 +138,7 @@ func (p *PricingRepo) GetPricingByPricingID(ctx *gin.Context, pricingId string) 
 	return nil, nil
 }
 
-func (p *PricingRepo) CreatePricing(ctx *gin.Context, obj *dbo.Pricing) error {
+func (p *PricingRepo) CreatePricing(ctx *gin.Context, obj *models.Pricing) error {
 	item, _ := attributevalue.MarshalMap(obj)
 	params := &dynamodb.PutItemInput{
 		TableName: aws.String("pricing"),

@@ -10,7 +10,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/fastbiztech/hastinapura/internal/models"
 
-	"github.com/fastbiztech/hastinapura/internal/pkg/models/dbo"
 	"github.com/gin-gonic/gin"
 )
 
@@ -22,7 +21,7 @@ func NewSubscriptionRepo(client *dynamodb.Client) *SubscriptionRepo {
 	return &SubscriptionRepo{client: client}
 }
 
-func (s *SubscriptionRepo) FetchAllSubscriptionForAUser(ctx *gin.Context, userId string) ([]dbo.UserSubscription, error) {
+func (s *SubscriptionRepo) FetchAllSubscriptionForAUser(ctx *gin.Context, userId string) ([]models.UserSubscription, error) {
 	queryInput := &dynamodb.QueryInput{
 		TableName: aws.String("user_subscriptions"),
 		IndexName: aws.String(models.IndexTableUserSubscriptionIndexUserID),
@@ -42,7 +41,7 @@ func (s *SubscriptionRepo) FetchAllSubscriptionForAUser(ctx *gin.Context, userId
 	}
 
 	if resp.Count > 0 {
-		subscriptions := []dbo.UserSubscription{}
+		subscriptions := []models.UserSubscription{}
 		if err := attributevalue.UnmarshalListOfMaps(resp.Items, &subscriptions); err != nil {
 			log.Println(err)
 			return nil, err
@@ -52,7 +51,7 @@ func (s *SubscriptionRepo) FetchAllSubscriptionForAUser(ctx *gin.Context, userId
 	return nil, nil
 }
 
-func (s *SubscriptionRepo) GetSubscriptionFromId(ctx *gin.Context, subId string) (*dbo.UserSubscription, error) {
+func (s *SubscriptionRepo) GetSubscriptionFromId(ctx *gin.Context, subId string) (*models.UserSubscription, error) {
 	queryInput := &dynamodb.QueryInput{
 		TableName: aws.String("user_subscriptions"),
 		IndexName: aws.String("id-index"),
@@ -72,7 +71,7 @@ func (s *SubscriptionRepo) GetSubscriptionFromId(ctx *gin.Context, subId string)
 	}
 
 	if resp.Count > 0 {
-		subscriptions := []dbo.UserSubscription{}
+		subscriptions := []models.UserSubscription{}
 		if err := attributevalue.UnmarshalListOfMaps(resp.Items, &subscriptions); err != nil {
 			log.Println(err)
 			return nil, err
@@ -82,7 +81,7 @@ func (s *SubscriptionRepo) GetSubscriptionFromId(ctx *gin.Context, subId string)
 	return nil, nil
 }
 
-func (s *SubscriptionRepo) BatchCreateUserSubscription(ctx *gin.Context, userSubsDto []dbo.UserSubscription) error {
+func (s *SubscriptionRepo) BatchCreateUserSubscription(ctx *gin.Context, userSubsDto []models.UserSubscription) error {
 	writeRequests := []types.WriteRequest{}
 	for _, us := range userSubsDto {
 		item, _ := attributevalue.MarshalMap(us)
@@ -103,7 +102,7 @@ func (s *SubscriptionRepo) BatchCreateUserSubscription(ctx *gin.Context, userSub
 	return nil
 }
 
-func (s *SubscriptionRepo) CreateUserSubscription(ctx *gin.Context, userSubsDto *dbo.UserSubscription) error {
+func (s *SubscriptionRepo) CreateUserSubscription(ctx *gin.Context, userSubsDto *models.UserSubscription) error {
 	item, _ := attributevalue.MarshalMap(userSubsDto)
 	params := &dynamodb.PutItemInput{
 		TableName: aws.String("user_subscriptions"),

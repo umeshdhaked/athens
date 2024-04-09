@@ -7,9 +7,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/fastbiztech/hastinapura/internal/models"
 	"github.com/gin-gonic/gin"
 
-	"github.com/fastbiztech/hastinapura/internal/pkg/models/dbo"
+
 )
 
 type PromotionRepo struct {
@@ -20,7 +21,7 @@ func NewPromotionRepo(client *dynamodb.Client) *PromotionRepo {
 	return &PromotionRepo{client: client}
 }
 
-func (p *PromotionRepo) GetPromoFromMobile(ctx *gin.Context, mobile string) (*dbo.PromoPhone, error) {
+func (p *PromotionRepo) GetPromoFromMobile(ctx *gin.Context, mobile string) (*models.PromoPhone, error) {
 	var queryInput = &dynamodb.QueryInput{
 		TableName: aws.String("promo_phones_no"),
 		IndexName: aws.String("mobile-index"),
@@ -39,7 +40,7 @@ func (p *PromotionRepo) GetPromoFromMobile(ctx *gin.Context, mobile string) (*db
 	}
 
 	if resp.Count > 0 {
-		exPromoPh := []dbo.PromoPhone{}
+		exPromoPh := []models.PromoPhone{}
 		if err := attributevalue.UnmarshalListOfMaps(resp.Items, &exPromoPh); err != nil {
 			log.Println(err)
 		}
@@ -51,7 +52,7 @@ func (p *PromotionRepo) GetPromoFromMobile(ctx *gin.Context, mobile string) (*db
 
 }
 
-func (p *PromotionRepo) AddPromoContact(ctx *gin.Context, obj *dbo.PromoPhone) error {
+func (p *PromotionRepo) AddPromoContact(ctx *gin.Context, obj *models.PromoPhone) error {
 	item, er := attributevalue.MarshalMap(obj)
 	if er != nil {
 		return er
@@ -66,7 +67,7 @@ func (p *PromotionRepo) AddPromoContact(ctx *gin.Context, obj *dbo.PromoPhone) e
 	return err
 }
 
-func (p *PromotionRepo) GetAlreadyContactedPromo(ctx *gin.Context, isAlreadyConnected string) ([]dbo.PromoPhone, error) {
+func (p *PromotionRepo) GetAlreadyContactedPromo(ctx *gin.Context, isAlreadyConnected string) ([]models.PromoPhone, error) {
 	var queryInput = &dynamodb.QueryInput{
 		TableName: aws.String("promo_phones_no"),
 		IndexName: aws.String("is_already_contacted-index"),
@@ -85,7 +86,7 @@ func (p *PromotionRepo) GetAlreadyContactedPromo(ctx *gin.Context, isAlreadyConn
 	}
 
 	if resp.Count > 0 {
-		exPromoPh := []dbo.PromoPhone{}
+		exPromoPh := []models.PromoPhone{}
 		if err := attributevalue.UnmarshalListOfMaps(resp.Items, &exPromoPh); err != nil {
 			log.Println(err)
 			return nil, err
@@ -96,7 +97,7 @@ func (p *PromotionRepo) GetAlreadyContactedPromo(ctx *gin.Context, isAlreadyConn
 	}
 }
 
-func (p *PromotionRepo) MarkContacted(ctx *gin.Context, obj *dbo.PromoPhone) error {
+func (p *PromotionRepo) MarkContacted(ctx *gin.Context, obj *models.PromoPhone) error {
 	item, er := attributevalue.MarshalMap(obj)
 	if er != nil {
 		return er

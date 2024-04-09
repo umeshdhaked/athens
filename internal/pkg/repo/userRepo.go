@@ -8,11 +8,11 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/fastbiztech/hastinapura/internal/models"
 	"github.com/gin-gonic/gin"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/fastbiztech/hastinapura/internal/pkg/models/dbo"
 )
 
 type UserRepo struct {
@@ -23,7 +23,7 @@ func NewUserRepo(client *dynamodb.Client) *UserRepo {
 	return &UserRepo{client: client}
 }
 
-func (u *UserRepo) GetUserFromMobile(ctx context.Context, mobile string) (*dbo.User, error) {
+func (u *UserRepo) GetUserFromMobile(ctx context.Context, mobile string) (*models.User, error) {
 	var queryInput = &dynamodb.QueryInput{
 		TableName: aws.String("user_table"),
 		IndexName: aws.String("mobile-index"),
@@ -42,7 +42,7 @@ func (u *UserRepo) GetUserFromMobile(ctx context.Context, mobile string) (*dbo.U
 		return nil, err1
 	}
 	if resp1.Count > 0 {
-		users := []dbo.User{}
+		users := []models.User{}
 		if err := attributevalue.UnmarshalListOfMaps(resp1.Items, &users); err != nil {
 			fmt.Println(err)
 		}
@@ -52,7 +52,7 @@ func (u *UserRepo) GetUserFromMobile(ctx context.Context, mobile string) (*dbo.U
 	}
 }
 
-func (u *UserRepo) CreateUser(ctx *gin.Context, user *dbo.User) error {
+func (u *UserRepo) CreateUser(ctx *gin.Context, user *models.User) error {
 	item, _ := attributevalue.MarshalMap(user)
 	putItem := &dynamodb.PutItemInput{
 		TableName: aws.String("user_table"),

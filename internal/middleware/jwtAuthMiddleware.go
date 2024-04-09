@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"context"
-	"github.com/fastbiztech/hastinapura/api/di"
+	"github.com/fastbiztech/hastinapura/internal"
 	"github.com/fastbiztech/hastinapura/internal/pkg/jwt"
 	"net/http"
 	"time"
@@ -10,10 +10,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func TokenAuthMiddleware() gin.HandlerFunc {
+func JwtAuthMiddleware() gin.HandlerFunc {
 
 	return func(ctx *gin.Context) {
-		jwtToken := ctx.Request.Header["Token"][0]
+		jwtToken := ctx.Request.Header["Authorization"][0]
 
 		if er := jwt.VerifyToken(jwtToken); er != nil {
 			ctx.JSON(http.StatusUnauthorized, gin.H{"message": "INVALID_TOKEN"})
@@ -35,20 +35,20 @@ func TokenAuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		userNme := claims["username"]
+		userNme := claims["mobile"]
 		id := claims["id"]
 		role := claims["role"]
 
-		usr, err := di.GetRegistrationService().GetUser(context.Background(), userNme.(string))
+		usr, err := internal.GetRegistrationService().GetUser(context.Background(), userNme.(string))
 		if err != nil || usr == nil {
 			ctx.JSON(http.StatusUnauthorized, gin.H{"message": "USER_NOT_EXIST"})
 			ctx.Abort()
 			return
 		}
 
-		ctx.AddParam("username", userNme.(string))
-		ctx.AddParam("id", id.(string))
-		ctx.AddParam("role", role.(string))
+		ctx.Set("mobile", userNme.(string))
+		ctx.Set("id", id.(string))
+		ctx.Set("role", role.(string))
 		ctx.Next()
 	}
 

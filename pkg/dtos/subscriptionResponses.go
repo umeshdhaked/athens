@@ -5,7 +5,7 @@ type PricingResponse struct {
 	Category   string
 	SubCatgory string
 	Type       string
-	Rates      float32
+	Rates      float64
 	Status     string
 }
 
@@ -24,7 +24,7 @@ type SubscriptionResponse struct {
 type CreditsResponse struct {
 	Id              string
 	UserMobile      string
-	InitialCredit   float32
-	RemainingCredit float32
+	InitialCredit   float64
+	RemainingCredit float64
 	CreatedAt       int64
 }
