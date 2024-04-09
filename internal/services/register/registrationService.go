@@ -34,6 +34,23 @@ func (s *RegistrationService) SendOtp(ctx *gin.Context, user dtos.RegisterUserRe
 	return err
 }
 
+func (s *RegistrationService) UpdateUserRoleToAdmin(ctx *gin.Context, user dtos.RegisterUserRequest) (*dtos.LoginSuccessResponse, error) {
+	log.Println("Received update user role to admin: " + user.MobileNumber)
+
+	var usr *models.User
+	var er error
+	if usr, er = s.userRepo.GetUserFromMobile(ctx, user.MobileNumber); er != nil {
+		return nil, er
+	}
+
+	usrObj := &models.User{ID: usr.ID, Role: "admin", Mobile: usr.Mobile}
+	if er := s.userRepo.UpdateUser(ctx, usrObj); er != nil {
+		return nil, er
+	}
+
+	return &dtos.LoginSuccessResponse{MobileNumber: user.MobileNumber}, nil
+}
+
 func (s *RegistrationService) RegisterUser(ctx *gin.Context, user dtos.RegisterUserRequest) (*dtos.LoginSuccessResponse, error) {
 	log.Println("Received register user request for user ", user)
 	if err := s.otpService.VerifyOtp(ctx, user.MobileNumber, user.Otp); err != nil {
@@ -47,7 +64,7 @@ func (s *RegistrationService) RegisterUser(ctx *gin.Context, user dtos.RegisterU
 	}
 
 	usrObj := &models.User{ID: uuid.New().String(), Mobile: user.MobileNumber, Hashed_password: s.cryp.HashString(user.Password)}
-	if er := s.userRepo.CreateUser(ctx, usrObj); er != nil {
+	if er := s.userRepo.UpdateUser(ctx, usrObj); er != nil {
 		return nil, er
 	}
 

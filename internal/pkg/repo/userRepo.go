@@ -52,7 +52,7 @@ func (u *UserRepo) GetUserFromMobile(ctx context.Context, mobile string) (*model
 	}
 }
 
-func (u *UserRepo) CreateUser(ctx *gin.Context, user *models.User) error {
+func (u *UserRepo) UpdateUser(ctx *gin.Context, user *models.User) error {
 	item, _ := attributevalue.MarshalMap(user)
 	putItem := &dynamodb.PutItemInput{
 		TableName: aws.String(models.TableUser),

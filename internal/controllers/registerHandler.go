@@ -43,6 +43,23 @@ func HandleRegisterUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, registerResp)
 }
 
+func HandleUpdateUserRoleToAdmin(ctx *gin.Context) {
+	var user dtos.RegisterUserRequest
+	if err := ctx.ShouldBindJSON(&user); err != nil {
+		ctx.String(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	var reg *register.RegistrationService = internal.GetRegistrationService()
+	registerResp, err := reg.UpdateUserRoleToAdmin(ctx, user)
+	if nil != err {
+		ctx.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, registerResp)
+}
+
 func HandleLoginUser(ctx *gin.Context) {
 	var user dtos.RegisterUserRequest
 	if err := ctx.ShouldBindJSON(&user); err != nil {

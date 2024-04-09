@@ -73,11 +73,12 @@ var routeList = [...]route{
 		},
 	},
 	{
-		group:      "/v1/subscriptions",
+		group:      "/v1",
 		middleware: []gin.HandlerFunc{middleware2.TokenAuthMiddleware()},
 		endpoints: []endpoint{
-			{http.MethodPost, "/addCreditToUser", controllers.HandleAddCreditToUser}, // admin api
-			{http.MethodPost, "/chargeUser", controllers.HandleChargeUser},           //this was created just for testing
+			{http.MethodPost, "/subscriptions/addCreditToUser", controllers.HandleAddCreditToUser}, // admin api
+			{http.MethodPost, "/subscriptions/chargeUser", controllers.HandleChargeUser},           //this was created just for testing
+			{http.MethodPost, "/users/updateUser/admin", controllers.HandleUpdateUserRoleToAdmin},
 		},
 	},
 	{
