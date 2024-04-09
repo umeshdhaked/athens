@@ -23,10 +23,10 @@ func NewSubscriptionRepo(client *dynamodb.Client) *SubscriptionRepo {
 
 func (s *SubscriptionRepo) FetchAllSubscriptionForAUser(ctx *gin.Context, userId string) ([]models.UserSubscription, error) {
 	queryInput := &dynamodb.QueryInput{
-		TableName: aws.String("user_subscriptions"),
+		TableName: aws.String(models.TableUserSubscription),
 		IndexName: aws.String(models.IndexTableUserSubscriptionIndexUserID),
 		KeyConditions: map[string]types.Condition{
-			"user_id": {
+			models.ColumnUserId: {
 				ComparisonOperator: types.ComparisonOperatorEq,
 				AttributeValueList: []types.AttributeValue{
 					&types.AttributeValueMemberS{Value: userId},
@@ -53,10 +53,10 @@ func (s *SubscriptionRepo) FetchAllSubscriptionForAUser(ctx *gin.Context, userId
 
 func (s *SubscriptionRepo) GetSubscriptionFromId(ctx *gin.Context, subId string) (*models.UserSubscription, error) {
 	queryInput := &dynamodb.QueryInput{
-		TableName: aws.String("user_subscriptions"),
-		IndexName: aws.String("id-index"),
+		TableName: aws.String(models.TableUserSubscription),
+		//IndexName: aws.String("id-index"),
 		KeyConditions: map[string]types.Condition{
-			"id": {
+			models.ColumnId: {
 				ComparisonOperator: types.ComparisonOperatorEq,
 				AttributeValueList: []types.AttributeValue{
 					&types.AttributeValueMemberS{Value: subId},
@@ -91,7 +91,7 @@ func (s *SubscriptionRepo) BatchCreateUserSubscription(ctx *gin.Context, userSub
 
 	batchWrite := dynamodb.BatchWriteItemInput{
 		RequestItems: map[string][]types.WriteRequest{
-			"user_subscriptions": writeRequests,
+			models.TableUserSubscription: writeRequests,
 		},
 	}
 	output, er := s.client.BatchWriteItem(ctx, &batchWrite)
@@ -105,7 +105,7 @@ func (s *SubscriptionRepo) BatchCreateUserSubscription(ctx *gin.Context, userSub
 func (s *SubscriptionRepo) CreateUserSubscription(ctx *gin.Context, userSubsDto *models.UserSubscription) error {
 	item, _ := attributevalue.MarshalMap(userSubsDto)
 	params := &dynamodb.PutItemInput{
-		TableName: aws.String("user_subscriptions"),
+		TableName: aws.String(models.TableUserSubscription),
 		Item:      item,
 	}
 

@@ -25,10 +25,10 @@ func NewUserRepo(client *dynamodb.Client) *UserRepo {
 
 func (u *UserRepo) GetUserFromMobile(ctx context.Context, mobile string) (*models.User, error) {
 	var queryInput = &dynamodb.QueryInput{
-		TableName: aws.String("user_table"),
-		IndexName: aws.String("mobile-index"),
+		TableName: aws.String(models.TableUser),
+		IndexName: aws.String(models.IndexTableUserIndexMobile),
 		KeyConditions: map[string]types.Condition{
-			"mobile": {
+			models.ColumnMobile: {
 				ComparisonOperator: types.ComparisonOperatorEq,
 				AttributeValueList: []types.AttributeValue{
 					&types.AttributeValueMemberS{Value: mobile},
@@ -55,7 +55,7 @@ func (u *UserRepo) GetUserFromMobile(ctx context.Context, mobile string) (*model
 func (u *UserRepo) CreateUser(ctx *gin.Context, user *models.User) error {
 	item, _ := attributevalue.MarshalMap(user)
 	putItem := &dynamodb.PutItemInput{
-		TableName: aws.String("user_table"),
+		TableName: aws.String(models.TableUser),
 		Item:      item,
 	}
 

@@ -2,6 +2,7 @@ package subscription
 
 import (
 	"errors"
+	"github.com/fastbiztech/hastinapura/internal/models"
 	"log"
 	"sort"
 	"time"
@@ -27,9 +28,7 @@ func NewSubscriptionService(pricingRepo *repo.PricingRepo, subRepo *repo.Subscri
 
 func (s *SubscriptionService) CreateNewPricingSystem(ctx *gin.Context, pricing *dtos.PricingRequest) (*dtos.PricingResponse, error) {
 
-	// TOCHANGE UMESH: validation should be at middleware layer itself. If any of these info not present in the token then fail the request.
-	// Replace ctx.params.get with ctx.get or ctx.getstring as valdiation is done at middleware layer already.
-	if role, exists := ctx.Params.Get(constants.JwtTokenRole); !exists {
+	if role, exists := ctx.Get(constants.JwtTokenRole); !exists {
 		return nil, errors.New("internal server error, user role not found")
 	} else if "admin" != role {
 		return nil, errors.New("only admin user allowed to add pricing")
@@ -96,7 +95,7 @@ func (s *SubscriptionService) FetchAllActivePricingModel(ctx *gin.Context) ([]*d
 }
 
 func (s *SubscriptionService) DeactivatePricing(ctx *gin.Context, pricingReq *dtos.DeactivatePricingRequest) error {
-	if role, exists := ctx.Params.Get(constants.JwtTokenRole); !exists {
+	if role, exists := ctx.Get(constants.JwtTokenRole); !exists {
 		return errors.New("internal server error, user role not found")
 	} else if "admin" != role {
 		return errors.New("only admin user allowed to add pricing")
@@ -113,7 +112,7 @@ func (s *SubscriptionService) DeactivatePricing(ctx *gin.Context, pricingReq *dt
 }
 
 func (s *SubscriptionService) AddDefaultSubscriptionToUser(ctx *gin.Context, subReq *dtos.UserDefaultSubscriptionRequest) error {
-	if role, exists := ctx.Params.Get(constants.JwtTokenRole); !exists {
+	if role, exists := ctx.Get(constants.JwtTokenRole); !exists {
 		return errors.New("internal server error, user role not found")
 	} else if "admin" != role {
 		return errors.New("only admin user allowed to add pricing")
@@ -131,7 +130,7 @@ func (s *SubscriptionService) AddDefaultSubscriptionToUser(ctx *gin.Context, sub
 	if err != nil {
 		return err
 	}
-	admin, _ := ctx.Params.Get(constants.JwtTokenUserID)
+	admin, _ := ctx.Get(constants.JwtTokenUserID)
 
 	// create Subscriptions to USER
 	userSubsDto := []models.UserSubscription{}
@@ -139,11 +138,11 @@ func (s *SubscriptionService) AddDefaultSubscriptionToUser(ctx *gin.Context, sub
 		userSubsDto = append(userSubsDto, models.UserSubscription{
 			Id:        uuid.New().String(),
 			PricingId: dp.Id,
-			UserId:    user.Id,
+			UserId:    user.ID,
 			Type:      dp.Category,
 			SubType:   dp.SubCatgory,
 			Status:    "ACTIVE",
-			AddedBy:   admin,
+			AddedBy:   admin.(string),
 			BaseModel: models.BaseModel{CreatedAt: time.Now().Unix()},
 		})
 	}
@@ -152,7 +151,7 @@ func (s *SubscriptionService) AddDefaultSubscriptionToUser(ctx *gin.Context, sub
 }
 
 func (s *SubscriptionService) AddSubscriptionToUser(ctx *gin.Context, subReq *dtos.UserSubscriptionRequest) error {
-	if role, exists := ctx.Params.Get(constants.JwtTokenRole); !exists {
+	if role, exists := ctx.Get(constants.JwtTokenRole); !exists {
 		return errors.New("internal server error, user role not found")
 	} else if "admin" != role {
 		return errors.New("only admin user allowed to add pricing")
@@ -171,16 +170,16 @@ func (s *SubscriptionService) AddSubscriptionToUser(ctx *gin.Context, subReq *dt
 	}
 
 	// create Subscriptions to USER
-	admin, _ := ctx.Params.Get(constants.JwtTokenUserID)
+	admin, _ := ctx.Get(constants.JwtTokenUserID)
 
 	userSubsDto := models.UserSubscription{
 		Id:        uuid.New().String(),
 		PricingId: pricing.Id,
-		UserId:    user.Id,
+		UserId:    user.ID,
 		Type:      pricing.Category,
 		SubType:   pricing.SubCatgory,
 		Status:    "ACTIVE",
-		AddedBy:   admin,
+		AddedBy:   admin.(string),
 		BaseModel: models.BaseModel{CreatedAt: time.Now().Unix()},
 	}
 
@@ -197,7 +196,7 @@ func (s *SubscriptionService) FetchAllActiveSubscriptionsForUser(ctx *gin.Contex
 		return nil, er
 	}
 
-	subscriptions, err := s.subRepo.FetchAllSubscriptionForAUser(ctx, user.Id)
+	subscriptions, err := s.subRepo.FetchAllSubscriptionForAUser(ctx, user.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -236,7 +235,7 @@ func (s *SubscriptionService) AddCreditToUser(ctx *gin.Context, subRequest *dtos
 		return err
 	}
 
-	credit, err := s.creditRepo.FetchCreditByUserID(ctx, user.Id)
+	credit, err := s.creditRepo.FetchCreditByUserID(ctx, user.ID)
 	if err != nil {
 		return err
 	}
@@ -246,7 +245,7 @@ func (s *SubscriptionService) AddCreditToUser(ctx *gin.Context, subRequest *dtos
 	if credit == nil {
 		credit = &models.Credits{
 			ID:          uuid.New().String(),
-			UserID:      user.Id,
+			UserID:      user.ID,
 			Credits:     subRequest.InitialCredit,
 			CreditsLeft: subRequest.InitialCredit,
 		}
@@ -270,23 +269,23 @@ func (s *SubscriptionService) AddCreditToUser(ctx *gin.Context, subRequest *dtos
 }
 
 func (s *SubscriptionService) FetchCredit(ctx *gin.Context) (*dtos.CreditsResponse, error) {
-	userId, exists := ctx.Params.Get(constants.JwtTokenUserID)
+	userId, exists := ctx.Get(constants.JwtTokenUserID)
 	if !exists { // create another version of this with payment validation with transaction ID
 		return nil, errors.New("internal server error, user id not found")
 	}
-	mobile, exists := ctx.Params.Get(constants.JwtTokenMobile)
+	mobile, exists := ctx.Get(constants.JwtTokenMobile)
 	if !exists { // create another version of this with payment validation with transaction ID
 		return nil, errors.New("internal server error, user mobile not found")
 	}
 
-	credit, err := s.creditRepo.FetchCreditByUserID(ctx, userId)
+	credit, err := s.creditRepo.FetchCreditByUserID(ctx, userId.(string))
 	if err != nil {
 		return nil, err
 	}
 
 	creditResp := &dtos.CreditsResponse{
 		Id:              credit.ID,
-		UserMobile:      mobile,
+		UserMobile:      mobile.(string),
 		InitialCredit:   credit.Credits,
 		RemainingCredit: credit.CreditsLeft,
 		CreatedAt:       credit.CreatedAt,

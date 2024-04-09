@@ -24,6 +24,20 @@ const (
 	// indexes: sms campaign table
 	IndexTableSmsCampaignIndexUserID = "index_smscampaign_userid"
 	IndexTableSmsCampaignIndexStatus = "index_smscampaign_status"
+
+	//indexes: otp table
+	IndexTableOtpIndexMobile = "index_otp_mobile"
+
+	//indexes: pricing table
+	IndexTablePricingIndexCategory     = "index_pricing_category"
+	IndexTablePricingIndexPricingState = "index_pricing_pricingState"
+
+	//indexes: user table
+	IndexTableUserIndexMobile = "index_user_mobile"
+
+	//indexes: promo-phones-no table
+	IndexTablePromoPhoneIndexIsAlreadyContacted = "index_promo-phones-no_isAlreadyContacted"
+	IndexTablePromoPhoneIndexMobile             = "index_promo-phones-no_mobile"
 )
 
 type BaseModel struct {

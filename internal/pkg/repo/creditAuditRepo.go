@@ -21,7 +21,7 @@ func NewCreditsAuditRepo(client *dynamodb.Client) *CreditsAuditRepo {
 func (c *CreditsAuditRepo) CreateUserCreditAudit(ctx *gin.Context, creditAudit *models.CreditAudits) error {
 	item, _ := attributevalue.MarshalMap(creditAudit)
 	params := &dynamodb.PutItemInput{
-		TableName: aws.String("credits_audit"),
+		TableName: aws.String(models.TableCreditAudits),
 		Item:      item,
 	}
 	output, er := c.client.PutItem(ctx, params)

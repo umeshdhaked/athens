@@ -9,8 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/fastbiztech/hastinapura/internal/models"
 	"github.com/gin-gonic/gin"
-
-
 )
 
 type PromotionRepo struct {
@@ -23,10 +21,10 @@ func NewPromotionRepo(client *dynamodb.Client) *PromotionRepo {
 
 func (p *PromotionRepo) GetPromoFromMobile(ctx *gin.Context, mobile string) (*models.PromoPhone, error) {
 	var queryInput = &dynamodb.QueryInput{
-		TableName: aws.String("promo_phones_no"),
-		IndexName: aws.String("mobile-index"),
+		TableName: aws.String(models.TablePromoPhone),
+		IndexName: aws.String(models.IndexTablePromoPhoneIndexMobile),
 		KeyConditions: map[string]types.Condition{
-			"mobile": {
+			models.ColumnMobile: {
 				ComparisonOperator: types.ComparisonOperatorEq,
 				AttributeValueList: []types.AttributeValue{
 					&types.AttributeValueMemberS{Value: mobile},
@@ -58,7 +56,7 @@ func (p *PromotionRepo) AddPromoContact(ctx *gin.Context, obj *models.PromoPhone
 		return er
 	}
 	params := &dynamodb.PutItemInput{
-		TableName: aws.String("promo_phones_no"),
+		TableName: aws.String(models.TablePromoPhone),
 		Item:      item,
 	}
 
@@ -69,10 +67,10 @@ func (p *PromotionRepo) AddPromoContact(ctx *gin.Context, obj *models.PromoPhone
 
 func (p *PromotionRepo) GetAlreadyContactedPromo(ctx *gin.Context, isAlreadyConnected string) ([]models.PromoPhone, error) {
 	var queryInput = &dynamodb.QueryInput{
-		TableName: aws.String("promo_phones_no"),
-		IndexName: aws.String("is_already_contacted-index"),
+		TableName: aws.String(models.TablePromoPhone),
+		IndexName: aws.String(models.IndexTablePromoPhoneIndexIsAlreadyContacted),
 		KeyConditions: map[string]types.Condition{
-			"is_already_contacted": {
+			models.ColumnIsAlreadyContacted: {
 				ComparisonOperator: types.ComparisonOperatorEq,
 				AttributeValueList: []types.AttributeValue{
 					&types.AttributeValueMemberS{Value: isAlreadyConnected},
@@ -103,7 +101,7 @@ func (p *PromotionRepo) MarkContacted(ctx *gin.Context, obj *models.PromoPhone) 
 		return er
 	}
 	params := &dynamodb.PutItemInput{
-		TableName: aws.String("promo_phones_no"),
+		TableName: aws.String(models.TablePromoPhone),
 		Item:      item,
 	}
 

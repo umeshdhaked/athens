@@ -10,8 +10,8 @@ import (
 
 	"github.com/fastbiztech/hastinapura/internal/pkg/crypto"
 	"github.com/fastbiztech/hastinapura/internal/pkg/jwt"
-	"github.com/fastbiztech/hastinapura/pkg/dtos"
 	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
+	"github.com/fastbiztech/hastinapura/pkg/dtos"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -46,12 +46,12 @@ func (s *RegistrationService) RegisterUser(ctx *gin.Context, user dtos.RegisterU
 		return nil, errors.New("user already exists")
 	}
 
-	usrObj := &models.User{Id: uuid.New().String(), Mobile: user.MobileNumber, Hashed_password: s.cryp.HashString(user.Password)}
+	usrObj := &models.User{ID: uuid.New().String(), Mobile: user.MobileNumber, Hashed_password: s.cryp.HashString(user.Password)}
 	if er := s.userRepo.CreateUser(ctx, usrObj); er != nil {
 		return nil, er
 	}
 
-	token, err := jwt.CreateToken(usrObj.Id, usrObj.Mobile, usrObj.Role)
+	token, err := jwt.CreateToken(usrObj.ID, usrObj.Mobile, usrObj.Role)
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +69,7 @@ func (s *RegistrationService) LoginUser(ctx *gin.Context, user dtos.RegisterUser
 		return nil, err
 	} else {
 		if s.cryp.HashString(password) == usr.Hashed_password {
-			token, err := jwt.CreateToken(usr.Id, usr.Mobile, usr.Role)
+			token, err := jwt.CreateToken(usr.ID, usr.Mobile, usr.Role)
 			if err != nil {
 				return nil, err
 			}

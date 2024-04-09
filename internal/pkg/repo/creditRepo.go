@@ -31,7 +31,7 @@ func NewCreditsRepo(client *dynamodb.Client) *CreditsRepo {
 func (c *CreditsRepo) CreateUserCredit(ctx *gin.Context, credit *models.Credits) error {
 	item, _ := attributevalue.MarshalMap(credit)
 	params := &dynamodb.PutItemInput{
-		TableName: aws.String("credits"),
+		TableName: aws.String(models.TableCredits),
 		Item:      item,
 	}
 
@@ -44,7 +44,7 @@ func (c *CreditsRepo) FetchCreditByUserID(ctx *gin.Context, userID string) (*mod
 	queryInput := dtos.DbQueryInputConditions{
 		Index: models.IndexTableCreditsIndexUserID,
 		PKey: map[string]interface{}{
-			models.ColumnCreditsUserID: "USERID", // TODO get userid from token
+			models.ColumnCreditsUserID: userID,
 		},
 	}
 

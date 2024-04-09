@@ -92,7 +92,7 @@ var routeList = [...]route{
 		group:      "/v1/sms",
 		middleware: []gin.HandlerFunc{},
 		endpoints: []endpoint{
-			// Sender Id related apis
+			// Sender ID related apis
 			{http.MethodPost, "/senderid", controllers.PostSenderCode},
 			{http.MethodGet, "/senderid", controllers.GetSenderCode},
 			{http.MethodPost, "/senderid/approve", controllers.ApproveSenderCode},

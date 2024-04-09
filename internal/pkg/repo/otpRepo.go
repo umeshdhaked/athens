@@ -26,7 +26,7 @@ func (o *OtpRepo) SaveOtp(ctx *gin.Context, otp models.Otp) error {
 	}
 
 	params := &dynamodb.PutItemInput{
-		TableName: aws.String("otp"),
+		TableName: aws.String(models.TableOtp),
 		Item:      item,
 	}
 
@@ -37,10 +37,10 @@ func (o *OtpRepo) SaveOtp(ctx *gin.Context, otp models.Otp) error {
 
 func (o *OtpRepo) GetOtp(ctx *gin.Context, mobile string) (*models.Otp, error) {
 	var queryInput = &dynamodb.QueryInput{
-		TableName: aws.String("otp"),
-		IndexName: aws.String("mobile-index"),
+		TableName: aws.String(models.TableOtp),
+		IndexName: aws.String(models.IndexTableOtpIndexMobile),
 		KeyConditions: map[string]types.Condition{
-			"mobile": {
+			models.ColumnMobile: {
 				ComparisonOperator: types.ComparisonOperatorEq,
 				AttributeValueList: []types.AttributeValue{&types.AttributeValueMemberS{Value: mobile}},
 			},

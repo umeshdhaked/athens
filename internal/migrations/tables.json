@@ -1,18 +1,5 @@
 [
   {
-    "TableName": "User",
-    "KeySchema": [
-      {"AttributeName": "ID", "KeyType": "HASH"}
-    ],
-    "AttributeDefinitions": [
-      {"AttributeName": "ID", "AttributeType": "S"}
-    ],
-    "ProvisionedThroughput": {
-      "ReadCapacityUnits": 5,
-      "WriteCapacityUnits": 5
-    }
-  },
-  {
     "TableName": "Group",
     "KeySchema": [
       {"AttributeName": "ID", "KeyType": "HASH"}
@@ -210,10 +197,10 @@
   {
     "TableName": "Credits",
     "KeySchema": [
-      {"AttributeName": "id", "KeyType": "HASH"}
+      {"AttributeName": "ID", "KeyType": "HASH"}
     ],
     "AttributeDefinitions": [
-      {"AttributeName": "id", "AttributeType": "S"},
+      {"AttributeName": "ID", "AttributeType": "S"},
       {"AttributeName": "UserID", "AttributeType": "S"}
     ],
     "ProvisionedThroughput": {
@@ -237,12 +224,12 @@
     ]
   },
   {
-    "TableName": "credits_audit",
+    "TableName": "CreditsAudit",
     "KeySchema": [
-      {"AttributeName": "id", "KeyType": "HASH"}
+      {"AttributeName": "Id", "KeyType": "HASH"}
     ],
     "AttributeDefinitions": [
-      {"AttributeName": "id", "AttributeType": "S"}
+      {"AttributeName": "Id", "AttributeType": "S"}
     ],
     "ProvisionedThroughput": {
       "ReadCapacityUnits": 5,
@@ -250,13 +237,13 @@
     }
   },
   {
-    "TableName": "otp",
+    "TableName": "Otp",
     "KeySchema": [
-      {"AttributeName": "id", "KeyType": "HASH"}
+      {"AttributeName": "Id", "KeyType": "HASH"}
     ],
     "AttributeDefinitions": [
-      {"AttributeName": "id", "AttributeType": "S"},
-      {"AttributeName": "mobile", "AttributeType": "S"}
+      {"AttributeName": "Id", "AttributeType": "S"},
+      {"AttributeName": "Mobile", "AttributeType": "S"}
     ],
     "ProvisionedThroughput": {
       "ReadCapacityUnits": 5,
@@ -264,9 +251,9 @@
     },
     "GlobalSecondaryIndexes": [
       {
-        "IndexName": "mobile-index",
+        "IndexName": "index_otp_mobile",
         "KeySchema": [
-          { "AttributeName": "mobile", "KeyType": "HASH" }
+          { "AttributeName": "Mobile", "KeyType": "HASH" }
         ],
         "Projection": {
           "ProjectionType": "ALL"
@@ -279,14 +266,14 @@
     ]
   },
   {
-    "TableName": "pricing",
+    "TableName": "Pricing",
     "KeySchema": [
-      {"AttributeName": "id", "KeyType": "HASH"}
+      {"AttributeName": "Id", "KeyType": "HASH"}
     ],
     "AttributeDefinitions": [
-      {"AttributeName": "id", "AttributeType": "S"},
-      {"AttributeName": "category", "AttributeType": "S"},
-      {"AttributeName": "pricing_state", "AttributeType": "S"}
+      {"AttributeName": "Id", "AttributeType": "S"},
+      {"AttributeName": "Category", "AttributeType": "S"},
+      {"AttributeName": "PricingState", "AttributeType": "S"}
     ],
     "ProvisionedThroughput": {
       "ReadCapacityUnits": 5,
@@ -294,9 +281,9 @@
     },
     "GlobalSecondaryIndexes": [
       {
-        "IndexName": "category-index",
+        "IndexName": "index_pricing_category",
         "KeySchema": [
-          { "AttributeName": "category", "KeyType": "HASH" }
+          { "AttributeName": "Category", "KeyType": "HASH" }
         ],
         "Projection": {
           "ProjectionType": "ALL"
@@ -307,9 +294,9 @@
         }
       },
       {
-        "IndexName": "pricing_state-index",
+        "IndexName": "index_pricing_pricingState",
         "KeySchema": [
-          { "AttributeName": "pricing_state", "KeyType": "HASH" }
+          { "AttributeName": "PricingState", "KeyType": "HASH" }
         ],
         "Projection": {
           "ProjectionType": "ALL"
@@ -322,13 +309,13 @@
     ]
   },
   {
-    "TableName": "promo_phones_no",
+    "TableName": "PromoPhonesNo",
     "KeySchema": [
-      {"AttributeName": "mobile", "KeyType": "HASH"}
+      {"AttributeName": "Mobile", "KeyType": "HASH"}
     ],
     "AttributeDefinitions": [
-      {"AttributeName": "is_already_contacted", "AttributeType": "S"},
-      {"AttributeName": "mobile", "AttributeType": "S"}
+      {"AttributeName": "IsAlreadyContacted", "AttributeType": "S"},
+      {"AttributeName": "Mobile", "AttributeType": "S"}
     ],
     "ProvisionedThroughput": {
       "ReadCapacityUnits": 5,
@@ -336,9 +323,9 @@
     },
     "GlobalSecondaryIndexes": [
       {
-        "IndexName": "is_already_contacted-index",
+        "IndexName": "index_promo-phones-no_isAlreadyContacted",
         "KeySchema": [
-          { "AttributeName": "is_already_contacted", "KeyType": "HASH" }
+          { "AttributeName": "IsAlreadyContacted", "KeyType": "HASH" }
         ],
         "Projection": {
           "ProjectionType": "ALL"
@@ -349,9 +336,9 @@
         }
       },
       {
-        "IndexName": "mobile-index",
+        "IndexName": "index_promo-phones-no_mobile",
         "KeySchema": [
-          { "AttributeName": "mobile", "KeyType": "HASH" }
+          { "AttributeName": "Mobile", "KeyType": "HASH" }
         ],
         "Projection": {
           "ProjectionType": "ALL"
@@ -364,13 +351,13 @@
     ]
   },
   {
-    "TableName": "user_subscriptions",
+    "TableName": "UserSubscriptions",
     "KeySchema": [
-      {"AttributeName": "id", "KeyType": "HASH"}
+      {"AttributeName": "Id", "KeyType": "HASH"}
     ],
     "AttributeDefinitions": [
-      {"AttributeName": "id", "AttributeType": "S"},
-      {"AttributeName": "user_id", "AttributeType": "S"}
+      {"AttributeName": "Id", "AttributeType": "S"},
+      {"AttributeName": "UserId", "AttributeType": "S"}
     ],
     "ProvisionedThroughput": {
       "ReadCapacityUnits": 5,
@@ -380,7 +367,7 @@
       {
         "IndexName": "index_usersub_userid",
         "KeySchema": [
-          { "AttributeName": "user_id", "KeyType": "HASH" }
+          { "AttributeName": "UserId", "KeyType": "HASH" }
         ],
         "Projection": {
           "ProjectionType": "ALL"
@@ -393,13 +380,13 @@
     ]
   },
   {
-    "TableName": "user_table",
+    "TableName": "User",
     "KeySchema": [
-      {"AttributeName": "id", "KeyType": "HASH"}
+      {"AttributeName": "ID", "KeyType": "HASH"}
     ],
     "AttributeDefinitions": [
-      {"AttributeName": "id", "AttributeType": "S"},
-      {"AttributeName": "mobile", "AttributeType": "S"}
+      {"AttributeName": "ID", "AttributeType": "S"},
+      {"AttributeName": "Mobile", "AttributeType": "S"}
     ],
     "ProvisionedThroughput": {
       "ReadCapacityUnits": 5,
@@ -407,9 +394,9 @@
     },
     "GlobalSecondaryIndexes": [
       {
-        "IndexName": "mobile-index",
+        "IndexName": "index_user_mobile",
         "KeySchema": [
-          { "AttributeName": "mobile", "KeyType": "HASH" }
+          { "AttributeName": "Mobile", "KeyType": "HASH" }
         ],
         "Projection": {
           "ProjectionType": "ALL"

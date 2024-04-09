@@ -9,7 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/fastbiztech/hastinapura/internal/models"
 	"github.com/gin-gonic/gin"
-
 )
 
 type PricingRepo struct {
@@ -22,10 +21,10 @@ func NewPricingRepo(client *dynamodb.Client) *PricingRepo {
 
 func (p *PricingRepo) GetDefaultPricingsForCategoryAndSubCategory(ctx *gin.Context, category string, subCategory string) ([]models.Pricing, error) {
 	var queryInput = &dynamodb.QueryInput{
-		TableName:              aws.String("pricing"),
-		IndexName:              aws.String("category-index"),
-		KeyConditionExpression: aws.String("category = :var0"),
-		FilterExpression:       aws.String("sub_category= :var1 and pricing_type = :var2 and pricing_state = :var3"),
+		TableName:              aws.String(models.TablePricing),
+		IndexName:              aws.String(models.IndexTablePricingIndexCategory),
+		KeyConditionExpression: aws.String("Category = :var0"),
+		FilterExpression:       aws.String("SubCategory= :var1 and PricingType = :var2 and PricingState = :var3"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":var0": &types.AttributeValueMemberS{Value: category},
 			":var1": &types.AttributeValueMemberS{Value: subCategory},
@@ -51,10 +50,10 @@ func (p *PricingRepo) GetDefaultPricingsForCategoryAndSubCategory(ctx *gin.Conte
 func (p *PricingRepo) FetchAllActivePricing(ctx *gin.Context) ([]models.Pricing, error) {
 
 	var queryInput = &dynamodb.QueryInput{
-		TableName: aws.String("pricing"),
-		IndexName: aws.String("pricing_state-index"),
+		TableName: aws.String(models.TablePricing),
+		IndexName: aws.String(models.IndexTablePricingIndexPricingState),
 		KeyConditions: map[string]types.Condition{
-			"pricing_state": {
+			models.ColumnPricingState: {
 				ComparisonOperator: types.ComparisonOperatorEq,
 				AttributeValueList: []types.AttributeValue{
 					&types.AttributeValueMemberS{Value: "ACTIVE"},
@@ -83,10 +82,10 @@ func (p *PricingRepo) FetchAllActivePricing(ctx *gin.Context) ([]models.Pricing,
 
 func (p *PricingRepo) GetAllDefaultActivePricings(ctx *gin.Context) ([]models.Pricing, error) {
 	var queryInput1 = &dynamodb.QueryInput{
-		TableName:              aws.String("pricing"),
-		IndexName:              aws.String("pricing_state-index"),
-		KeyConditionExpression: aws.String("pricing_state = :var0"),
-		FilterExpression:       aws.String("pricing_type= :var1"),
+		TableName:              aws.String(models.TablePricing),
+		IndexName:              aws.String(models.IndexTablePricingIndexPricingState),
+		KeyConditionExpression: aws.String("PricingState = :var0"),
+		FilterExpression:       aws.String("PricingType= :var1"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":var0": &types.AttributeValueMemberS{Value: "ACTIVE"},
 			":var1": &types.AttributeValueMemberS{Value: "DEFAULT"},
@@ -112,10 +111,10 @@ func (p *PricingRepo) GetAllDefaultActivePricings(ctx *gin.Context) ([]models.Pr
 
 func (p *PricingRepo) GetPricingByPricingID(ctx *gin.Context, pricingId string) (*models.Pricing, error) {
 	var queryInput1 = &dynamodb.QueryInput{
-		TableName:              aws.String("pricing"),
-		IndexName:              aws.String("pricing_state-index"),
-		KeyConditionExpression: aws.String("pricing_state= :var1"),
-		FilterExpression:       aws.String("id = :var0"),
+		TableName:              aws.String(models.TablePricing),
+		IndexName:              aws.String(models.IndexTablePricingIndexPricingState),
+		KeyConditionExpression: aws.String("PricingState= :var1"),
+		FilterExpression:       aws.String("Id = :var0"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":var0": &types.AttributeValueMemberS{Value: pricingId},
 			":var1": &types.AttributeValueMemberS{Value: "ACTIVE"},
@@ -141,7 +140,7 @@ func (p *PricingRepo) GetPricingByPricingID(ctx *gin.Context, pricingId string) 
 func (p *PricingRepo) CreatePricing(ctx *gin.Context, obj *models.Pricing) error {
 	item, _ := attributevalue.MarshalMap(obj)
 	params := &dynamodb.PutItemInput{
-		TableName: aws.String("pricing"),
+		TableName: aws.String(models.TablePricing),
 		Item:      item,
 	}
 
