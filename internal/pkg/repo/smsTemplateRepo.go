@@ -26,8 +26,8 @@ func NewSmsTemplateRepo(client *dynamodb.Client) *SmsTemplateRepo {
 	return smsTemplateRepo
 }
 
-func (s *SmsTemplateRepo) FetchSmsTemplateByUserIDTemplateID(ctx *gin.Context, userID, templateID string) (*models.SmsTemplate, error) {
-	queryInput := dtos.DbConditions{
+func (s *SmsTemplateRepo) FetchSmsTemplateByUserIDTemplateID(ctx *gin.Context, userID, templateID string) ([]models.SmsTemplate, error) {
+	queryInput := dtos.DbQueryInputConditions{
 		Index: models.IndexTableSmsTemplateIndexUserID,
 		PKey: map[string]interface{}{
 			models.ColumnSmsTemplateUserID: userID,
@@ -43,16 +43,16 @@ func (s *SmsTemplateRepo) FetchSmsTemplateByUserIDTemplateID(ctx *gin.Context, u
 		return nil, err
 	}
 
-	if len(smsTemplateItems) != 1 {
-		log.Println("something wrong with sms template entries")
-		return nil, errors.New("something wrong with sms template entries")
+	if len(smsTemplateItems) == 0 {
+		log.Println("no data found")
+		return nil, errors.New("no data found")
 	}
 
-	smsTemplateEntity := models.SmsTemplate{}
-	if err := attributevalue.UnmarshalMap(smsTemplateItems[0], &smsTemplateEntity); err != nil {
+	var smsTemplateEntities []models.SmsTemplate
+	if err := attributevalue.UnmarshalListOfMaps(smsTemplateItems, &smsTemplateEntities); err != nil {
 		log.Println(err)
 		return nil, err
 	}
 
-	return &smsTemplateEntity, nil
+	return smsTemplateEntities, nil
 }

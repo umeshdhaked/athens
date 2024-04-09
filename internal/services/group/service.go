@@ -40,7 +40,7 @@ func GetService() *Service {
 
 func (s *Service) UploadGroupToS3(c *gin.Context, file multipart.File, request dtos.UploadGroupContactsRequest) (interface{}, error) {
 	//  add validation for same name already existed
-	conditions := dtos.DbConditions{
+	conditions := dtos.DbQueryInputConditions{
 		Index: models.IndexTableGroupIndexName,
 		PKey: map[string]interface{}{
 			models.ColumnName: request.Name,
@@ -93,7 +93,7 @@ func (s *Service) UploadGroupToS3(c *gin.Context, file multipart.File, request d
 }
 
 func (s *Service) GetGroupContacts(c *gin.Context, request dtos.GetGroupContactsRequest) (interface{}, error) {
-	conditions := dtos.DbConditions{
+	conditions := dtos.DbQueryInputConditions{
 		Index: models.IndexTableGroupIndexName,
 		PKey: map[string]interface{}{
 			models.ColumnName: request.Name,

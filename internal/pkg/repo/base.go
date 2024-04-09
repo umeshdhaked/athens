@@ -15,9 +15,25 @@ import (
 	"github.com/fastbiztech/hastinapura/pkg/dtos"
 )
 
+const (
+	ComparisonOperatorEQ = "eq"
+	ComparisonOperatorL  = "l"
+	ComparisonOperatorG  = "g"
+	ComparisonOperatorLE = "le"
+	ComparisonOperatorGE = "ge"
+)
+
 var (
 	once     sync.Once
 	baseRepo *Repository
+
+	listOfComparisonOperator = map[string]string{
+		ComparisonOperatorEQ: "=",
+		ComparisonOperatorL:  "<",
+		ComparisonOperatorG:  ">",
+		ComparisonOperatorLE: "<=",
+		ComparisonOperatorGE: ">=",
+	}
 )
 
 type Repository struct {
@@ -89,7 +105,7 @@ func (r *Repository) DeleteItem(ctx context.Context, tableName string, key map[s
 }
 
 // QueryItems retrieves items from the DynamoDB table based on the provided query condition.
-func (r *Repository) QueryItems(ctx context.Context, tableName string, conditions dtos.DbConditions) ([]map[string]types.AttributeValue, error) {
+func (r *Repository) QueryItems(ctx context.Context, tableName string, conditions dtos.DbQueryInputConditions) ([]map[string]types.AttributeValue, error) {
 	// Build KeyConditionExpression and FilterExpression dynamically
 	keyConditionExpr, filterExpr, expressionAttributeNames, expressionAttributeValues, err := buildExpression(conditions)
 	if err != nil {
@@ -126,7 +142,7 @@ func (r *Repository) QueryItems(ctx context.Context, tableName string, condition
 }
 
 // ScanItems retrieves items from the DynamoDB table based on the provided scan conditions.
-func (r *Repository) ScanItems(ctx context.Context, tableName string, conditions dtos.DbScanQueryConditions) ([]map[string]types.AttributeValue, error) {
+func (r *Repository) ScanItems(ctx context.Context, tableName string, conditions dtos.DbFilterQueryConditions) ([]map[string]types.AttributeValue, error) {
 	// Prepare ScanInput
 	input := &dynamodb.ScanInput{
 		TableName: aws.String(tableName),
@@ -171,6 +187,18 @@ func buildScanFilterExpression(filters map[string]types.AttributeValue) (string,
 			continue
 		}
 
+		// Extract conditional operator if present
+		conditionalOperator := listOfComparisonOperator[ComparisonOperatorEQ] // default is = operator
+		if parts := strings.Split(key, "__"); len(parts) == 2 {
+			key = parts[0] // Extract actual attribute name
+
+			if _, ok := listOfComparisonOperator[parts[1]]; !ok {
+				return "", nil, nil, errors.New("invalid comparison operator passed")
+			}
+
+			conditionalOperator = listOfComparisonOperator[parts[1]]
+		}
+
 		// Generate placeholder for attribute value
 		valuePlaceholder := fmt.Sprintf(":value%d", len(expressionAttributeValues)+1)
 
@@ -178,7 +206,7 @@ func buildScanFilterExpression(filters map[string]types.AttributeValue) (string,
 		if filterExpr != "" {
 			filterExpr += " AND "
 		}
-		filterExpr += fmt.Sprintf("%s = %s", "#"+key, valuePlaceholder)
+		filterExpr += fmt.Sprintf("%s %s %s", "#"+key, conditionalOperator, valuePlaceholder)
 
 		// Add attribute name to ExpressionAttributeNames
 		expressionAttributeNames["#"+key] = key
@@ -192,7 +220,7 @@ func buildScanFilterExpression(filters map[string]types.AttributeValue) (string,
 
 // buildExpression dynamically builds the KeyConditionExpression, FilterExpression,
 // ExpressionAttributeNames, and ExpressionAttributeValues based on the provided conditions.
-func buildExpression(conditions dtos.DbConditions) (string, string, map[string]string, map[string]types.AttributeValue, error) {
+func buildExpression(conditions dtos.DbQueryInputConditions) (string, string, map[string]string, map[string]types.AttributeValue, error) {
 	var (
 		keyConditionExpr string
 		filterExpr       string

@@ -139,17 +139,47 @@
     }
   },
   {
-    "TableName": "Campaign",
+    "TableName": "SmsCampaign",
     "KeySchema": [
       {"AttributeName": "ID", "KeyType": "HASH"}
     ],
     "AttributeDefinitions": [
-      {"AttributeName": "ID", "AttributeType": "S"}
+      {"AttributeName": "ID", "AttributeType": "S"},
+      {"AttributeName": "UserID", "AttributeType": "S"}
+      {"AttributeName": "Status", "AttributeType": "S"}
     ],
     "ProvisionedThroughput": {
       "ReadCapacityUnits": 5,
       "WriteCapacityUnits": 5
-    }
+    },
+    "GlobalSecondaryIndexes": [
+      {
+        "IndexName": "index_smscampaign_userid",
+        "KeySchema": [
+          { "AttributeName": "UserID", "KeyType": "HASH" }
+        ],
+        "Projection": {
+          "ProjectionType": "ALL"
+        },
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": 5,
+          "WriteCapacityUnits": 5
+        }
+      },
+      {
+        "IndexName": "index_smscampaign_status",
+        "KeySchema": [
+          { "AttributeName": "Status", "KeyType": "HASH" }
+        ],
+        "Projection": {
+          "ProjectionType": "ALL"
+        },
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": 5,
+          "WriteCapacityUnits": 5
+        }
+      }
+    ]
   },
   {
     "TableName": "Subscription",

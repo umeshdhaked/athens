@@ -1,6 +1,11 @@
 package models
 
 const (
+	// Base columns
+	ColumnCreatedAt = "CreatedAt"
+	ColumnUpdatedAt = "UpdatedAt"
+	ColumnDeletedAt = "DeletedAt"
+
 	// Add all index names here
 	// format: index_<tableName>_<columnName>
 
@@ -13,8 +18,12 @@ const (
 	// indexes: credits table
 	IndexTableCreditsIndexUserID = "index_credits_userid"
 
-	// indexes: credits table
+	// indexes: user subscription table
 	IndexTableUserSubscriptionIndexUserID = "index_usersub_userid"
+
+	// indexes: sms campaign table
+	IndexTableSmsCampaignIndexUserID = "index_smscampaign_userid"
+	IndexTableSmsCampaignIndexStatus = "index_smscampaign_status"
 )
 
 type BaseModel struct {

@@ -41,7 +41,7 @@ func (c *CreditsRepo) CreateUserCredit(ctx *gin.Context, credit *models.Credits)
 }
 
 func (c *CreditsRepo) FetchCreditByUserID(ctx *gin.Context, userID string) (*models.Credits, error) {
-	queryInput := dtos.DbConditions{
+	queryInput := dtos.DbQueryInputConditions{
 		Index: models.IndexTableCreditsIndexUserID,
 		PKey: map[string]interface{}{
 			models.ColumnCreditsUserID: "USERID", // TODO get userid from token
@@ -94,33 +94,4 @@ func (c *CreditsRepo) UpdateCreditsLeftByID(ctx *gin.Context, id string, credits
 	}
 
 	return &creditsEntity, nil
-}
-
-func (c *CreditsRepo) FetchUserCredit(ctx *gin.Context, userId string) (*models.Credits, error) {
-	queryInput := &dynamodb.QueryInput{
-		TableName: aws.String("credits"),
-		IndexName: aws.String("user_id-index"),
-		KeyConditions: map[string]types.Condition{
-			"user_id": {
-				ComparisonOperator: types.ComparisonOperatorEq,
-				AttributeValueList: []types.AttributeValue{
-					&types.AttributeValueMemberS{Value: userId},
-				},
-			},
-		},
-	}
-	var resp, err = c.client.Query(ctx, queryInput)
-	if err != nil {
-		return nil, err
-	}
-
-	if resp.Count > 0 {
-		credits := []models.Credits{}
-		if err := attributevalue.UnmarshalListOfMaps(resp.Items, &credits); err != nil {
-			log.Println(err)
-			return nil, err
-		}
-		return &credits[0], nil
-	}
-	return nil, nil
 }

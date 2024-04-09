@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"os"
 	"sync"
 
 	"github.com/fastbiztech/hastinapura/internal/utils"
@@ -91,34 +90,6 @@ func LoadConfig() {
 		if err != nil {
 			fmt.Printf("unable to decode into config struct, %v", err)
 			panic("failed to load config")
-		}
-
-		aws_id := os.Getenv("AWS_ACCESS_KEY_ID")
-		aws_sec := os.Getenv("AWS_ACCESS_KEY_ID")
-		aws_region := os.Getenv("AWS_REGION")
-		if aws_id != "" {
-			if config.Aws.Db.KeyID != "" {
-				config.Aws.Db.KeyID = aws_id
-			}
-			if config.Aws.S3.KeyID != "" {
-				config.Aws.S3.KeyID = aws_id
-			}
-		}
-		if aws_sec != "" {
-			if config.Aws.Db.AccessKey != "" {
-				config.Aws.Db.AccessKey = aws_id
-			}
-			if config.Aws.S3.AccessKey != "" {
-				config.Aws.S3.AccessKey = aws_id
-			}
-		}
-		if aws_region != "" {
-			if config.Aws.Db.Region != "" {
-				config.Aws.Db.Region = aws_id
-			}
-			if config.Aws.S3.Region != "" {
-				config.Aws.S3.Region = aws_id
-			}
 		}
 	})
 }

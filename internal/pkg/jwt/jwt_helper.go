@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/fastbiztech/hastinapura/internal/constants"
 	"github.com/fastbiztech/hastinapura/pkg/dtos"
 	"github.com/gin-gonic/gin"
 
@@ -17,10 +18,10 @@ var secretKey = []byte("my-jwt-secret-key")
 func CreateToken(id string, mobile string, role string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
-			"id":     id,
-			"mobile": mobile,
-			"role":   role,
-			"exp":    time.Now().Add(time.Hour * 24).Unix(),
+			constants.JwtTokenUserID: id,
+			constants.JwtTokenMobile: mobile,
+			constants.JwtTokenRole:   role,
+			"exp":                    time.Now().Add(time.Hour * 24).Unix(),
 		})
 
 	tokenString, err := token.SignedString(secretKey)
@@ -70,18 +71,18 @@ func RefreshToken(ctx *gin.Context) (*dtos.LoginSuccessResponse, error) {
 	claims, _ := DecodeToken(jwtToken)
 	exp := claims["exp"].(float64)
 	currTime := time.Now().Unix()
-	userNme := claims["mobile"].(string)
-	role := claims["role"].(string)
-	id := claims["id"].(string)
+	mobile := claims[constants.JwtTokenMobile].(string)
+	role := claims[constants.JwtTokenRole].(string)
+	id := claims[constants.JwtTokenUserID].(string)
 	if int64(exp) < currTime {
 		return nil, errors.New("TOKEN_EXPIRED")
 	}
 	if int64(exp)-currTime < 7200 {
-		tkn, err := CreateToken(id, userNme, role)
+		tkn, err := CreateToken(id, mobile, role)
 		if err != nil {
 			return nil, errors.Join(err, errors.New("internal server error"))
 		}
-		return &dtos.LoginSuccessResponse{MobileNumber: userNme, LoginToken: tkn}, nil
+		return &dtos.LoginSuccessResponse{MobileNumber: mobile, LoginToken: tkn}, nil
 	} else {
 		return nil, errors.New("TOKEN_REFRESH_NOT_ALLOWED")
 	}

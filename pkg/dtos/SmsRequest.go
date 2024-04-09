@@ -63,3 +63,23 @@ type PostSmsRequest struct {
 	Body       string `json:"body"`
 	TemplateID string `json:"template_id"`
 }
+
+type CreateSmsCampaignRequest struct {
+	Name        string `json:"name"`
+	ScheduledAt int    `json:"scheduled_at"`
+	TemplateID  string `json:"template_id"`
+	SenderCode  string `json:"sender_code"`
+	Type        string `json:"type"`
+}
+
+type GetSmsCampaignsRequest struct {
+	Name   string `form:"name"`
+	UserID string `form:"user_id"`
+	Status string `form:"status"`
+	From   int    `form:"from"`
+	To     int    `form:"to"`
+}
+
+type DeActivateSmsCampaignRequest struct {
+	ID string `json:"id"`
+}

@@ -3,6 +3,7 @@ package middleware
 import (
 	"net/http"
 
+	"github.com/fastbiztech/hastinapura/internal/constants"
 	"github.com/gin-gonic/gin"
 )
 
@@ -18,9 +19,9 @@ func TokenAuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		ctx.Set("role", "admin")
-		ctx.Set("mobile", "sys-admin-mobile")
-		ctx.Set("id", "sys-admin-id")
+		ctx.Set(constants.JwtTokenRole, "admin")
+		ctx.Set(constants.JwtTokenMobile, "sys-admin-mobile")
+		ctx.Set(constants.JwtTokenUserID, "sys-admin-id")
 		ctx.Next()
 	}
 

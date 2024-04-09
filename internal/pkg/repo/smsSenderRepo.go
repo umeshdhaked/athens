@@ -26,8 +26,8 @@ func NewSmsSenderRepo(client *dynamodb.Client) *SmsSenderRepo {
 	return smsSenderRepo
 }
 
-func (s *SmsSenderRepo) FetchSmsSenderByUserIDSenderCode(ctx *gin.Context, userID, senderCode string) (*models.SmsSender, error) {
-	queryInput := dtos.DbConditions{
+func (s *SmsSenderRepo) FetchSmsSenderByUserIDSenderCode(ctx *gin.Context, userID, senderCode string) ([]models.SmsSender, error) {
+	queryInput := dtos.DbQueryInputConditions{
 		Index: models.IndexTableSmsSenderIndexUserID,
 		PKey: map[string]interface{}{
 			models.ColumnSmsSenderUserID: userID,
@@ -43,16 +43,16 @@ func (s *SmsSenderRepo) FetchSmsSenderByUserIDSenderCode(ctx *gin.Context, userI
 		return nil, err
 	}
 
-	if len(smsSenderItems) != 1 {
-		log.Println("something wrong with sms sender entries")
-		return nil, errors.New("something wrong with sms sender entries")
+	if len(smsSenderItems) == 0 {
+		log.Println("no data found")
+		return nil, errors.New("no data found")
 	}
 
-	smsSenderEntity := models.SmsSender{}
-	if err := attributevalue.UnmarshalMap(smsSenderItems[0], &smsSenderEntity); err != nil {
+	var smsSenderEntity []models.SmsSender
+	if err := attributevalue.UnmarshalListOfMaps(smsSenderItems, &smsSenderEntity); err != nil {
 		log.Println(err)
 		return nil, err
 	}
 
-	return &smsSenderEntity, nil
+	return smsSenderEntity, nil
 }

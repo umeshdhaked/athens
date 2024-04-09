@@ -2,10 +2,12 @@ package middleware
 
 import (
 	"context"
-	"github.com/fastbiztech/hastinapura/internal"
-	"github.com/fastbiztech/hastinapura/internal/pkg/jwt"
 	"net/http"
 	"time"
+
+	"github.com/fastbiztech/hastinapura/internal"
+	"github.com/fastbiztech/hastinapura/internal/constants"
+	"github.com/fastbiztech/hastinapura/internal/pkg/jwt"
 
 	"github.com/gin-gonic/gin"
 )
@@ -35,9 +37,9 @@ func JwtAuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		userNme := claims["mobile"]
-		id := claims["id"]
-		role := claims["role"]
+		userNme := claims[constants.JwtTokenMobile]
+		id := claims[constants.JwtTokenUserID]
+		role := claims[constants.JwtTokenRole]
 
 		usr, err := internal.GetRegistrationService().GetUser(context.Background(), userNme.(string))
 		if err != nil || usr == nil {
@@ -46,9 +48,9 @@ func JwtAuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		ctx.Set("mobile", userNme.(string))
-		ctx.Set("id", id.(string))
-		ctx.Set("role", role.(string))
+		ctx.Set(constants.JwtTokenMobile, userNme.(string))
+		ctx.Set(constants.JwtTokenUserID, id.(string))
+		ctx.Set(constants.JwtTokenRole, role.(string))
 		ctx.Next()
 	}
 

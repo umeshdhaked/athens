@@ -105,6 +105,11 @@ var routeList = [...]route{
 			{http.MethodPatch, "/template", controllers.UpdateSmsTemplate},
 			{http.MethodPatch, "/template/deactivate", controllers.DeActivateSmsTemplate},
 
+			// Campaign related apis
+			{http.MethodPost, "/campaign", controllers.CreateSmsCampaign},
+			{http.MethodGet, "/campaign", controllers.GetSmsCampaigns},
+			{http.MethodDelete, "/campaign", controllers.DeActivateSmsCampaigns},
+
 			// instant sms api
 			{http.MethodPost, "", controllers.PostSms},
 			{http.MethodPost, "/retry", controllers.PostSms}, // TODO validate if new method needed for retry sms
