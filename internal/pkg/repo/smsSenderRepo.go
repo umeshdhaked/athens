@@ -14,15 +14,14 @@ import (
 var smsSenderRepo *SmsSenderRepo
 
 type SmsSenderRepo struct {
-	client *dynamodb.Client
 	Repository
 }
 
-func NewSmsSenderRepo(client *dynamodb.Client) *SmsSenderRepo {
-	once.Do(func() {
-		smsSenderRepo = &SmsSenderRepo{client: client}
-	})
+func newSmsSenderRepo(client *dynamodb.Client) {
+	smsSenderRepo = &SmsSenderRepo{Repository: Repository{dbClient: client}}
+}
 
+func GetSmsSenderRepo() *SmsSenderRepo {
 	return smsSenderRepo
 }
 

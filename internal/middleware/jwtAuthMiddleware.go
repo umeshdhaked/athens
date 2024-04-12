@@ -2,13 +2,12 @@ package middleware
 
 import (
 	"context"
+	"github.com/fastbiztech/hastinapura/internal/pkg/jwt"
+	"github.com/fastbiztech/hastinapura/internal/services/register"
 	"net/http"
 	"time"
 
-	"github.com/fastbiztech/hastinapura/internal"
 	"github.com/fastbiztech/hastinapura/internal/constants"
-	"github.com/fastbiztech/hastinapura/internal/pkg/jwt"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -41,7 +40,7 @@ func JwtAuthMiddleware() gin.HandlerFunc {
 		id := claims[constants.JwtTokenUserID]
 		role := claims[constants.JwtTokenRole]
 
-		usr, err := internal.GetRegistrationService().GetUser(context.Background(), userNme.(string))
+		usr, err := register.GetRegistrationService().GetUser(context.Background(), userNme.(string))
 		if err != nil || usr == nil {
 			ctx.JSON(http.StatusUnauthorized, gin.H{"message": "USER_NOT_EXIST"})
 			ctx.Abort()

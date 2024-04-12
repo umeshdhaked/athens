@@ -4,17 +4,29 @@ import (
 	"github.com/fastbiztech/hastinapura/internal/models"
 	"github.com/gin-gonic/gin"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
+)
+
+var (
+	once    sync.Once
+	service *PromoService
 )
 
 type PromoService struct {
 	promoRepo *repo.PromotionRepo
 }
 
-func NewPromoService(promoRepo *repo.PromotionRepo) *PromoService {
-	return &PromoService{promoRepo: promoRepo}
+func NewPromoService(promoRepo *repo.PromotionRepo) {
+	once.Do(func() {
+		service = &PromoService{promoRepo: promoRepo}
+	})
+}
+
+func GetPromoService() *PromoService {
+	return service
 }
 
 func (s *PromoService) SavePhoneNo(ctx *gin.Context, phoneNo string) error {

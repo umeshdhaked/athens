@@ -17,15 +17,14 @@ import (
 var smsCampaignRepo *SmsCampaignRepo
 
 type SmsCampaignRepo struct {
-	client *dynamodb.Client
 	Repository
 }
 
-func NewSmsCampaignRepo(client *dynamodb.Client) *SmsCampaignRepo {
-	once.Do(func() {
-		smsCampaignRepo = &SmsCampaignRepo{client: client}
-	})
+func newSmsCampaignRepo(client *dynamodb.Client) {
+	smsCampaignRepo = &SmsCampaignRepo{Repository: Repository{dbClient: client}}
+}
 
+func GetSmsCampaignRepo() *SmsCampaignRepo {
 	return smsCampaignRepo
 }
 

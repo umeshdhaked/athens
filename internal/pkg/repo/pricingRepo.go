@@ -11,12 +11,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var pricingRepo *PricingRepo
+
 type PricingRepo struct {
-	client *dynamodb.Client
+	Repository
 }
 
-func NewPricingRepo(client *dynamodb.Client) *PricingRepo {
-	return &PricingRepo{client: client}
+func newPricingRepo(client *dynamodb.Client) {
+	pricingRepo = &PricingRepo{Repository: Repository{dbClient: client}}
+}
+
+func GetPricingRepo() *PricingRepo {
+	return pricingRepo
 }
 
 func (p *PricingRepo) GetDefaultPricingsForCategoryAndSubCategory(ctx *gin.Context, category string, subCategory string) ([]models.Pricing, error) {
@@ -31,7 +37,7 @@ func (p *PricingRepo) GetDefaultPricingsForCategoryAndSubCategory(ctx *gin.Conte
 			":var2": &types.AttributeValueMemberS{Value: "DEFAULT"},
 			":var3": &types.AttributeValueMemberS{Value: "ACTIVE"},
 		}}
-	var resp, err = p.client.Query(ctx, queryInput)
+	var resp, err = p.dbClient.Query(ctx, queryInput)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +68,7 @@ func (p *PricingRepo) FetchAllActivePricing(ctx *gin.Context) ([]models.Pricing,
 		},
 	}
 
-	var resp, err = p.client.Query(ctx, queryInput)
+	var resp, err = p.dbClient.Query(ctx, queryInput)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -92,7 +98,7 @@ func (p *PricingRepo) GetAllDefaultActivePricings(ctx *gin.Context) ([]models.Pr
 		},
 	}
 
-	var pricingResp, err = p.client.Query(ctx, queryInput1)
+	var pricingResp, err = p.dbClient.Query(ctx, queryInput1)
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +127,7 @@ func (p *PricingRepo) GetPricingByPricingID(ctx *gin.Context, pricingId string) 
 		},
 	}
 
-	pricingResp, err := p.client.Query(ctx, queryInput1)
+	pricingResp, err := p.dbClient.Query(ctx, queryInput1)
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +150,7 @@ func (p *PricingRepo) CreatePricing(ctx *gin.Context, obj *models.Pricing) error
 		Item:      item,
 	}
 
-	output, err := p.client.PutItem(ctx, params)
+	output, err := p.dbClient.PutItem(ctx, params)
 	log.Println(output)
 	return err
 }

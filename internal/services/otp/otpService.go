@@ -3,6 +3,7 @@ package otp
 import (
 	"errors"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/fastbiztech/hastinapura/internal/models"
@@ -13,14 +14,25 @@ import (
 	"github.com/google/uuid"
 )
 
+var (
+	once    sync.Once
+	service *OtpService
+)
+
 type OtpService struct {
 	otpSender *otp.OtpSender
 	crypto    *crypto.Crypto
 	otpRepo   *repo.OtpRepo
 }
 
-func NewOtpService(otpSender *otp.OtpSender, crypto *crypto.Crypto, otpRepo *repo.OtpRepo) *OtpService {
-	return &OtpService{otpSender: otpSender, crypto: crypto, otpRepo: otpRepo}
+func NewOtpService(otpSender *otp.OtpSender, crypto *crypto.Crypto, otpRepo *repo.OtpRepo) {
+	once.Do(func() {
+		service = &OtpService{otpSender: otpSender, crypto: crypto, otpRepo: otpRepo}
+	})
+}
+
+func GetOtpService() *OtpService {
+	return service
 }
 
 func (o *OtpService) SendOtp(ctx *gin.Context, mobile string) error {

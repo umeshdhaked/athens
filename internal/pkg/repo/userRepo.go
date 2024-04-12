@@ -15,12 +15,18 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
 
+var userRepo *UserRepo
+
 type UserRepo struct {
-	client *dynamodb.Client
+	Repository
 }
 
-func NewUserRepo(client *dynamodb.Client) *UserRepo {
-	return &UserRepo{client: client}
+func newUserRepo(client *dynamodb.Client) {
+	userRepo = &UserRepo{Repository: Repository{dbClient: client}}
+}
+
+func GetUserRepo() *UserRepo {
+	return userRepo
 }
 
 func (u *UserRepo) GetUserFromMobile(ctx context.Context, mobile string) (*models.User, error) {
@@ -36,7 +42,7 @@ func (u *UserRepo) GetUserFromMobile(ctx context.Context, mobile string) (*model
 			},
 		},
 	}
-	var resp1, err1 = u.client.Query(ctx, queryInput)
+	var resp1, err1 = u.dbClient.Query(ctx, queryInput)
 	if err1 != nil {
 		fmt.Println(err1)
 		return nil, err1
@@ -59,7 +65,7 @@ func (u *UserRepo) UpdateUser(ctx *gin.Context, user *models.User) error {
 		Item:      item,
 	}
 
-	output, er := u.client.PutItem(ctx, putItem)
+	output, er := u.dbClient.PutItem(ctx, putItem)
 	log.Println(output)
 	if er != nil {
 		return errors.Join(er, errors.New("FAILED TO MAKE API CALL TO DYNAMO"))

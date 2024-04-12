@@ -17,14 +17,14 @@ import (
 var creditsRepo *CreditsRepo
 
 type CreditsRepo struct {
-	client *dynamodb.Client
 	Repository
 }
 
-func NewCreditsRepo(client *dynamodb.Client) *CreditsRepo {
-	once.Do(func() {
-		creditsRepo = &CreditsRepo{client: client}
-	})
+func newCreditsRepo(client *dynamodb.Client) {
+	creditsRepo = &CreditsRepo{Repository: Repository{dbClient: client}}
+}
+
+func GetCreditsRepo() *CreditsRepo {
 	return creditsRepo
 }
 
@@ -35,7 +35,7 @@ func (c *CreditsRepo) CreateUserCredit(ctx *gin.Context, credit *models.Credits)
 		Item:      item,
 	}
 
-	_, er := c.client.PutItem(ctx, params)
+	_, er := c.dbClient.PutItem(ctx, params)
 
 	return er
 }

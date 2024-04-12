@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"github.com/fastbiztech/hastinapura/internal"
 	"github.com/fastbiztech/hastinapura/internal/services/subscription"
 	"net/http"
 
@@ -16,7 +15,7 @@ func HandleCreateNewPricingSystem(ctx *gin.Context) {
 		return
 	}
 
-	var sub *subscription.SubscriptionService = internal.GetSubscriptionService()
+	var sub *subscription.SubscriptionService = subscription.GetSubscriptionService()
 
 	resp, err := sub.CreateNewPricingSystem(ctx, &pricingRequest)
 	if nil != err {
@@ -34,7 +33,7 @@ func HandleDeactivatePricing(ctx *gin.Context) {
 		return
 	}
 
-	var sub *subscription.SubscriptionService = internal.GetSubscriptionService()
+	var sub *subscription.SubscriptionService = subscription.GetSubscriptionService()
 	err := sub.DeactivatePricing(ctx, &pricingRequest)
 	if nil != err {
 		ctx.String(http.StatusInternalServerError, err.Error())
@@ -46,7 +45,7 @@ func HandleDeactivatePricing(ctx *gin.Context) {
 
 func HandleFetchAllActivePricingModel(ctx *gin.Context) {
 
-	var sub *subscription.SubscriptionService = internal.GetSubscriptionService()
+	var sub *subscription.SubscriptionService = subscription.GetSubscriptionService()
 	resp, err := sub.FetchAllActivePricingModel(ctx)
 	if nil != err {
 		ctx.String(http.StatusInternalServerError, err.Error())
@@ -63,7 +62,7 @@ func HandleAddDefaultSubscriptionToUser(ctx *gin.Context) {
 		return
 	}
 
-	var sub *subscription.SubscriptionService = internal.GetSubscriptionService()
+	var sub *subscription.SubscriptionService = subscription.GetSubscriptionService()
 	err := sub.AddDefaultSubscriptionToUser(ctx, subRequest)
 	if nil != err {
 		ctx.String(http.StatusInternalServerError, err.Error())
@@ -80,7 +79,7 @@ func HandleAddSubscriptionToUser(ctx *gin.Context) {
 		return
 	}
 
-	var sub *subscription.SubscriptionService = internal.GetSubscriptionService()
+	var sub *subscription.SubscriptionService = subscription.GetSubscriptionService()
 	err := sub.AddSubscriptionToUser(ctx, subRequest)
 	if nil != err {
 		ctx.String(http.StatusInternalServerError, err.Error())
@@ -97,7 +96,7 @@ func HandleFetchAllActiveSubscriptionsForUser(ctx *gin.Context) {
 		return
 	}
 
-	var sub *subscription.SubscriptionService = internal.GetSubscriptionService()
+	var sub *subscription.SubscriptionService = subscription.GetSubscriptionService()
 	resp, err := sub.FetchAllActiveSubscriptionsForUser(ctx, subRequest)
 	if nil != err {
 		ctx.String(http.StatusInternalServerError, err.Error())
@@ -114,7 +113,7 @@ func HandleDeactivateSubscriptionsForUser(ctx *gin.Context) {
 		return
 	}
 
-	var sub *subscription.SubscriptionService = internal.GetSubscriptionService()
+	var sub *subscription.SubscriptionService = subscription.GetSubscriptionService()
 	err := sub.DeactivateSubscriptionsForUser(ctx, subRequest)
 	if nil != err {
 		ctx.String(http.StatusInternalServerError, err.Error())
@@ -132,7 +131,7 @@ func HandleAddCreditToUser(ctx *gin.Context) {
 		return
 	}
 
-	var sub *subscription.SubscriptionService = internal.GetSubscriptionService()
+	var sub *subscription.SubscriptionService = subscription.GetSubscriptionService()
 	err := sub.AddCreditToUser(ctx, creditRequest)
 	if nil != err {
 		ctx.String(http.StatusInternalServerError, err.Error())
@@ -142,7 +141,7 @@ func HandleAddCreditToUser(ctx *gin.Context) {
 }
 
 func HandleFetchCredits(ctx *gin.Context) {
-	var sub *subscription.SubscriptionService = internal.GetSubscriptionService()
+	var sub *subscription.SubscriptionService = subscription.GetSubscriptionService()
 	resp, err := sub.FetchCredit(ctx)
 	if nil != err {
 		ctx.String(http.StatusInternalServerError, err.Error())
@@ -158,7 +157,7 @@ func HandleChargeUser(ctx *gin.Context) {
 		return
 	}
 
-	var sub *subscription.SubscriptionService = internal.GetSubscriptionService()
+	var sub *subscription.SubscriptionService = subscription.GetSubscriptionService()
 	err := sub.ChargeUser(ctx, chargeRequest.UserId, chargeRequest.Category, chargeRequest.SubCategory, chargeRequest.UnitCount)
 	if nil != err {
 		ctx.String(http.StatusInternalServerError, err.Error())

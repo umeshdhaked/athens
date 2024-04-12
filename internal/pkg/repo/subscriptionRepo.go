@@ -13,12 +13,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var subscriptionRepo *SubscriptionRepo
+
 type SubscriptionRepo struct {
-	client *dynamodb.Client
+	Repository
 }
 
-func NewSubscriptionRepo(client *dynamodb.Client) *SubscriptionRepo {
-	return &SubscriptionRepo{client: client}
+func newSubscriptionRepo(client *dynamodb.Client) {
+	subscriptionRepo = &SubscriptionRepo{Repository: Repository{dbClient: client}}
+}
+
+func GetSubscriptionRepo() *SubscriptionRepo {
+	return subscriptionRepo
 }
 
 func (s *SubscriptionRepo) FetchAllSubscriptionForAUser(ctx *gin.Context, userId string) ([]models.UserSubscription, error) {
@@ -35,7 +41,7 @@ func (s *SubscriptionRepo) FetchAllSubscriptionForAUser(ctx *gin.Context, userId
 		},
 	}
 
-	var resp, err = s.client.Query(ctx, queryInput)
+	var resp, err = s.dbClient.Query(ctx, queryInput)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +71,7 @@ func (s *SubscriptionRepo) GetSubscriptionFromId(ctx *gin.Context, subId string)
 		},
 	}
 
-	var resp, err = s.client.Query(ctx, queryInput)
+	var resp, err = s.dbClient.Query(ctx, queryInput)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +100,7 @@ func (s *SubscriptionRepo) BatchCreateUserSubscription(ctx *gin.Context, userSub
 			models.TableUserSubscription: writeRequests,
 		},
 	}
-	output, er := s.client.BatchWriteItem(ctx, &batchWrite)
+	output, er := s.dbClient.BatchWriteItem(ctx, &batchWrite)
 	log.Println(output)
 	if er != nil {
 		return errors.Join(er, errors.New("unable to add subscription to user"))
@@ -109,7 +115,7 @@ func (s *SubscriptionRepo) CreateUserSubscription(ctx *gin.Context, userSubsDto 
 		Item:      item,
 	}
 
-	output, err := s.client.PutItem(ctx, params)
+	output, err := s.dbClient.PutItem(ctx, params)
 	log.Println(output)
 	return err
 }

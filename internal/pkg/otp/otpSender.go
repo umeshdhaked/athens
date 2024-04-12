@@ -4,13 +4,25 @@ import (
 	"crypto/rand"
 	"io"
 	"log"
+	"sync"
+)
+
+var (
+	once    sync.Once
+	service *OtpSender
 )
 
 type OtpSender struct {
 }
 
-func NewOtpSender() *OtpSender {
-	return &OtpSender{}
+func NewOtpSender() {
+	once.Do(func() {
+		service = &OtpSender{}
+	})
+}
+
+func GetOtpSender() *OtpSender {
+	return service
 }
 
 func (o *OtpSender) GenerateOtp() string {

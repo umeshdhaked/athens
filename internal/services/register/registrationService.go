@@ -7,6 +7,7 @@ import (
 	"github.com/fastbiztech/hastinapura/internal/models"
 	"github.com/fastbiztech/hastinapura/internal/services/otp"
 	"log"
+	"sync"
 
 	"github.com/fastbiztech/hastinapura/internal/pkg/crypto"
 	"github.com/fastbiztech/hastinapura/internal/pkg/jwt"
@@ -16,14 +17,25 @@ import (
 	"github.com/google/uuid"
 )
 
+var (
+	once    sync.Once
+	service *RegistrationService
+)
+
 type RegistrationService struct {
 	otpService *otp.OtpService
 	cryp       *crypto.Crypto
 	userRepo   *repo.UserRepo
 }
 
-func NewRegistrationService(userRepo *repo.UserRepo, otpService *otp.OtpService, cryp *crypto.Crypto) *RegistrationService {
-	return &RegistrationService{userRepo: userRepo, otpService: otpService, cryp: cryp}
+func NewRegistrationService(userRepo *repo.UserRepo, otpService *otp.OtpService, cryp *crypto.Crypto) {
+	once.Do(func() {
+		service = &RegistrationService{userRepo: userRepo, otpService: otpService, cryp: cryp}
+	})
+}
+
+func GetRegistrationService() *RegistrationService {
+	return service
 }
 
 func (s *RegistrationService) SendOtp(ctx *gin.Context, user dtos.RegisterUserRequest) error {

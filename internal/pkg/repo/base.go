@@ -36,14 +36,30 @@ var (
 	}
 )
 
+func InitialiseRepositories(dynamodb *dynamodb.Client) {
+	once.Do(func() {
+		newRepository(dynamodb)
+		newCreditsAuditRepo(dynamodb)
+		newCreditsRepo(dynamodb)
+		newOtpRepo(dynamodb)
+		newPricingRepo(dynamodb)
+		newPromotionRepo(dynamodb)
+		newSmsAuditRepo(dynamodb)
+		newSmsCampaignRepo(dynamodb)
+		newSmsSenderRepo(dynamodb)
+		newSmsTemplateRepo(dynamodb)
+		newSubscriptionRepo(dynamodb)
+		newSubscriptionRepo(dynamodb)
+		newUserRepo(dynamodb)
+	})
+}
+
 type Repository struct {
 	dbClient *dynamodb.Client
 }
 
-func NewRepository(dbClient *dynamodb.Client) {
-	once.Do(func() {
-		baseRepo = &Repository{dbClient: dbClient}
-	})
+func newRepository(dbClient *dynamodb.Client) {
+	baseRepo = &Repository{dbClient: dbClient}
 }
 
 func GetRepository() *Repository {

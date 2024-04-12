@@ -12,15 +12,14 @@ import (
 var smsAuditRepo *SmsAuditRepo
 
 type SmsAuditRepo struct {
-	client *dynamodb.Client
 	Repository
 }
 
-func NewSmsAuditRepo(client *dynamodb.Client) *SmsAuditRepo {
-	once.Do(func() {
-		smsAuditRepo = &SmsAuditRepo{client: client}
-	})
+func newSmsAuditRepo(client *dynamodb.Client) {
+	smsAuditRepo = &SmsAuditRepo{Repository: Repository{dbClient: client}}
+}
 
+func GetSmsAuditRepo() *SmsAuditRepo {
 	return smsAuditRepo
 }
 

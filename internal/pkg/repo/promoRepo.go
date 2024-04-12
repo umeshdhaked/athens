@@ -11,12 +11,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var promotionRepo *PromotionRepo
+
 type PromotionRepo struct {
-	client *dynamodb.Client
+	Repository
 }
 
-func NewPromotionRepo(client *dynamodb.Client) *PromotionRepo {
-	return &PromotionRepo{client: client}
+func newPromotionRepo(client *dynamodb.Client) {
+	promotionRepo = &PromotionRepo{Repository: Repository{dbClient: client}}
+}
+
+func GetPromotionRepo() *PromotionRepo {
+	return promotionRepo
 }
 
 func (p *PromotionRepo) GetPromoFromMobile(ctx *gin.Context, mobile string) (*models.PromoPhone, error) {
@@ -32,7 +38,7 @@ func (p *PromotionRepo) GetPromoFromMobile(ctx *gin.Context, mobile string) (*mo
 			},
 		},
 	}
-	var resp, er = p.client.Query(ctx, queryInput)
+	var resp, er = p.dbClient.Query(ctx, queryInput)
 	if er != nil {
 		return nil, er
 	}
@@ -60,7 +66,7 @@ func (p *PromotionRepo) AddPromoContact(ctx *gin.Context, obj *models.PromoPhone
 		Item:      item,
 	}
 
-	output, err := p.client.PutItem(ctx, params)
+	output, err := p.dbClient.PutItem(ctx, params)
 	log.Print(output)
 	return err
 }
@@ -78,7 +84,7 @@ func (p *PromotionRepo) GetAlreadyContactedPromo(ctx *gin.Context, isAlreadyConn
 			},
 		},
 	}
-	var resp, er = p.client.Query(ctx, queryInput)
+	var resp, er = p.dbClient.Query(ctx, queryInput)
 	if er != nil {
 		return nil, er
 	}
@@ -105,7 +111,7 @@ func (p *PromotionRepo) MarkContacted(ctx *gin.Context, obj *models.PromoPhone) 
 		Item:      item,
 	}
 
-	output, err := p.client.PutItem(ctx, params)
+	output, err := p.dbClient.PutItem(ctx, params)
 	log.Print(output)
 	return err
 }

@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"github.com/fastbiztech/hastinapura/internal"
 	"github.com/fastbiztech/hastinapura/internal/services/promo"
 	"net/http"
 
@@ -16,7 +15,7 @@ func HandleSaveNumber(ctx *gin.Context) {
 		return
 	}
 
-	var reg *promo.PromoService = internal.GetPromoService()
+	var reg *promo.PromoService = promo.GetPromoService()
 	err := reg.SavePhoneNo(ctx, user.MobileNumber)
 	if nil != err {
 		ctx.String(http.StatusInternalServerError, err.Error())
@@ -31,7 +30,7 @@ func HandleFetchPromoNumbers(ctx *gin.Context) {
 		ctx.String(http.StatusBadRequest, err.Error())
 		return
 	}
-	var reg *promo.PromoService = internal.GetPromoService()
+	var reg *promo.PromoService = promo.GetPromoService()
 	list, err := reg.FetchPromoNumbers(ctx, user.Is_already_contacted)
 	if nil != err {
 		ctx.String(http.StatusInternalServerError, err.Error())
@@ -47,7 +46,7 @@ func HandleMarkContactedNumber(ctx *gin.Context) {
 		return
 	}
 
-	var reg *promo.PromoService = internal.GetPromoService()
+	var reg *promo.PromoService = promo.GetPromoService()
 	err := reg.MarkContacted(ctx, user.MobileNumber, user.Comment)
 	if nil != err {
 		ctx.String(http.StatusInternalServerError, err.Error())

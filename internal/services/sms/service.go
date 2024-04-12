@@ -14,7 +14,6 @@ import (
 	"github.com/fastbiztech/hastinapura/internal/constants"
 	"github.com/fastbiztech/hastinapura/internal/models"
 	"github.com/fastbiztech/hastinapura/internal/pkg/apiClient"
-	"github.com/fastbiztech/hastinapura/internal/pkg/db"
 	"github.com/fastbiztech/hastinapura/internal/pkg/http"
 	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
 	"github.com/fastbiztech/hastinapura/internal/utils"
@@ -43,11 +42,11 @@ func InitialiseService() {
 	once.Do(func() {
 		service = &Service{
 			baseRepo:        repo.GetRepository(),
-			creditsRepo:     repo.NewCreditsRepo(db.GetDb().Client),
-			smsAuditRepo:    repo.NewSmsAuditRepo(db.GetDb().Client),
-			smsSenderRepo:   repo.NewSmsSenderRepo(db.GetDb().Client),
-			smsTemplateRepo: repo.NewSmsTemplateRepo(db.GetDb().Client),
-			smsCampaignRepo: repo.NewSmsCampaignRepo(db.GetDb().Client),
+			creditsRepo:     repo.GetCreditsRepo(),
+			smsAuditRepo:    repo.GetSmsAuditRepo(),
+			smsSenderRepo:   repo.GetSmsSenderRepo(),
+			smsTemplateRepo: repo.GetSmsTemplateRepo(),
+			smsCampaignRepo: repo.GetSmsCampaignRepo(),
 		}
 	})
 }

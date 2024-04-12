@@ -11,12 +11,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var otpRepo *OtpRepo
+
 type OtpRepo struct {
-	client *dynamodb.Client
+	Repository
 }
 
-func NewOtpRepo(client *dynamodb.Client) *OtpRepo {
-	return &OtpRepo{client: client}
+func newOtpRepo(client *dynamodb.Client) {
+	otpRepo = &OtpRepo{Repository: Repository{dbClient: client}}
+}
+
+func GetOtpRepo() *OtpRepo {
+	return otpRepo
 }
 
 func (o *OtpRepo) SaveOtp(ctx *gin.Context, otp models.Otp) error {
@@ -30,7 +36,7 @@ func (o *OtpRepo) SaveOtp(ctx *gin.Context, otp models.Otp) error {
 		Item:      item,
 	}
 
-	output, err := o.client.PutItem(ctx, params)
+	output, err := o.dbClient.PutItem(ctx, params)
 	log.Print(output)
 	return err
 }
@@ -47,7 +53,7 @@ func (o *OtpRepo) GetOtp(ctx *gin.Context, mobile string) (*models.Otp, error) {
 		},
 	}
 
-	var resp, err = o.client.Query(ctx, queryInput)
+	var resp, err = o.dbClient.Query(ctx, queryInput)
 	if err != nil {
 		return nil, err
 	}

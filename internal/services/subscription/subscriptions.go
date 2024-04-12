@@ -5,6 +5,7 @@ import (
 	"github.com/fastbiztech/hastinapura/internal/models"
 	"log"
 	"sort"
+	"sync"
 	"time"
 
 	"github.com/fastbiztech/hastinapura/internal/constants"
@@ -12,6 +13,11 @@ import (
 	"github.com/fastbiztech/hastinapura/pkg/dtos"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+)
+
+var (
+	once    sync.Once
+	service *SubscriptionService
 )
 
 type SubscriptionService struct {
@@ -22,8 +28,14 @@ type SubscriptionService struct {
 	creditAuditRepo *repo.CreditsAuditRepo
 }
 
-func NewSubscriptionService(pricingRepo *repo.PricingRepo, subRepo *repo.SubscriptionRepo, userRepo *repo.UserRepo, creditRepo *repo.CreditsRepo, creditAuditRepo *repo.CreditsAuditRepo) *SubscriptionService {
-	return &SubscriptionService{pricingRepo: pricingRepo, subRepo: subRepo, userRepo: userRepo, creditRepo: creditRepo, creditAuditRepo: creditAuditRepo}
+func NewSubscriptionService(pricingRepo *repo.PricingRepo, subRepo *repo.SubscriptionRepo, userRepo *repo.UserRepo, creditRepo *repo.CreditsRepo, creditAuditRepo *repo.CreditsAuditRepo) {
+	once.Do(func() {
+		service = &SubscriptionService{pricingRepo: pricingRepo, subRepo: subRepo, userRepo: userRepo, creditRepo: creditRepo, creditAuditRepo: creditAuditRepo}
+	})
+}
+
+func GetSubscriptionService() *SubscriptionService {
+	return service
 }
 
 func (s *SubscriptionService) CreateNewPricingSystem(ctx *gin.Context, pricing *dtos.PricingRequest) (*dtos.PricingResponse, error) {

@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"github.com/fastbiztech/hastinapura/internal"
 	"github.com/fastbiztech/hastinapura/internal/services/register"
 	"net/http"
 
@@ -18,7 +17,7 @@ func HandleSendOtp(ctx *gin.Context) {
 		return
 	}
 
-	var reg *register.RegistrationService = internal.GetRegistrationService()
+	var reg *register.RegistrationService = register.GetRegistrationService()
 	if err := reg.SendOtp(ctx, user); err != nil {
 		ctx.String(http.StatusInternalServerError, err.Error())
 		return
@@ -33,7 +32,7 @@ func HandleRegisterUser(ctx *gin.Context) {
 		return
 	}
 
-	var reg *register.RegistrationService = internal.GetRegistrationService()
+	var reg *register.RegistrationService = register.GetRegistrationService()
 	registerResp, err := reg.RegisterUser(ctx, user)
 	if nil != err {
 		ctx.String(http.StatusInternalServerError, err.Error())
@@ -50,7 +49,7 @@ func HandleUpdateUserRoleToAdmin(ctx *gin.Context) {
 		return
 	}
 
-	var reg *register.RegistrationService = internal.GetRegistrationService()
+	var reg *register.RegistrationService = register.GetRegistrationService()
 	registerResp, err := reg.UpdateUserRoleToAdmin(ctx, user)
 	if nil != err {
 		ctx.String(http.StatusInternalServerError, err.Error())
@@ -67,7 +66,7 @@ func HandleLoginUser(ctx *gin.Context) {
 		return
 	}
 
-	var reg *register.RegistrationService = internal.GetRegistrationService()
+	var reg *register.RegistrationService = register.GetRegistrationService()
 	loginResp, err := reg.LoginUser(ctx, user)
 	if nil != err {
 		ctx.String(http.StatusInternalServerError, err.Error())
