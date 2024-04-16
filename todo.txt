@@ -1,0 +1,3 @@
+// store s3 group contacts counts somewhere
+
+// graceful shutdown

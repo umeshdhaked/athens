@@ -132,7 +132,7 @@
     ],
     "AttributeDefinitions": [
       {"AttributeName": "ID", "AttributeType": "S"},
-      {"AttributeName": "UserID", "AttributeType": "S"}
+      {"AttributeName": "UserID", "AttributeType": "S"},
       {"AttributeName": "Status", "AttributeType": "S"}
     ],
     "ProvisionedThroughput": {
@@ -407,5 +407,18 @@
         }
       }
     ]
+  },
+  {
+    "TableName": "locks",
+    "KeySchema": [
+      {"AttributeName": "key", "KeyType": "HASH"}
+    ],
+    "AttributeDefinitions": [
+      {"AttributeName": "key", "AttributeType": "S"}
+    ],
+    "ProvisionedThroughput": {
+      "ReadCapacityUnits": 5,
+      "WriteCapacityUnits": 5
+    }
   }
 ]

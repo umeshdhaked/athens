@@ -2,7 +2,7 @@ package apiClient
 
 import (
 	"github.com/fastbiztech/hastinapura/internal/config"
-	"github.com/fastbiztech/hastinapura/internal/pkg/http"
+	"github.com/fastbiztech/hastinapura/pkg/http"
 	"github.com/gin-gonic/gin"
 )
 

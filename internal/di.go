@@ -12,13 +12,20 @@ import (
 	"github.com/fastbiztech/hastinapura/internal/services/register"
 	"github.com/fastbiztech/hastinapura/internal/services/sms"
 	"github.com/fastbiztech/hastinapura/internal/services/subscription"
+	"github.com/fastbiztech/hastinapura/pkg/mutex"
 )
 
 // InitialiseDeps *Make sure service are in correct order based on their dependency on each other* //
 func InitialiseDeps() {
 
+	// db initialisation
 	db.NewDb()
 	pkgAws.InitialiseS3Client()
+
+	// mutex connection check
+	mutex.ConnectCheck()
+
+	// pkg initialisation
 
 	// repos
 	repo.InitialiseRepositories(db.GetDb().Client)

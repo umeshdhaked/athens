@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/fastbiztech/hastinapura/internal/constants"
+	"github.com/fastbiztech/hastinapura/internal/models"
 	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
 	"github.com/fastbiztech/hastinapura/pkg/dtos"
 	"github.com/gin-gonic/gin"

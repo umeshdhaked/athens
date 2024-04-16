@@ -36,7 +36,6 @@ func NewDb() {
 				}, nil
 			})),
 		)
-
 		if err != nil {
 			fmt.Println("Error loading AWS config:", err)
 			return
