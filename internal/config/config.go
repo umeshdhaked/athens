@@ -55,10 +55,21 @@ type AppConfig struct {
 	Port string `mapstructure:"port"`
 }
 
+type BaseCronConfig struct {
+	Enable        bool `mapstructure:"enable"`
+	StartTime     int  `mapstructure:"start_time"`
+	ExecutionTime int  `mapstructure:"execution_time"`
+}
+
+type CronsConfig struct {
+	CronsConfigS3Contacts BaseCronConfig `mapstructure:"s3_contacts"`
+}
+
 type Config struct {
-	App AppConfig `mapstructure:"app"`
-	Aws AwsConfig `mapstructure:"aws"`
-	Api ApiConfig `mapstructure:"api"`
+	App   AppConfig   `mapstructure:"app"`
+	Aws   AwsConfig   `mapstructure:"aws"`
+	Api   ApiConfig   `mapstructure:"api"`
+	Crons CronsConfig `mapstructure:"crons"`
 }
 
 func LoadConfig() {

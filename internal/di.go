@@ -42,4 +42,7 @@ func InitialiseDeps() {
 	group.InitialiseService()
 	sms.InitialiseService()
 
+	// crons initialisation : TODO - move to worker initialisation
+	// todo : stop all crons at graceful shutdown
+	group.InitialiseS3ContactsCron()
 }

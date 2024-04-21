@@ -14,7 +14,6 @@ import (
 	"github.com/fastbiztech/hastinapura/internal/constants"
 	"github.com/fastbiztech/hastinapura/internal/models"
 	"github.com/fastbiztech/hastinapura/internal/pkg/apiClient"
-	"github.com/fastbiztech/hastinapura/internal/pkg/http"
 	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
 	"github.com/fastbiztech/hastinapura/internal/utils"
 	"github.com/fastbiztech/hastinapura/pkg/dtos"

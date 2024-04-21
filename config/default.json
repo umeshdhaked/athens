@@ -33,5 +33,13 @@
                 "secret": ""
             }
         }
+    },
+    
+    "crons": {
+        "s3_contacts": {
+        "enable"              : true,
+        "start_time"          : 60,
+        "execution_time"      : 5
+        }
     }
 }
