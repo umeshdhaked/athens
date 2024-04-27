@@ -144,4 +144,20 @@ var routeList = [...]route{
 			//{http.MethodGet, "", controllers.UploadGroupContacts},
 		},
 	},
+	{
+		group:      "/v1/payments",
+		middleware: []gin.HandlerFunc{middleware2.JwtAuthMiddleware()},
+		endpoints: []endpoint{
+			{http.MethodPost, "/createOrder", controllers.HandlePaymentCreateOrder},
+			{http.MethodPost, "/updateOrder", controllers.HandleUpdatePaymentOrder},
+			{http.MethodPost, "/getPaymentStatus", controllers.HandleGetPaymentStatus},
+		},
+	},
+	{
+		group:      "/v1/payments",
+		middleware: []gin.HandlerFunc{},
+		endpoints: []endpoint{
+			{http.MethodPost, "/updateOrderWebhook", controllers.HandlePaymentOrderWebhook},
+		},
+	},
 }

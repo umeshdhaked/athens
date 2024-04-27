@@ -34,12 +34,13 @@ type UserSubscription struct {
 }
 
 type CreditAudits struct {
-	Id            string  `json:"id"`
-	Category      string  `json:"category"`
-	SubCategory   string  `json:"sub_category"`
-	DeductedAmout float64 `json:"deducted_amount"`
-	AddedAmount   float64 `json:"added_amount"`
-	CreditId      string  `json:"credit_id"`
-	UserId        string  `json:"user_id"`
+	Id             string  `json:"id"`
+	Category       string  `json:"category"`
+	SubCategory    string  `json:"sub_category"`
+	DeductedAmout  float64 `json:"deducted_amount"`
+	AddedAmount    float64 `json:"added_amount"`
+	CreditId       string  `json:"credit_id"`
+	UserId         string  `json:"user_id"`
+	PaymentOrderId string  `json:"payment_order_id"`
 	BaseModel
 }

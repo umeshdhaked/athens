@@ -1,0 +1,183 @@
+package repo
+
+import (
+	"context"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/fastbiztech/hastinapura/internal/models"
+	"log"
+	"strconv"
+)
+
+var payments *Payments
+
+type Payments struct {
+	Repository
+}
+
+func newPaymentsRepo(client *dynamodb.Client) {
+	payments = &Payments{Repository: Repository{dbClient: client}}
+}
+
+func GetPaymentsRepo() *Payments {
+	return payments
+}
+
+func (p *Payments) GetOrderFromId(ctx context.Context, orderId string) (*models.RzpOrder, error) {
+	var queryInput = &dynamodb.QueryInput{
+		TableName: aws.String(models.TableRzpOrders),
+		KeyConditions: map[string]types.Condition{
+			models.ColumnOrderId: {
+				ComparisonOperator: types.ComparisonOperatorEq,
+				AttributeValueList: []types.AttributeValue{&types.AttributeValueMemberS{Value: orderId}},
+			},
+		},
+	}
+
+	var resp, err = p.dbClient.Query(ctx, queryInput)
+	if err != nil {
+		return nil, err
+	}
+	if resp.Count > 0 {
+		rzpOrder := []models.RzpOrder{}
+		if err := attributevalue.UnmarshalListOfMaps(resp.Items, &rzpOrder); err != nil {
+			log.Println(err)
+			return nil, err
+		}
+		return &rzpOrder[0], nil
+	}
+	return nil, nil
+
+}
+
+func (p *Payments) GetPaymentFromId(ctx context.Context, paymentId string) (*models.RzpPayment, error) {
+	var queryInput = &dynamodb.QueryInput{
+		TableName: aws.String(models.TableRzpPayments),
+		KeyConditions: map[string]types.Condition{
+			models.ColumnOrderId: {
+				ComparisonOperator: types.ComparisonOperatorEq,
+				AttributeValueList: []types.AttributeValue{&types.AttributeValueMemberS{Value: paymentId}},
+			},
+		},
+	}
+
+	var resp, err = p.dbClient.Query(ctx, queryInput)
+	if err != nil {
+		return nil, err
+	}
+	if resp.Count > 0 {
+		rzpPmt := []models.RzpPayment{}
+		if err := attributevalue.UnmarshalListOfMaps(resp.Items, &rzpPmt); err != nil {
+			log.Println(err)
+			return nil, err
+		}
+		return &rzpPmt[0], nil
+	}
+	return nil, nil
+
+}
+
+func (p *Payments) GetRefundFromId(ctx context.Context, refundId string) (*models.RzpRefunds, error) {
+	var queryInput = &dynamodb.QueryInput{
+		TableName: aws.String(models.TableRzpRefunds),
+		KeyConditions: map[string]types.Condition{
+			models.ColumnOrderId: {
+				ComparisonOperator: types.ComparisonOperatorEq,
+				AttributeValueList: []types.AttributeValue{&types.AttributeValueMemberS{Value: refundId}},
+			},
+		},
+	}
+
+	var resp, err = p.dbClient.Query(ctx, queryInput)
+	if err != nil {
+		return nil, err
+	}
+	if resp.Count > 0 {
+		rzpRfnd := []models.RzpRefunds{}
+		if err := attributevalue.UnmarshalListOfMaps(resp.Items, &rzpRfnd); err != nil {
+			log.Println(err)
+			return nil, err
+		}
+		return &rzpRfnd[0], nil
+	}
+	return nil, nil
+
+}
+
+func (p *Payments) GetCreatedOrders(ctx context.Context, createdAtBefore int64) ([]models.RzpOrder, error) {
+	var queryInput = &dynamodb.QueryInput{
+		TableName: aws.String(models.TableRzpOrders),
+		IndexName: aws.String("index_rzpOrders_status"),
+		KeyConditions: map[string]types.Condition{
+			models.ColumnOrderStatus: {
+				ComparisonOperator: types.ComparisonOperatorEq,
+				AttributeValueList: []types.AttributeValue{
+					&types.AttributeValueMemberS{Value: "created"}},
+			},
+			//models.ColumnOrderCreatedAt: {
+			//	ComparisonOperator: types.ComparisonOperatorLt,
+			//	AttributeValueList: []types.AttributeValue{
+			//		&types.AttributeValueMemberN{Value: strconv.FormatInt(createdAtBefore, 10)}},
+			//},
+		},
+		FilterExpression: aws.String("created_at < :var0"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":var0": &types.AttributeValueMemberN{Value: strconv.FormatInt(createdAtBefore, 10)},
+		},
+	}
+
+	var resp, err = p.dbClient.Query(ctx, queryInput)
+	if err != nil {
+		return nil, err
+	}
+	if resp.Count > 0 {
+		rzpOrder := []models.RzpOrder{}
+		if err := attributevalue.UnmarshalListOfMaps(resp.Items, &rzpOrder); err != nil {
+			log.Println(err)
+			return nil, err
+		}
+		return rzpOrder, nil
+	}
+	return nil, nil
+
+}
+
+func (p *Payments) GetAttemptedOrders(ctx context.Context, createdAtBefore int64) ([]models.RzpOrder, error) {
+	var queryInput = &dynamodb.QueryInput{
+		TableName: aws.String(models.TableRzpOrders),
+		IndexName: aws.String("index_rzpOrders_status"),
+		KeyConditions: map[string]types.Condition{
+			models.ColumnOrderStatus: {
+				ComparisonOperator: types.ComparisonOperatorEq,
+				AttributeValueList: []types.AttributeValue{
+					&types.AttributeValueMemberS{Value: "attempted"}},
+			},
+			//models.ColumnOrderCreatedAt: {
+			//	ComparisonOperator: types.ComparisonOperatorLt,
+			//	AttributeValueList: []types.AttributeValue{
+			//		&types.AttributeValueMemberN{Value: strconv.FormatInt(createdAtBefore, 10)}},
+			//},
+		},
+		FilterExpression: aws.String("created_at < :var0"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":var0": &types.AttributeValueMemberN{Value: strconv.FormatInt(createdAtBefore, 10)},
+		},
+	}
+
+	var resp, err = p.dbClient.Query(ctx, queryInput)
+	if err != nil {
+		return nil, err
+	}
+	if resp.Count > 0 {
+		rzpOrder := []models.RzpOrder{}
+		if err := attributevalue.UnmarshalListOfMaps(resp.Items, &rzpOrder); err != nil {
+			log.Println(err)
+			return nil, err
+		}
+		return rzpOrder, nil
+	}
+	return nil, nil
+
+}

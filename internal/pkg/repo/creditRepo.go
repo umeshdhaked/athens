@@ -54,6 +54,10 @@ func (c *CreditsRepo) FetchCreditByUserID(ctx *gin.Context, userID string) (*mod
 		return nil, err
 	}
 
+	if len(creditItems) == 0 {
+		return nil, nil
+	}
+
 	if len(creditItems) != 1 {
 		log.Println("something wrong with credits entries")
 		return nil, errors.New("something wrong with credits entries")

@@ -1,0 +1,309 @@
+package rzp
+
+import (
+	"atomicgo.dev/schedule"
+	"context"
+	"errors"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
+	"github.com/fastbiztech/hastinapura/internal/constants"
+	"github.com/fastbiztech/hastinapura/internal/models"
+	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
+	"github.com/fastbiztech/hastinapura/internal/services/subscription"
+	"github.com/fastbiztech/hastinapura/pkg/dtos"
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+	"github.com/razorpay/razorpay-go"
+	"github.com/razorpay/razorpay-go/utils"
+	"log"
+	"sync"
+	"time"
+)
+
+var once sync.Once
+var razorPay *RazorPayService
+
+type RazorPayService struct {
+	client              *razorpay.Client
+	paymentRepo         *repo.Payments
+	subscriptionService *subscription.SubscriptionService
+}
+
+func NewRazorPayService(paymentRepo *repo.Payments, subscriptionService *subscription.SubscriptionService) {
+	once.Do(func() {
+		razorPay = &RazorPayService{
+			client:              razorpay.NewClient(models.TestPaymentKey, models.TestPaymentSecret),
+			paymentRepo:         paymentRepo,
+			subscriptionService: subscriptionService,
+		}
+	})
+	go InitiateRefundForStuckOrders(razorPay)
+}
+
+func GetRazorPayService() *RazorPayService {
+	return razorPay
+}
+
+func (r *RazorPayService) CreateOrder(ctx *gin.Context, orderReq *dtos.PaymentOrderRequest) (*dtos.PaymentOrderResponse, error) {
+	usrId, _ := ctx.Get(constants.JwtTokenUserID)
+	mobile, _ := ctx.Get(constants.JwtTokenMobile)
+	data := map[string]interface{}{
+		"amount":          orderReq.Amount,
+		"currency":        models.CurrencyINR,
+		"receipt":         uuid.New().String(),
+		"partial_payment": false,
+		"notes": map[string]interface{}{
+			"userId": usrId,
+			"mobile": mobile,
+		},
+	}
+	body, err := r.client.Order.Create(data, nil)
+	if err != nil {
+		return nil, err
+	}
+	item, err := attributevalue.MarshalMap(body)
+	if err != nil {
+		return nil, err
+	}
+	err = r.paymentRepo.CreateItem(ctx, models.TableRzpOrders, item)
+	if err != nil {
+		return nil, err
+	}
+	//log.Println(body)
+
+	orderId, _ := body["id"]
+	amount, _ := body["amount"]
+
+	return &dtos.PaymentOrderResponse{
+		Key:        models.TestPaymentKey,
+		RzpOrderId: orderId.(string),
+		Amount:     amount.(float64),
+		Currency:   models.CurrencyINR,
+		OrgName:    models.PaymentOrgName,
+	}, nil
+}
+
+// UpdatePaymentOrder Deprecated
+func (r *RazorPayService) UpdatePaymentOrder(ctx *gin.Context, orderReq *dtos.UpdatePaymentOrderRequest) (*dtos.UpdatePaymentResponse, error) {
+	//update payment table with data from UI
+	paymentResponse, err := attributevalue.MarshalMap(orderReq)
+	if err != nil {
+		return nil, err
+	}
+	err = r.paymentRepo.CreateItem(ctx, models.TableFBTPayment, paymentResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	// verify payment signature
+	params := map[string]interface{}{
+		"razorpay_order_id":   orderReq.RazorpayOrderId,
+		"razorpay_payment_id": orderReq.RazorpayPaymentId,
+	}
+	isVerified := utils.VerifyPaymentSignature(params, orderReq.RazorpaySignature, models.TestPaymentSecret)
+	if !isVerified {
+		return nil, errors.New("signature is not correct")
+	}
+
+	//check here if order_id exists for user in RzpOrders table in created state
+	usrId, _ := ctx.Get(constants.JwtTokenUserID)
+	rzpOrder, err := r.paymentRepo.GetOrderFromId(ctx, orderReq.RazorpayOrderId)
+	if err != nil {
+		return nil, err
+	}
+	orderUser := rzpOrder.Notes.UserID
+	if rzpOrder.Status != "created" {
+		return nil, errors.New("order is not in created state")
+	}
+	if orderUser != usrId {
+		return nil, errors.New("order is created by different user")
+	}
+
+	// get latest order from razorpay
+	orderBody, err := r.client.Order.Fetch(orderReq.RazorpayOrderId, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	orderItem, err := attributevalue.MarshalMap(orderBody)
+	if err != nil {
+		return nil, err
+	}
+	err = r.paymentRepo.CreateItem(ctx, models.TableRzpOrders, orderItem)
+	if err != nil {
+		return nil, err
+	}
+	orderStatus, _ := orderBody["status"] // created, attempted, paid
+
+	// get latest payment from razorpay
+	paymentBody, er := r.client.Payment.Fetch(orderReq.RazorpayPaymentId, nil, nil)
+	if er != nil {
+		return nil, er
+	}
+	paymentItem, err := attributevalue.MarshalMap(paymentBody)
+	if err != nil {
+		return nil, err
+	}
+	err = r.paymentRepo.CreateItem(ctx, models.TableRzpPayments, paymentItem)
+	if err != nil {
+		return nil, err
+	}
+	paymentStatus, _ := paymentBody["status"] // created authorized captured refunded failed
+
+	amount, _ := paymentBody["amount"]
+	mobile, _ := ctx.Get(constants.JwtTokenMobile)
+
+	if orderStatus == "paid" && paymentStatus == "captured" {
+		// payment is success, add credits to user.
+		err := r.subscriptionService.AddCreditToUser(ctx, &dtos.AddCreditsRequest{
+			UserMobile:     mobile.(string),
+			InitialCredit:  amount.(float64) / 100,
+			PaymentOrderId: rzpOrder.ID,
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// paid, captured is successful. or should if amount deducted will be refunded.
+	return &dtos.UpdatePaymentResponse{OrderStatus: orderStatus.(string), PaymentStatus: paymentStatus.(string)}, nil
+}
+
+func (r *RazorPayService) PaymentOrderWebhook(ctx *gin.Context, orderReq *dtos.PaymentWebhookRequest) error {
+	orderBody := orderReq.Payload["order"].Entity
+
+	rzpOrder, err := r.paymentRepo.GetOrderFromId(ctx, orderBody["id"].(string))
+	if err != nil {
+		return err
+	}
+	if rzpOrder.Status == "paid" {
+		log.Println("idempotent request for order id")
+		return nil
+	}
+
+	orderItem, err := attributevalue.MarshalMap(orderBody)
+	if err != nil {
+		return err
+	}
+	err = r.paymentRepo.CreateItem(ctx, models.TableRzpOrders, orderItem)
+	if err != nil {
+		return err
+	}
+
+	//// get latest payment from razorpay
+	paymentBody := orderReq.Payload["payment"].Entity
+	paymentItem, err := attributevalue.MarshalMap(paymentBody)
+	if err != nil {
+		return err
+	}
+	err = r.paymentRepo.CreateItem(ctx, models.TableRzpPayments, paymentItem)
+	if err != nil {
+		return err
+	}
+
+	orderStatus, _ := orderBody["status"]     // created, attempted, paid
+	paymentStatus, _ := paymentBody["status"] // created authorized captured refunded failed
+	amount, _ := paymentBody["amount"]
+	notes, _ := orderBody["notes"]
+	mobile, _ := notes.(map[string]interface{})["mobile"]
+
+	if orderStatus == "paid" && paymentStatus == "captured" {
+		// payment is success, add credits to user.
+		err := r.subscriptionService.AddCreditToUser(ctx, &dtos.AddCreditsRequest{
+			UserMobile:     mobile.(string),
+			InitialCredit:  amount.(float64) / 100,
+			PaymentOrderId: rzpOrder.ID,
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *RazorPayService) GetPaymentStatus(ctx *gin.Context, orderId string) (string, error) {
+	rzpOrder, err := r.paymentRepo.GetOrderFromId(ctx, orderId)
+	if err != nil {
+		return "", err
+	}
+	return rzpOrder.Status, nil
+}
+
+// initiate refund for order stuck in created/attepted from 4 hours
+// InitiateRefundForStuckOrders logic execute every 1 hr
+func InitiateRefundForStuckOrders(r *RazorPayService) {
+	task := schedule.Every(time.Hour*1, func() bool {
+
+		createdAtBefore := time.Now().Unix() - 4*60*60 // check for order created 4 hour ago
+
+		createdOrder, err := r.paymentRepo.GetCreatedOrders(context.Background(), createdAtBefore)
+		if err != nil {
+			return true
+		}
+		attemptedOrder, err := r.paymentRepo.GetAttemptedOrders(context.Background(), createdAtBefore)
+		if err != nil {
+			return true
+		}
+		orders := append(createdOrder, attemptedOrder...)
+		for _, order := range orders {
+			orderBody, err := r.client.Order.Fetch(order.ID, nil, nil)
+			if err != nil {
+				return true
+			}
+
+			payments, err := r.client.Order.Payments(order.ID, nil, nil)
+			if err != nil {
+				return true
+			}
+			for _, payment := range payments["items"].([]interface{}) {
+				paymentId := payment.(map[string]interface{})["id"].(string)
+				paymentStatus := payment.(map[string]interface{})["status"].(string)
+
+				paymentMap := payment.(map[string]interface{})
+				paymentMap["payment_id"] = paymentId
+				if paymentStatus == "captured" {
+					rfnd, err := r.client.Refund.Create(paymentMap, nil) // maybe create a refund table
+					if err != nil {
+						return true
+					}
+					rfndItem, err := attributevalue.MarshalMap(rfnd)
+					if err != nil {
+						return true
+					}
+					err = r.paymentRepo.CreateItem(context.Background(), models.TableRzpRefunds, rfndItem)
+					if err != nil {
+						return true
+					}
+				}
+				// get payment again
+				paymentBody, err := r.client.Payment.Fetch(paymentId, nil, nil)
+				if err != nil {
+					return true
+				}
+				paymentItem, err := attributevalue.MarshalMap(paymentBody)
+				if err != nil {
+					return true
+				}
+				err = r.paymentRepo.CreateItem(context.Background(), models.TableRzpPayments, paymentItem)
+				if err != nil {
+					return true
+				}
+			}
+
+			// mark order as cancel/refunded
+			orderBody["status"] = "refunded/canceled"
+			orderItem, err := attributevalue.MarshalMap(orderBody)
+			if err != nil {
+				return true
+			}
+			err = r.paymentRepo.CreateItem(context.Background(), models.TableRzpOrders, orderItem)
+			if err != nil {
+				return true
+			}
+		}
+		return true
+	})
+	log.Println("InitiateRefundForStuckOrders started...")
+	task.Wait()
+}
+
+// get order history api mock status like [completed, failed] - get from order collection
+// generate invoice ok payment, save data in invoice DB, create download invoice api

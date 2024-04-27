@@ -29,8 +29,9 @@ type DeactivateSubscriptionRequest struct {
 }
 
 type AddCreditsRequest struct {
-	UserMobile    string
-	InitialCredit float64
+	UserMobile     string
+	InitialCredit  float64
+	PaymentOrderId string
 }
 
 type ChargeUserRequest struct {

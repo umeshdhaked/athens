@@ -267,12 +267,13 @@ func (s *SubscriptionService) AddCreditToUser(ctx *gin.Context, subRequest *dtos
 	}
 
 	if err = s.creditAuditRepo.CreateUserCreditAudit(ctx, &models.CreditAudits{
-		Id:            uuid.New().String(),
-		DeductedAmout: 0,
-		AddedAmount:   subRequest.InitialCredit,
-		CreditId:      credit.ID,
-		UserId:        credit.UserID,
-		BaseModel:     models.BaseModel{UpdatedAt: time.Now().Unix()},
+		Id:             uuid.New().String(),
+		DeductedAmout:  0,
+		AddedAmount:    subRequest.InitialCredit,
+		CreditId:       credit.ID,
+		UserId:         credit.UserID,
+		PaymentOrderId: subRequest.PaymentOrderId,
+		BaseModel:      models.BaseModel{UpdatedAt: time.Now().Unix()},
 	}); err != nil {
 		return err
 	}

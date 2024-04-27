@@ -61,7 +61,7 @@ func main() {
 		_, err := client.CreateTable(context.Background(), input)
 		if err != nil {
 			fmt.Printf("Error creating table %s: %v\n", schema.TableName, err)
-			return
+			continue // skip if this table creation giving and move to next.
 		}
 		fmt.Printf("Table created successfully: %s\n", schema.TableName)
 	}

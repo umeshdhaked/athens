@@ -478,6 +478,122 @@
         }
       }
     ]
+  },
+  {
+    "TableName": "RzpOrders",
+    "KeySchema": [
+      {"AttributeName": "id", "KeyType": "HASH"}
+    ],
+    "AttributeDefinitions": [
+      {"AttributeName": "id", "AttributeType": "S"},
+      {"AttributeName": "status", "AttributeType": "S"}
+    ],
+    "ProvisionedThroughput": {
+      "ReadCapacityUnits": 5,
+      "WriteCapacityUnits": 5
+    },
+    "GlobalSecondaryIndexes": [
+      {
+        "IndexName": "index_rzpOrders_status",
+        "KeySchema": [
+          { "AttributeName": "status", "KeyType": "HASH" }
+        ],
+        "Projection": {
+          "ProjectionType": "ALL"
+        },
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": 5,
+          "WriteCapacityUnits": 5
+        }
+      }
+    ]
+  },
+  {
+    "TableName": "RzpPayments",
+    "KeySchema": [
+      {"AttributeName": "id", "KeyType": "HASH"}
+    ],
+    "AttributeDefinitions": [
+      {"AttributeName": "id", "AttributeType": "S"},
+      {"AttributeName": "order_id", "AttributeType": "S"}
+    ],
+    "ProvisionedThroughput": {
+      "ReadCapacityUnits": 5,
+      "WriteCapacityUnits": 5
+    },
+    "GlobalSecondaryIndexes": [
+      {
+        "IndexName": "index_rzpPayments_orderId",
+        "KeySchema": [
+          { "AttributeName": "order_id", "KeyType": "HASH" }
+        ],
+        "Projection": {
+          "ProjectionType": "ALL"
+        },
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": 5,
+          "WriteCapacityUnits": 5
+        }
+      }
+    ]
+  },
+  {
+    "TableName": "RzpRefunds",
+    "KeySchema": [
+      {"AttributeName": "id", "KeyType": "HASH"}
+    ],
+    "AttributeDefinitions": [
+      {"AttributeName": "id", "AttributeType": "S"},
+      {"AttributeName": "payment_id", "AttributeType": "S"}
+    ],
+    "ProvisionedThroughput": {
+      "ReadCapacityUnits": 5,
+      "WriteCapacityUnits": 5
+    },
+    "GlobalSecondaryIndexes": [
+      {
+        "IndexName": "index_rzpRefunds_paymentId",
+        "KeySchema": [
+          { "AttributeName": "payment_id", "KeyType": "HASH" }
+        ],
+        "Projection": {
+          "ProjectionType": "ALL"
+        },
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": 5,
+          "WriteCapacityUnits": 5
+        }
+      }
+    ]
+  },
+  {
+    "TableName": "FBTPayment",
+    "KeySchema": [
+      {"AttributeName": "RazorpayPaymentId", "KeyType": "HASH"}
+    ],
+    "AttributeDefinitions": [
+      {"AttributeName": "RazorpayPaymentId", "AttributeType": "S"},
+      {"AttributeName": "RazorpayOrderId", "AttributeType": "S"}
+    ],
+    "ProvisionedThroughput": {
+      "ReadCapacityUnits": 5,
+      "WriteCapacityUnits": 5
+    },
+    "GlobalSecondaryIndexes": [
+      {
+        "IndexName": "index_rzpPayments_razorpayOrderId",
+        "KeySchema": [
+          { "AttributeName": "RazorpayOrderId", "KeyType": "HASH" }
+        ],
+        "Projection": {
+          "ProjectionType": "ALL"
+        },
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": 5,
+          "WriteCapacityUnits": 5
+        }
+      }
+    ]
   }
 
 ]
