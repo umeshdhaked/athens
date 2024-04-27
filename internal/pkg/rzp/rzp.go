@@ -22,7 +22,6 @@ func NewRzpService() {
 			client: razorpay.NewClient(models.TestPaymentKey, models.TestPaymentSecret),
 		}
 	})
-	//go InitiateRefundForStuckOrders(paymentService)
 }
 
 func GetRzpService() *RzpService {
@@ -60,7 +59,3 @@ func (r *RzpService) FetchPayment(razorpayPaymentId string) (map[string]interfac
 func (r *RzpService) CreateRefund(paymentMap map[string]interface{}) (map[string]interface{}, error) {
 	return r.client.Refund.Create(paymentMap, nil)
 }
-
-//func InitiateRefundForStuckOrders(paymentService) a {
-//
-//}

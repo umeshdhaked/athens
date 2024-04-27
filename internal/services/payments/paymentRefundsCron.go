@@ -16,8 +16,6 @@ import (
 )
 
 const (
-	S3ContactsFetchProcessingBatchSize = 5
-
 	// mutex lock keys
 	MutexKeyPendingPaymentFetchProcessing = "mutex-key-payment-fetch-processing"
 )
