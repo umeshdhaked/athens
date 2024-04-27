@@ -62,7 +62,8 @@ type BaseCronConfig struct {
 }
 
 type CronsConfig struct {
-	CronsConfigS3Contacts BaseCronConfig `mapstructure:"s3_contacts"`
+	CronsConfigS3Contacts    BaseCronConfig `mapstructure:"s3_contacts"`
+	CronsConfigPaymentRefund BaseCronConfig `mapstructure:"payment_refunds"`
 }
 
 type Config struct {

@@ -24,11 +24,15 @@ const (
 
 	S3ContactsFetchProcessingLeaseDuration   = 30 * time.Second
 	S3ContactsFetchProcessingStartAtDuration = 0 * time.Second
+
+	PaymentRefundProcessingLeaseDuration   = 30 * time.Second
+	PaymentRefundProcessingStartAtDuration = 0 * time.Second
 )
 
 var (
-	once              sync.Once
-	s3ProcessingMutex *DynamoDBLockManager
+	once                         sync.Once
+	s3ProcessingMutex            *DynamoDBLockManager
+	paymentRefundProcessingMutex *DynamoDBLockManager
 )
 
 // handlerFunc defines the interface for handler function
@@ -51,6 +55,8 @@ func Initialise() {
 
 		// s3 processing mutex instance
 		s3ProcessingMutex, err = NewDynamoDBLockManager(S3ContactsFetchProcessingLeaseDuration, S3ContactsFetchProcessingStartAtDuration)
+		paymentRefundProcessingMutex, err = NewDynamoDBLockManager(PaymentRefundProcessingLeaseDuration, PaymentRefundProcessingStartAtDuration)
+
 		if err != nil {
 			log.Fatal("failed initialising all mutexes")
 		}
@@ -59,6 +65,10 @@ func Initialise() {
 
 func GetS3ProcessingMutexLockManager() *DynamoDBLockManager {
 	return s3ProcessingMutex
+}
+
+func PaymentRefundProcessingMutexLockManager() *DynamoDBLockManager {
+	return paymentRefundProcessingMutex
 }
 
 // NewDynamoDBLockManager creates a new DynamoDBLockManager instance

@@ -10,6 +10,7 @@ import (
 	"github.com/fastbiztech/hastinapura/internal/services/contacts"
 	"github.com/fastbiztech/hastinapura/internal/services/group"
 	otcSvc "github.com/fastbiztech/hastinapura/internal/services/otp"
+	"github.com/fastbiztech/hastinapura/internal/services/payments"
 	"github.com/fastbiztech/hastinapura/internal/services/pendingJobs"
 	"github.com/fastbiztech/hastinapura/internal/services/promo"
 	"github.com/fastbiztech/hastinapura/internal/services/register"
@@ -39,7 +40,9 @@ func InitialiseDeps() {
 	register.NewRegistrationService(repo.GetUserRepo(), otcSvc.GetOtpService(), crypto.GetCrypto())
 	promo.NewPromoService(repo.GetPromotionRepo())
 	subscription.NewSubscriptionService(repo.GetPricingRepo(), repo.GetSubscriptionRepo(), repo.GetUserRepo(), repo.GetCreditsRepo(), repo.GetCreditsAuditRepo())
-	rzp.NewRazorPayService(repo.GetPaymentsRepo(), subscription.GetSubscriptionService())
+	rzp.NewRzpService()
+	payments.NewPaymentService(rzp.GetRzpService(), repo.GetPaymentsRepo(), subscription.GetSubscriptionService())
+	payments.NewPaymentCronService(rzp.GetRzpService(), repo.GetPaymentsRepo())
 
 	group.InitialiseService()
 	contacts.InitialiseService()
@@ -50,6 +53,7 @@ func InitialiseDeps() {
 	// crons initialisation : TODO - move to worker initialisation
 	// todo : stop all crons at graceful shutdown
 	group.InitialiseS3ContactsCron()
+	payments.InitiateRefundForStuckOrdersCron(payments.GetPaymentCronService())
 
 	// mutex connection check
 	mutex.ConnectCheck()

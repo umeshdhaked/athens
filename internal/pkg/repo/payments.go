@@ -109,18 +109,13 @@ func (p *Payments) GetRefundFromId(ctx context.Context, refundId string) (*model
 func (p *Payments) GetCreatedOrders(ctx context.Context, createdAtBefore int64) ([]models.RzpOrder, error) {
 	var queryInput = &dynamodb.QueryInput{
 		TableName: aws.String(models.TableRzpOrders),
-		IndexName: aws.String("index_rzpOrders_status"),
+		IndexName: aws.String(models.IndexTableRzpOrdersIndexStatus),
 		KeyConditions: map[string]types.Condition{
 			models.ColumnOrderStatus: {
 				ComparisonOperator: types.ComparisonOperatorEq,
 				AttributeValueList: []types.AttributeValue{
 					&types.AttributeValueMemberS{Value: "created"}},
 			},
-			//models.ColumnOrderCreatedAt: {
-			//	ComparisonOperator: types.ComparisonOperatorLt,
-			//	AttributeValueList: []types.AttributeValue{
-			//		&types.AttributeValueMemberN{Value: strconv.FormatInt(createdAtBefore, 10)}},
-			//},
 		},
 		FilterExpression: aws.String("created_at < :var0"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
@@ -147,18 +142,13 @@ func (p *Payments) GetCreatedOrders(ctx context.Context, createdAtBefore int64) 
 func (p *Payments) GetAttemptedOrders(ctx context.Context, createdAtBefore int64) ([]models.RzpOrder, error) {
 	var queryInput = &dynamodb.QueryInput{
 		TableName: aws.String(models.TableRzpOrders),
-		IndexName: aws.String("index_rzpOrders_status"),
+		IndexName: aws.String(models.IndexTableRzpOrdersIndexStatus),
 		KeyConditions: map[string]types.Condition{
 			models.ColumnOrderStatus: {
 				ComparisonOperator: types.ComparisonOperatorEq,
 				AttributeValueList: []types.AttributeValue{
 					&types.AttributeValueMemberS{Value: "attempted"}},
 			},
-			//models.ColumnOrderCreatedAt: {
-			//	ComparisonOperator: types.ComparisonOperatorLt,
-			//	AttributeValueList: []types.AttributeValue{
-			//		&types.AttributeValueMemberN{Value: strconv.FormatInt(createdAtBefore, 10)}},
-			//},
 		},
 		FilterExpression: aws.String("created_at < :var0"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{

@@ -40,6 +40,11 @@
         "enable"              : true,
         "start_time"          : 60,
         "execution_time"      : 5
+        },
+        "payment_refunds": {
+            "enable"              : true,
+            "start_time"          : 60,
+            "execution_time"      : 300
         }
     }
 }

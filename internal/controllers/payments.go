@@ -3,7 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"github.com/fastbiztech/hastinapura/internal/pkg/rzp"
+	"github.com/fastbiztech/hastinapura/internal/services/payments"
 	"github.com/fastbiztech/hastinapura/pkg/dtos"
 	"github.com/gin-gonic/gin"
 	"github.com/razorpay/razorpay-go/utils"
@@ -19,7 +19,7 @@ func HandlePaymentCreateOrder(ctx *gin.Context) {
 		return
 	}
 
-	var rzp *rzp.RazorPayService = rzp.GetRazorPayService()
+	var rzp *payments.PaymentService = payments.GetPaymentService()
 	orderResp, err := rzp.CreateOrder(ctx, &orderReq)
 	if nil != err {
 		ctx.String(http.StatusInternalServerError, err.Error())
@@ -36,7 +36,7 @@ func HandleUpdatePaymentOrder(ctx *gin.Context) {
 		return
 	}
 
-	var rzp *rzp.RazorPayService = rzp.GetRazorPayService()
+	var rzp *payments.PaymentService = payments.GetPaymentService()
 	orderResp, err := rzp.UpdatePaymentOrder(ctx, &orderReq)
 	if nil != err {
 		ctx.String(http.StatusInternalServerError, err.Error())
@@ -58,7 +58,7 @@ func HandlePaymentOrderWebhook(ctx *gin.Context) {
 		return
 	}
 
-	// validate webhook signature (request is coming from rzp server only)
+	// validate webhook signature (request is coming from payments server only)
 	sign := ctx.Request.Header["X-Razorpay-Signature"][0]
 	isValid := utils.VerifyWebhookSignature(string(jsonData), sign, "23e12f50-3ee6-41b8-bcdb-fd123dfd28cb")
 	if !isValid {
@@ -67,7 +67,7 @@ func HandlePaymentOrderWebhook(ctx *gin.Context) {
 		return
 	}
 
-	rzp := rzp.GetRazorPayService()
+	rzp := payments.GetPaymentService()
 	err = rzp.PaymentOrderWebhook(ctx, &orderReq)
 	if nil != err {
 		ctx.String(http.StatusInternalServerError, err.Error())
@@ -82,7 +82,7 @@ func HandleGetPaymentStatus(ctx *gin.Context) {
 		ctx.String(http.StatusBadRequest, err.Error())
 		return
 	}
-	rzp := rzp.GetRazorPayService()
+	rzp := payments.GetPaymentService()
 	resp, err := rzp.GetPaymentStatus(ctx, req.OrderId)
 	if nil != err {
 		ctx.String(http.StatusInternalServerError, err.Error())
