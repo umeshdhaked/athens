@@ -1,12 +1,12 @@
 [
   {
-    "TableName": "Group",
+    "TableName": "group",
     "KeySchema": [
-      {"AttributeName": "ID", "KeyType": "HASH"}
+      {"AttributeName": "id", "KeyType": "HASH"}
     ],
     "AttributeDefinitions": [
-      {"AttributeName": "ID", "AttributeType": "S"},
-      {"AttributeName": "Name", "AttributeType": "S"}
+      {"AttributeName": "id", "AttributeType": "S"},
+      {"AttributeName": "userID", "AttributeType": "S"}
     ],
     "ProvisionedThroughput": {
       "ReadCapacityUnits": 5,
@@ -14,9 +14,9 @@
     },
     "GlobalSecondaryIndexes": [
       {
-        "IndexName": "index_group_name",
+        "IndexName": "index_group_userid",
         "KeySchema": [
-          { "AttributeName": "Name", "KeyType": "HASH" }
+          { "AttributeName": "userID", "KeyType": "HASH" }
         ],
         "Projection": {
           "ProjectionType": "ALL"
@@ -29,12 +29,41 @@
     ]
   },
   {
-    "TableName": "Contacts",
+    "TableName": "pendingJobs",
     "KeySchema": [
-      {"AttributeName": "ID", "KeyType": "HASH"}
+      {"AttributeName": "name", "KeyType": "HASH"}
     ],
     "AttributeDefinitions": [
-      {"AttributeName": "ID", "AttributeType": "S"}
+      {"AttributeName": "name", "AttributeType": "S"},
+      {"AttributeName": "type", "AttributeType": "S"}
+    ],
+    "ProvisionedThroughput": {
+      "ReadCapacityUnits": 5,
+      "WriteCapacityUnits": 5
+    },
+    "GlobalSecondaryIndexes": [
+      {
+        "IndexName": "index_pendingJobs_type",
+        "KeySchema": [
+          { "AttributeName": "type", "KeyType": "HASH" }
+        ],
+        "Projection": {
+          "ProjectionType": "ALL"
+        },
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": 5,
+          "WriteCapacityUnits": 5
+        }
+      }
+    ]
+  },
+  {
+    "TableName": "contacts",
+    "KeySchema": [
+      {"AttributeName": "id", "KeyType": "HASH"}
+    ],
+    "AttributeDefinitions": [
+      {"AttributeName": "id", "AttributeType": "S"}
     ],
     "ProvisionedThroughput": {
       "ReadCapacityUnits": 5,
@@ -420,5 +449,35 @@
       "ReadCapacityUnits": 5,
       "WriteCapacityUnits": 5
     }
+  },
+  {
+    "TableName": "s3Processing",
+    "KeySchema": [
+      {"AttributeName": "id", "KeyType": "HASH"}
+    ],
+    "AttributeDefinitions": [
+      {"AttributeName": "id", "AttributeType": "S"},
+      {"AttributeName": "name", "AttributeType": "S"}
+    ],
+    "ProvisionedThroughput": {
+      "ReadCapacityUnits": 5,
+      "WriteCapacityUnits": 5
+    },
+    "GlobalSecondaryIndexes": [
+      {
+        "IndexName": "index_s3Processing_name",
+        "KeySchema": [
+          { "AttributeName": "name", "KeyType": "HASH" }
+        ],
+        "Projection": {
+          "ProjectionType": "ALL"
+        },
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": 5,
+          "WriteCapacityUnits": 5
+        }
+      }
+    ]
   }
+
 ]

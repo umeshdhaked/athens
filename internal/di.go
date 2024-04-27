@@ -6,10 +6,13 @@ import (
 	"github.com/fastbiztech/hastinapura/internal/pkg/db"
 	"github.com/fastbiztech/hastinapura/internal/pkg/otp"
 	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
+	"github.com/fastbiztech/hastinapura/internal/services/contacts"
 	"github.com/fastbiztech/hastinapura/internal/services/group"
 	otcSvc "github.com/fastbiztech/hastinapura/internal/services/otp"
+	"github.com/fastbiztech/hastinapura/internal/services/pendingJobs"
 	"github.com/fastbiztech/hastinapura/internal/services/promo"
 	"github.com/fastbiztech/hastinapura/internal/services/register"
+	"github.com/fastbiztech/hastinapura/internal/services/s3Processing"
 	"github.com/fastbiztech/hastinapura/internal/services/sms"
 	"github.com/fastbiztech/hastinapura/internal/services/subscription"
 	"github.com/fastbiztech/hastinapura/pkg/mutex"
@@ -20,12 +23,9 @@ func InitialiseDeps() {
 
 	// db initialisation
 	db.NewDb()
-	pkgAws.InitialiseS3Client()
-
-	// mutex connection check
-	mutex.ConnectCheck()
 
 	// pkg initialisation
+	pkgAws.InitialiseS3Client()
 
 	// repos
 	repo.InitialiseRepositories(db.GetDb().Client)
@@ -40,9 +40,17 @@ func InitialiseDeps() {
 	subscription.NewSubscriptionService(repo.GetPricingRepo(), repo.GetSubscriptionRepo(), repo.GetUserRepo(), repo.GetCreditsRepo(), repo.GetCreditsAuditRepo())
 
 	group.InitialiseService()
+	contacts.InitialiseService()
+	pendingJobs.InitialiseService()
+	s3Processing.InitialiseService()
 	sms.InitialiseService()
 
 	// crons initialisation : TODO - move to worker initialisation
 	// todo : stop all crons at graceful shutdown
 	group.InitialiseS3ContactsCron()
+
+	// mutex connection check
+	mutex.ConnectCheck()
+	// mutex initialisations
+	mutex.Initialise()
 }

@@ -6,6 +6,7 @@ type DbQueryInputConditions struct {
 	Index   string
 	PKey    map[string]interface{}
 	NonPKey map[string]interface{}
+	Limit   int
 }
 
 type DbFilterQueryConditions struct {

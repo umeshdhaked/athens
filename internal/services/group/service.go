@@ -1,35 +1,47 @@
 package group
 
 import (
-	"context"
 	"encoding/csv"
 	"fmt"
 	"log"
 	"mime/multipart"
+	"strings"
 	"sync"
 
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/fastbiztech/hastinapura/internal/constants"
 	"github.com/fastbiztech/hastinapura/internal/models"
 	"github.com/fastbiztech/hastinapura/internal/pkg/aws"
 	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
+	"github.com/fastbiztech/hastinapura/internal/utils"
 	"github.com/fastbiztech/hastinapura/pkg/dtos"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
 type Service struct {
-	baseRepo *repo.Repository
+	baseRepo         *repo.Repository
+	groupRepo        *repo.GroupRepo
+	s3ProcessingRepo *repo.S3ProcessingRepo
+	pendingJobsRepo  *repo.PendingJobsRepo
 }
 
 var (
-	once    sync.Once
-	service *Service
+	once                     sync.Once
+	service                  *Service
+	validGroupContactsColumn = []string{
+		models.ColumnContactsName,
+		models.ColumnContactsMobile,
+		models.ColumnContactsEmail,
+	}
 )
 
 func InitialiseService() {
 	once.Do(func() {
 		service = &Service{
-			baseRepo: repo.GetRepository(),
+			baseRepo:         repo.GetRepository(),
+			groupRepo:        repo.GetGroupRepo(),
+			s3ProcessingRepo: repo.GetS3ProcessingRepo(),
+			pendingJobsRepo:  repo.GetPendingJobsRepo(),
 		}
 	})
 }
@@ -40,17 +52,7 @@ func GetService() *Service {
 
 func (s *Service) UploadGroupToS3(c *gin.Context, file multipart.File, request dtos.UploadGroupContactsRequest) (interface{}, error) {
 	//  add validation for same name already existed
-	conditions := dtos.DbQueryInputConditions{
-		Index: models.IndexTableGroupIndexName,
-		PKey: map[string]interface{}{
-			models.ColumnName: request.Name,
-		},
-		NonPKey: map[string]interface{}{
-			models.ColumnUserID: "USERID",
-		},
-	}
-
-	items, err := s.baseRepo.QueryItems(context.Background(), models.TableGroup, conditions)
+	items, err := s.groupRepo.FetchByUserIDAndName(c, c.GetString(constants.JwtTokenUserID), request.Name)
 	if err != nil {
 		log.Fatalf("error fetching column item: %v", err)
 	}
@@ -67,19 +69,19 @@ func (s *Service) UploadGroupToS3(c *gin.Context, file multipart.File, request d
 		log.Fatalf("error fetching column item: %v", err)
 	}
 
-	entryGroupItem := map[string]types.AttributeValue{
-		models.ColumnID:   &types.AttributeValueMemberS{Value: s3FileID},
-		models.ColumnName: &types.AttributeValueMemberS{Value: request.Name},
-
-		// TODO fetch user id from token
-		models.ColumnUserID: &types.AttributeValueMemberS{Value: "USERID"},
-
-		// Array of column names of csv file
-		models.ColumnColumnNames: &types.AttributeValueMemberSS{Value: columnNames},
+	if !isValidColumnNamesForGroupContacts(columnNames) {
+		log.Fatalf("invalid columns")
 	}
 
 	// Insert item into the database
-	err = s.baseRepo.CreateItem(context.Background(), models.TableGroup, entryGroupItem)
+	entryGroupItem := models.Group{
+		ID:          s3FileID,
+		Name:        request.Name,
+		UserID:      c.GetString(constants.JwtTokenUserID),
+		ColumnNames: columnNames,
+	}
+
+	err = s.groupRepo.CreateGroup(c, &entryGroupItem)
 	if err != nil {
 		log.Fatalf("error inserting item: %v", err)
 	}
@@ -89,24 +91,22 @@ func (s *Service) UploadGroupToS3(c *gin.Context, file multipart.File, request d
 		return nil, err
 	}
 
-	return nil, nil
-}
-
-func (s *Service) GetGroupContacts(c *gin.Context, request dtos.GetGroupContactsRequest) (interface{}, error) {
-	conditions := dtos.DbQueryInputConditions{
-		Index: models.IndexTableGroupIndexName,
-		PKey: map[string]interface{}{
-			models.ColumnName: request.Name,
+	// add pending job entry
+	entryPendingJobsItem := models.PendingJobs{
+		Name:   s3FileID,
+		Type:   models.PendingJobsTypeSmsContactsPullFromS3,
+		Status: models.PendingJobsStatusPending,
+		Extra: map[string]interface{}{
+			constants.ConstGroupName: request.Name,
 		},
 	}
 
-	// Insert item into the database
-	items, err := s.baseRepo.QueryItems(context.Background(), models.TableGroup, conditions)
+	err = s.pendingJobsRepo.Create(c, &entryPendingJobsItem)
 	if err != nil {
 		log.Fatalf("error inserting item: %v", err)
 	}
 
-	return items, nil
+	return nil, nil
 }
 
 func getCsvColumnNames(file multipart.File) ([]string, error) {
@@ -126,4 +126,24 @@ func getCsvColumnNames(file multipart.File) ([]string, error) {
 	}
 
 	return columnNames, nil
+}
+
+func isValidColumnNamesForGroupContacts(columnNames []string) bool {
+
+	for _, column := range validGroupContactsColumn {
+		if !utils.Contains(columnNames, strings.Title(column)) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (s *Service) GetContacts(c *gin.Context, request dtos.GetGroupRequest) (interface{}, error) {
+	items, err := s.groupRepo.FetchAllByConditions(c, request)
+	if err != nil {
+		log.Fatalf("error fetching item: %v", err)
+	}
+
+	return items, nil
 }

@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/fastbiztech/hastinapura/internal"
 	"log"
 
+	"github.com/fastbiztech/hastinapura/internal"
 	"github.com/fastbiztech/hastinapura/internal/config"
 	"github.com/fastbiztech/hastinapura/internal/serve"
 )

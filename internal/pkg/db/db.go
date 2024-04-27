@@ -29,12 +29,6 @@ func NewDb() {
 				func(service, region string, options ...interface{}) (aws.Endpoint, error) {
 					return aws.Endpoint{URL: config.GetConfig().Aws.Db.EndPoint}, nil
 				})),
-			awsConfig.WithCredentialsProvider(aws.CredentialsProviderFunc(func(context.Context) (aws.Credentials, error) {
-				return aws.Credentials{
-					AccessKeyID:     config.GetConfig().Aws.Db.KeyID,
-					SecretAccessKey: config.GetConfig().Aws.Db.AccessKey,
-				}, nil
-			})),
 		)
 		if err != nil {
 			fmt.Println("Error loading AWS config:", err)

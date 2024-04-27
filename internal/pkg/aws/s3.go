@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"fmt"
+	"io"
 	"mime/multipart"
 	"sync"
 
@@ -10,6 +11,7 @@ import (
 	awsConfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/fastbiztech/hastinapura/internal/config"
+	"github.com/gin-gonic/gin"
 )
 
 const (
@@ -65,6 +67,21 @@ func (c *S3Client) Upload(file multipart.File, bucketName, objectKey string) err
 	}
 
 	return nil
+}
+
+func (c *S3Client) Fetch(ctx *gin.Context, bucketName, objectKey string) (io.Reader, error) {
+	// Fetch the object from S3
+	resp, err := c.s3Client.GetObject(context.TODO(), &s3.GetObjectInput{
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(objectKey),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error fetching file from S3: %v", err)
+	}
+
+	//defer resp.Body.Close() // todo validate on how to handle close
+
+	return resp.Body, nil
 }
 
 func GetS3Client() *S3Client {

@@ -1,8 +1,10 @@
 package serve
 
 import (
-	middleware2 "github.com/fastbiztech/hastinapura/internal/middleware"
 	"net/http"
+
+	"github.com/fastbiztech/hastinapura/internal/constants"
+	middleware2 "github.com/fastbiztech/hastinapura/internal/middleware"
 
 	"github.com/fastbiztech/hastinapura/internal/controllers"
 	"github.com/gin-gonic/gin"
@@ -82,11 +84,34 @@ var routeList = [...]route{
 		},
 	},
 	{
-		group:      "/v1/group",
-		middleware: []gin.HandlerFunc{},
+		group: "/v1/group",
+		middleware: []gin.HandlerFunc{func(context *gin.Context) {
+			context.Set(constants.JwtTokenUserID, "user123") // todo: remove
+		}},
 		endpoints: []endpoint{
 			{http.MethodPost, "/contacts", controllers.UploadGroupContacts},
-			{http.MethodGet, "/contacts", controllers.GetGroupContacts},
+			{http.MethodGet, "", controllers.GetGroup},
+		},
+	},
+	{
+		group:      "/v1/pending_jobs",
+		middleware: []gin.HandlerFunc{},
+		endpoints: []endpoint{
+			{http.MethodGet, "", controllers.GetPendingJobs},
+		},
+	},
+	{
+		group:      "/v1/s3_processing",
+		middleware: []gin.HandlerFunc{},
+		endpoints: []endpoint{
+			{http.MethodGet, "", controllers.GetS3Processing},
+		},
+	},
+	{
+		group:      "/v1/contacts",
+		middleware: []gin.HandlerFunc{},
+		endpoints: []endpoint{
+			{http.MethodGet, "", controllers.GetGroupContacts},
 		},
 	},
 	{

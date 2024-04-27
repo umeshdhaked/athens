@@ -41,6 +41,10 @@ func InitialiseRepositories(dynamodb *dynamodb.Client) {
 		newRepository(dynamodb)
 		newCreditsAuditRepo(dynamodb)
 		newCreditsRepo(dynamodb)
+		newGroupRepo(dynamodb)
+		newPendingJobsRepo(dynamodb)
+		newS3ProcessingRepo(dynamodb)
+		newContactsRepos(dynamodb)
 		newOtpRepo(dynamodb)
 		newPricingRepo(dynamodb)
 		newPromotionRepo(dynamodb)
@@ -144,6 +148,11 @@ func (r *Repository) QueryItems(ctx context.Context, tableName string, condition
 
 	if !utils.IsEmpty(conditions.Index) {
 		input.IndexName = aws.String(conditions.Index)
+	}
+
+	// Set the limit
+	if !utils.IsEmpty(conditions.Limit) {
+		input.Limit = aws.Int32(int32(conditions.Limit))
 	}
 
 	input.ExpressionAttributeNames = expressionAttributeNames

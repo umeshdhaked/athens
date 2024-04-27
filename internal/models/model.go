@@ -9,7 +9,10 @@ const (
 	// Add all index names here
 	// format: index_<tableName>_<columnName>
 
-	IndexTableGroupIndexName       = "index_group_name"
+	// indexes: group table
+	IndexTableGroupIndexUserID = "index_group_userid"
+
+	// indexes: sms sender table
 	IndexTableSmsSenderIndexUserID = "index_smssender_userid"
 
 	// indexes: sms template table
@@ -38,6 +41,9 @@ const (
 	//indexes: promo-phones-no table
 	IndexTablePromoPhoneIndexIsAlreadyContacted = "index_promo-phones-no_isAlreadyContacted"
 	IndexTablePromoPhoneIndexMobile             = "index_promo-phones-no_mobile"
+
+	// indexes: s3Processing table
+	IndexTableS3ProcessingIndexName = "index_s3Processing_name"
 )
 
 type BaseModel struct {

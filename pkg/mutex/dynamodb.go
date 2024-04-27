@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"sync"
 	"time"
 
 	"cirello.io/dynamolock/v2"
@@ -20,6 +21,14 @@ import (
 const (
 	TableLocks         = "locks"
 	AcquireLockTimeout = 1 * time.Second
+
+	S3ContactsFetchProcessingLeaseDuration   = 30 * time.Second
+	S3ContactsFetchProcessingStartAtDuration = 0 * time.Second
+)
+
+var (
+	once              sync.Once
+	s3ProcessingMutex *DynamoDBLockManager
 )
 
 // handlerFunc defines the interface for handler function
@@ -34,6 +43,22 @@ type Lock struct {
 type DynamoDBLockManager struct {
 	TableName string
 	Client    *dynamolock.Client
+}
+
+func Initialise() {
+	once.Do(func() {
+		var err error
+
+		// s3 processing mutex instance
+		s3ProcessingMutex, err = NewDynamoDBLockManager(S3ContactsFetchProcessingLeaseDuration, S3ContactsFetchProcessingStartAtDuration)
+		if err != nil {
+			log.Fatal("failed initialising all mutexes")
+		}
+	})
+}
+
+func GetS3ProcessingMutexLockManager() *DynamoDBLockManager {
+	return s3ProcessingMutex
 }
 
 // NewDynamoDBLockManager creates a new DynamoDBLockManager instance

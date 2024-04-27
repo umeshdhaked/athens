@@ -79,3 +79,14 @@ func IsEmptyAttributeValue(value types.AttributeValue) bool {
 
 	return false
 }
+
+// Function to check if a string is present in a slice of strings
+func Contains(arr []string, target string) bool {
+	// Use the Contains method from the strings package
+	for _, str := range arr {
+		if str == target {
+			return true
+		}
+	}
+	return false
+}
