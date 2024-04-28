@@ -76,8 +76,8 @@ func HandlePaymentOrderWebhook(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, dtos.PaymentWebhookResponse{Status: "ok"})
 }
 
-func HandleGetPaymentStatus(ctx *gin.Context) {
-	var req dtos.GetPaymentStatusRequest
+func HandlePaymentStatus(ctx *gin.Context) {
+	var req dtos.PaymentStatusRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.String(http.StatusBadRequest, err.Error())
 		return
@@ -89,4 +89,20 @@ func HandleGetPaymentStatus(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, resp)
+}
+
+func HandlePaymentsHistory(ctx *gin.Context) {
+	var paymentHistoryReq dtos.PaymentHistoryRequest
+	if err := ctx.ShouldBindJSON(&paymentHistoryReq); err != nil {
+		ctx.String(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	rzp := payments.GetPaymentService()
+	payHistoryResp, err := rzp.GetPaymentsHistory(ctx, &paymentHistoryReq)
+	if nil != err {
+		ctx.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+	ctx.JSON(http.StatusOK, payHistoryResp)
 }

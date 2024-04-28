@@ -481,22 +481,34 @@
   },
   {
     "TableName": "RzpOrders",
-    "KeySchema": [
-      {"AttributeName": "id", "KeyType": "HASH"}
-    ],
     "AttributeDefinitions": [
       {"AttributeName": "id", "AttributeType": "S"},
+      {"AttributeName": "created_at", "AttributeType": "N"},
       {"AttributeName": "status", "AttributeType": "S"}
     ],
-    "ProvisionedThroughput": {
-      "ReadCapacityUnits": 5,
-      "WriteCapacityUnits": 5
-    },
+    "KeySchema": [
+      {"AttributeName": "id", "KeyType": "HASH"},
+      {"AttributeName": "created_at", "KeyType": "RANGE" }
+    ],
     "GlobalSecondaryIndexes": [
+      {
+        "IndexName": "index_rzpOrders_status_created_at",
+        "KeySchema": [
+          {"AttributeName": "status",  "KeyType": "HASH"},
+          {"AttributeName": "created_at", "KeyType": "RANGE" }
+        ],
+        "Projection": {
+          "ProjectionType": "ALL"
+        },
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": 5,
+          "WriteCapacityUnits": 5
+        }
+      },
       {
         "IndexName": "index_rzpOrders_status",
         "KeySchema": [
-          { "AttributeName": "status", "KeyType": "HASH" }
+          {"AttributeName": "status",  "KeyType": "HASH"}
         ],
         "Projection": {
           "ProjectionType": "ALL"
@@ -506,7 +518,11 @@
           "WriteCapacityUnits": 5
         }
       }
-    ]
+    ],
+    "ProvisionedThroughput": {
+      "ReadCapacityUnits": 5,
+      "WriteCapacityUnits": 5
+    }
   },
   {
     "TableName": "RzpPayments",
@@ -584,6 +600,49 @@
         "IndexName": "index_rzpPayments_razorpayOrderId",
         "KeySchema": [
           { "AttributeName": "RazorpayOrderId", "KeyType": "HASH" }
+        ],
+        "Projection": {
+          "ProjectionType": "ALL"
+        },
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": 5,
+          "WriteCapacityUnits": 5
+        }
+      }
+    ]
+  },
+  {
+    "TableName": "Invoices",
+    "KeySchema": [
+      {"AttributeName": "ID", "KeyType": "HASH"}
+    ],
+    "AttributeDefinitions": [
+      {"AttributeName": "ID", "AttributeType": "N"},
+      {"AttributeName": "InvoiceId", "AttributeType": "S"},
+      {"AttributeName": "OrderId", "AttributeType": "S"}
+    ],
+    "ProvisionedThroughput": {
+      "ReadCapacityUnits": 5,
+      "WriteCapacityUnits": 5
+    },
+    "GlobalSecondaryIndexes": [
+      {
+        "IndexName": "index_invoices_invoiceId",
+        "KeySchema": [
+          { "AttributeName": "InvoiceId", "KeyType": "HASH" }
+        ],
+        "Projection": {
+          "ProjectionType": "ALL"
+        },
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": 5,
+          "WriteCapacityUnits": 5
+        }
+      },
+      {
+        "IndexName": "index_invoices_orderId",
+        "KeySchema": [
+          { "AttributeName": "OrderId", "KeyType": "HASH" }
         ],
         "Projection": {
           "ProjectionType": "ALL"

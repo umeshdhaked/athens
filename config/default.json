@@ -37,14 +37,14 @@
     
     "crons": {
         "s3_contacts": {
-        "enable"              : true,
-        "start_time"          : 60,
-        "execution_time"      : 5
+            "enable"              : true,
+            "start_time"          : 60,
+            "execution_time"      : 5
         },
         "payment_refunds": {
             "enable"              : true,
-            "start_time"          : 60,
-            "execution_time"      : 300
+            "start_time"          : 14400,
+            "execution_time"      : 14400
         }
     }
 }

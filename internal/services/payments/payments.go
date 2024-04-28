@@ -210,5 +210,26 @@ func (r *PaymentService) GetPaymentStatus(ctx *gin.Context, orderId string) (str
 	return rzpOrder.Status, nil
 }
 
+func (r *PaymentService) GetPaymentsHistory(ctx *gin.Context, req *dtos.PaymentHistoryRequest) (*dtos.PaymentHistoryResponse, error) {
+	rzpOrder, lastEvaluatedKey, count, err := r.paymentRepo.GetOrderList(ctx, req.Limit, req.LastEvaluatedKey, req.Status)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := &dtos.PaymentHistoryResponse{}
+	resp.Count = count
+	resp.LastEvaluatedKey = lastEvaluatedKey
+
+	for _, r := range rzpOrder {
+		resp.OrderList = append(resp.OrderList, struct {
+			OrderId   string
+			Amount    int
+			CreatedAt int
+		}{OrderId: r.ID, Amount: r.Amount, CreatedAt: r.CreatedAt})
+	}
+
+	return resp, nil
+}
+
 // get order history api mock status like [completed, failed] - get from order collection
 // generate invoice ok payment, save data in invoice DB, create download invoice api

@@ -1,5 +1,7 @@
 package dtos
 
+import "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+
 type PaymentOrderRequest struct {
 	Amount int64 `json:"amount"`
 }
@@ -45,10 +47,26 @@ type PaymentWebhookResponse struct {
 	Status string `json:"status"`
 }
 
-type GetPaymentStatusRequest struct {
+type PaymentStatusRequest struct {
 	OrderId string `json:"orderId"`
 }
 
-type GetPaymentStatusResponse struct {
+type PaymentStatusResponse struct {
 	Status string `json:"status"`
+}
+
+type PaymentHistoryRequest struct {
+	Limit            int32
+	Status           string
+	LastEvaluatedKey map[string]types.AttributeValueMemberS
+}
+
+type PaymentHistoryResponse struct {
+	OrderList []struct {
+		OrderId   string
+		Amount    int
+		CreatedAt int
+	}
+	Count            int32
+	LastEvaluatedKey map[string]types.AttributeValue
 }

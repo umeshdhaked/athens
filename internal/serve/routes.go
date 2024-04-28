@@ -150,7 +150,8 @@ var routeList = [...]route{
 		endpoints: []endpoint{
 			{http.MethodPost, "/createOrder", controllers.HandlePaymentCreateOrder},
 			{http.MethodPost, "/updateOrder", controllers.HandleUpdatePaymentOrder},
-			{http.MethodPost, "/getPaymentStatus", controllers.HandleGetPaymentStatus},
+			{http.MethodPost, "/getPaymentStatus", controllers.HandlePaymentStatus},
+			{http.MethodPost, "/getPaymentHistory", controllers.HandlePaymentsHistory},
 		},
 	},
 	{

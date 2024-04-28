@@ -46,7 +46,8 @@ const (
 	IndexTableS3ProcessingIndexName = "index_s3Processing_name"
 
 	// indexes: RzpOrder table
-	IndexTableRzpOrdersIndexStatus = "index_rzpOrders_status"
+	IndexTableRzpOrdersIndexStatus    = "index_rzpOrders_status"
+	IndexTableRzpOrdersIndexCreatedAt = "index_rzpOrders_status_created_at"
 
 	// indexes: RzpPayment table
 	IndexTableRzpPaymentIndexOrderId = "index_rzpPayments_orderId"
@@ -56,6 +57,9 @@ const (
 
 	// indexes: FBTPayment table
 	IndexTableFBTPaymentIndexRazorpayOrderId = "index_rzpPayments_razorpayOrderId"
+
+	// indexes: Invoices table
+	IndexTableInvoicesIndexInvoiceId = "index_invoices_invoiceId"
 )
 
 type BaseModel struct {

@@ -56,6 +56,7 @@ func InitialiseRepositories(dynamodb *dynamodb.Client) {
 		newSubscriptionRepo(dynamodb)
 		newUserRepo(dynamodb)
 		newPaymentsRepo(dynamodb)
+		newInvoiceRepo(dynamodb)
 	})
 }
 
