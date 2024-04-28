@@ -17,6 +17,7 @@ import (
 	"github.com/fastbiztech/hastinapura/internal/services/s3Processing"
 	"github.com/fastbiztech/hastinapura/internal/services/sms"
 	"github.com/fastbiztech/hastinapura/internal/services/subscription"
+	"github.com/fastbiztech/hastinapura/pkg/logger"
 	"github.com/fastbiztech/hastinapura/pkg/mutex"
 )
 
@@ -25,6 +26,9 @@ func InitialiseDeps() {
 
 	// db initialisation
 	db.NewDb()
+
+	// logger initialisation
+	logger.Build()
 
 	// pkg initialisation
 	pkgAws.InitialiseS3Client()

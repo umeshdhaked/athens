@@ -16,6 +16,7 @@ import (
 	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
 	"github.com/fastbiztech/hastinapura/pkg/cron"
 	"github.com/fastbiztech/hastinapura/pkg/dtos"
+	"github.com/fastbiztech/hastinapura/pkg/logger"
 	"github.com/fastbiztech/hastinapura/pkg/mutex"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -72,7 +73,10 @@ func (s *s3ContactsCronExecutor) JobExecutor() {
 		toProcessPendingJob models.PendingJobs
 		groupName           string
 	)
-	fmt.Println("starting cron run for s3 contacts upload")
+
+	logger.GetLogger().
+		WithField("type", "s3 contacts fetch").
+		Info("cron run started")
 
 	// fetch pending jobs
 	pendingJobItems, err := s.pendingJobsRepo.FetchAllByConditions(s.ctx, dtos.GetPendingJobsRequest{
