@@ -177,10 +177,6 @@ func (r *PaymentService) PaymentOrderWebhook(ctx *gin.Context, orderReq *dtos.Pa
 	if err != nil {
 		return err
 	}
-	err = r.paymentRepo.CreateItem(ctx, models.TableRzpPayments, paymentItem)
-	if err != nil {
-		return err
-	}
 
 	orderStatus, _ := orderBody["status"]     // created, attempted, paid
 	paymentStatus, _ := paymentBody["status"] // created authorized captured refunded failed
@@ -199,6 +195,13 @@ func (r *PaymentService) PaymentOrderWebhook(ctx *gin.Context, orderReq *dtos.Pa
 			return err
 		}
 	}
+
+	// update our order table only if credits are added/given to user for payment
+	err = r.paymentRepo.CreateItem(ctx, models.TableRzpPayments, paymentItem)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

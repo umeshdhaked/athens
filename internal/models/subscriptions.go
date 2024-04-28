@@ -9,13 +9,14 @@ const (
 const (
 	ColumnId           = "Id"
 	ColumnUserId       = "UserId"
+	ColumnType         = "Type"
 	ColumnPricingState = "PricingState"
 )
 
 type Pricing struct {
 	Id           string  `json:"id"`
 	Category     string  `json:"category"`
-	SubCatgory   string  `json:"sub_category"`
+	SubCategory  string  `json:"sub_category"`
 	PricingType  string  `json:"pricing_type"`
 	Rates        float64 `json:"rates"`
 	PricingState string  `json:"pricing_state"`
@@ -28,7 +29,7 @@ type UserSubscription struct {
 	UserId    string `json:"user_id"`
 	Type      string `json:"type"`
 	SubType   string `json:"sub_type"`
-	Status    string `json:"status"`
+	SubStatus string `json:"status"`
 	AddedBy   string `json:"added_by"`
 	BaseModel
 }
@@ -37,7 +38,7 @@ type CreditAudits struct {
 	Id             string  `json:"id"`
 	Category       string  `json:"category"`
 	SubCategory    string  `json:"sub_category"`
-	DeductedAmout  float64 `json:"deducted_amount"`
+	DeductedAmount float64 `json:"deducted_amount"`
 	AddedAmount    float64 `json:"added_amount"`
 	CreditId       string  `json:"credit_id"`
 	UserId         string  `json:"user_id"`

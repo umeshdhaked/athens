@@ -8,7 +8,8 @@ type PricingRequest struct {
 }
 
 type DeactivatePricingRequest struct {
-	Id string
+	Id     string
+	Enable bool
 }
 
 type UserDefaultSubscriptionRequest struct {
@@ -25,7 +26,8 @@ type FetchSubscriptionRequest struct {
 }
 
 type DeactivateSubscriptionRequest struct {
-	Id string
+	Id     string
+	Enable bool
 }
 
 type AddCreditsRequest struct {

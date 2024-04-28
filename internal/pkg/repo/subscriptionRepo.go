@@ -27,15 +27,59 @@ func GetSubscriptionRepo() *SubscriptionRepo {
 	return subscriptionRepo
 }
 
-func (s *SubscriptionRepo) FetchAllSubscriptionForAUser(ctx *gin.Context, userId string) ([]models.UserSubscription, error) {
+func (s *SubscriptionRepo) FetchAllSubscriptionByStatus(ctx *gin.Context, userId string, status string) ([]models.UserSubscription, error) {
 	queryInput := &dynamodb.QueryInput{
-		TableName: aws.String(models.TableUserSubscription),
-		IndexName: aws.String(models.IndexTableUserSubscriptionIndexUserID),
+		TableName:        aws.String(models.TableUserSubscription),
+		IndexName:        aws.String(models.IndexTableUserSubscriptionIndexUserID),
+		FilterExpression: aws.String("SubStatus= :var0"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":var0": &types.AttributeValueMemberS{Value: status},
+		},
 		KeyConditions: map[string]types.Condition{
 			models.ColumnUserId: {
 				ComparisonOperator: types.ComparisonOperatorEq,
 				AttributeValueList: []types.AttributeValue{
 					&types.AttributeValueMemberS{Value: userId},
+				},
+			},
+		},
+	}
+
+	var resp, err = s.dbClient.Query(ctx, queryInput)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.Count > 0 {
+		subscriptions := []models.UserSubscription{}
+		if err := attributevalue.UnmarshalListOfMaps(resp.Items, &subscriptions); err != nil {
+			log.Println(err)
+			return nil, err
+		}
+		return subscriptions, nil
+	}
+	return nil, nil
+}
+
+func (s *SubscriptionRepo) FetchSubscriptionByTypeSubType(ctx *gin.Context, userId string, Type string, SubType string) ([]models.UserSubscription, error) {
+	queryInput := &dynamodb.QueryInput{
+		TableName:        aws.String(models.TableUserSubscription),
+		IndexName:        aws.String(models.IndexTableUserSubscriptionIndexUserID),
+		FilterExpression: aws.String("SubType = :var0"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":var0": &types.AttributeValueMemberS{Value: SubType},
+		},
+		KeyConditions: map[string]types.Condition{
+			models.ColumnUserId: {
+				ComparisonOperator: types.ComparisonOperatorEq,
+				AttributeValueList: []types.AttributeValue{
+					&types.AttributeValueMemberS{Value: userId},
+				},
+			},
+			models.ColumnType: {
+				ComparisonOperator: types.ComparisonOperatorEq,
+				AttributeValueList: []types.AttributeValue{
+					&types.AttributeValueMemberS{Value: Type},
 				},
 			},
 		},

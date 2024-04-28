@@ -62,8 +62,7 @@ var routeList = [...]route{
 		group:      "/v1/subscriptions",
 		middleware: []gin.HandlerFunc{middleware2.JwtAuthMiddleware()},
 		endpoints: []endpoint{
-			{http.MethodPost, "/createNewPricingSystem", controllers.HandleCreateNewPricingSystem}, //admin api
-			{http.MethodPost, "/deactivatePricing", controllers.HandleDeactivatePricing},           //admin api
+			{http.MethodPost, "/deactivatePricing", controllers.HandleDeactivatePricing}, //admin api
 			{http.MethodGet, "/fetchAllActivePricingModel", controllers.HandleFetchAllActivePricingModel},
 			{http.MethodPost, "/addDefaultSubscriptions", controllers.HandleAddDefaultSubscriptionToUser}, //admin api
 			{http.MethodPost, "/addCustomSubscriptions", controllers.HandleAddSubscriptionToUser},         //admin api
@@ -78,8 +77,9 @@ var routeList = [...]route{
 		group:      "/v1",
 		middleware: []gin.HandlerFunc{middleware2.TokenAuthMiddleware()},
 		endpoints: []endpoint{
-			{http.MethodPost, "/subscriptions/addCreditToUser", controllers.HandleAddCreditToUser}, // admin api
-			{http.MethodPost, "/subscriptions/chargeUser", controllers.HandleChargeUser},           //this was created just for testing
+			{http.MethodPost, "/subscriptions/createNewPricingSystem", controllers.HandleCreateNewPricingSystem}, //admin api
+			{http.MethodPost, "/subscriptions/addCreditToUser", controllers.HandleAddCreditToUser},               // admin api
+			{http.MethodPost, "/subscriptions/chargeUser", controllers.HandleChargeUser},                         //this was created just for testing
 			{http.MethodPost, "/users/updateUser/admin", controllers.HandleUpdateUserRoleToAdmin},
 		},
 	},

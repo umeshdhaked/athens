@@ -34,7 +34,7 @@ func HandleDeactivatePricing(ctx *gin.Context) {
 	}
 
 	var sub *subscription.SubscriptionService = subscription.GetSubscriptionService()
-	err := sub.DeactivatePricing(ctx, &pricingRequest)
+	err := sub.PricingStatusUpdate(ctx, &pricingRequest)
 	if nil != err {
 		ctx.String(http.StatusInternalServerError, err.Error())
 		return
@@ -80,7 +80,7 @@ func HandleAddSubscriptionToUser(ctx *gin.Context) {
 	}
 
 	var sub *subscription.SubscriptionService = subscription.GetSubscriptionService()
-	err := sub.AddSubscriptionToUser(ctx, subRequest)
+	err := sub.UpdateSubscriptionToUser(ctx, subRequest)
 	if nil != err {
 		ctx.String(http.StatusInternalServerError, err.Error())
 		return
@@ -114,7 +114,7 @@ func HandleDeactivateSubscriptionsForUser(ctx *gin.Context) {
 	}
 
 	var sub *subscription.SubscriptionService = subscription.GetSubscriptionService()
-	err := sub.DeactivateSubscriptionsForUser(ctx, subRequest)
+	err := sub.SubscriptionsStatusUpdate(ctx, subRequest)
 	if nil != err {
 		ctx.String(http.StatusInternalServerError, err.Error())
 		return

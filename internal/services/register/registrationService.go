@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/fastbiztech/hastinapura/internal/constants"
 	"github.com/fastbiztech/hastinapura/internal/models"
 	"github.com/fastbiztech/hastinapura/internal/services/otp"
+	"github.com/fastbiztech/hastinapura/internal/services/subscription"
 	"log"
 	"sync"
 
@@ -26,11 +28,17 @@ type RegistrationService struct {
 	otpService *otp.OtpService
 	cryp       *crypto.Crypto
 	userRepo   *repo.UserRepo
+	sub        *subscription.SubscriptionService
 }
 
-func NewRegistrationService(userRepo *repo.UserRepo, otpService *otp.OtpService, cryp *crypto.Crypto) {
+func NewRegistrationService(userRepo *repo.UserRepo, otpService *otp.OtpService, cryp *crypto.Crypto, sub *subscription.SubscriptionService) {
 	once.Do(func() {
-		service = &RegistrationService{userRepo: userRepo, otpService: otpService, cryp: cryp}
+		service = &RegistrationService{
+			userRepo:   userRepo,
+			otpService: otpService,
+			cryp:       cryp,
+			sub:        sub,
+		}
 	})
 }
 
@@ -78,6 +86,15 @@ func (s *RegistrationService) RegisterUser(ctx *gin.Context, user dtos.RegisterU
 	usrObj := &models.User{ID: uuid.New().String(), Mobile: user.MobileNumber, Hashed_password: s.cryp.HashString(user.Password)}
 	if er := s.userRepo.UpdateUser(ctx, usrObj); er != nil {
 		return nil, er
+	}
+
+	// Add default subscriptions to user
+	ctx.Set(constants.JwtTokenRole, "admin")
+	ctx.Set(constants.JwtTokenUserID, "system")
+	ctx.Set(constants.JwtTokenMobile, "1234567890")
+	err := s.sub.AddDefaultSubscriptionToUser(ctx, &dtos.UserDefaultSubscriptionRequest{UserMobile: user.MobileNumber})
+	if err != nil {
+		return nil, err
 	}
 
 	token, err := jwt.CreateToken(usrObj.ID, usrObj.Mobile, usrObj.Role)

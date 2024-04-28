@@ -41,9 +41,9 @@ func InitialiseDeps() {
 
 	otp.NewOtpSender()
 	otcSvc.NewOtpService(otp.GetOtpSender(), crypto.GetCrypto(), repo.GetOtpRepo())
-	register.NewRegistrationService(repo.GetUserRepo(), otcSvc.GetOtpService(), crypto.GetCrypto())
 	promo.NewPromoService(repo.GetPromotionRepo())
 	subscription.NewSubscriptionService(repo.GetPricingRepo(), repo.GetSubscriptionRepo(), repo.GetUserRepo(), repo.GetCreditsRepo(), repo.GetCreditsAuditRepo())
+	register.NewRegistrationService(repo.GetUserRepo(), otcSvc.GetOtpService(), crypto.GetCrypto(), subscription.GetSubscriptionService())
 	rzp.NewRzpService()
 	payments.NewPaymentService(rzp.GetRzpService(), repo.GetPaymentsRepo(), subscription.GetSubscriptionService())
 	payments.NewPaymentCronService(rzp.GetRzpService(), repo.GetPaymentsRepo())
