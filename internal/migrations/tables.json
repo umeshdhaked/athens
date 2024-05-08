@@ -612,12 +612,12 @@
     ]
   },
   {
-    "TableName": "Invoices",
+    "TableName": "Invoice",
     "KeySchema": [
-      {"AttributeName": "ID", "KeyType": "HASH"}
+      {"AttributeName": "InvoiceNumber", "KeyType": "HASH"}
     ],
     "AttributeDefinitions": [
-      {"AttributeName": "ID", "AttributeType": "N"},
+      {"AttributeName": "InvoiceNumber", "AttributeType": "N"},
       {"AttributeName": "InvoiceId", "AttributeType": "S"},
       {"AttributeName": "OrderId", "AttributeType": "S"}
     ],
@@ -654,5 +654,4 @@
       }
     ]
   }
-
 ]

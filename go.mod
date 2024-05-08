@@ -3,7 +3,6 @@ module github.com/fastbiztech/hastinapura
 go 1.22.0
 
 require (
-	atomicgo.dev/schedule v0.1.0
 	cirello.io/dynamolock/v2 v2.1.0
 	github.com/aws/aws-sdk-go-v2 v1.26.1
 	github.com/aws/aws-sdk-go-v2/config v1.27.9

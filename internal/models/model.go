@@ -58,8 +58,9 @@ const (
 	// indexes: FBTPayment table
 	IndexTableFBTPaymentIndexRazorpayOrderId = "index_rzpPayments_razorpayOrderId"
 
-	// indexes: Invoices table
+	// indexes: Invoice table
 	IndexTableInvoicesIndexInvoiceId = "index_invoices_invoiceId"
+	IndexTableInvoicesIndexOrderId   = "index_invoices_orderId"
 )
 
 type BaseModel struct {

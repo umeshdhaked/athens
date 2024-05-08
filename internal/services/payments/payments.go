@@ -21,15 +21,17 @@ var paymentService *PaymentService
 type PaymentService struct {
 	rzpService          *rzp.RzpService
 	paymentRepo         *repo.Payments
+	invoiceRepo         *repo.InvoiceRepo
 	subscriptionService *subscription.SubscriptionService
 }
 
-func NewPaymentService(rzpService *rzp.RzpService, paymentRepo *repo.Payments, subscriptionService *subscription.SubscriptionService) {
+func NewPaymentService(rzpService *rzp.RzpService, paymentRepo *repo.Payments, invoiceRepo *repo.InvoiceRepo, subscriptionService *subscription.SubscriptionService) {
 	once.Do(func() {
 		paymentService = &PaymentService{
 			rzpService:          rzpService,
 			paymentRepo:         paymentRepo,
 			subscriptionService: subscriptionService,
+			invoiceRepo:         invoiceRepo,
 		}
 	})
 }
@@ -236,3 +238,11 @@ func (r *PaymentService) GetPaymentsHistory(ctx *gin.Context, req *dtos.PaymentH
 
 // get order history api mock status like [completed, failed] - get from order collection
 // generate invoice ok payment, save data in invoice DB, create download invoice api
+
+//func (r *PaymentService) GenerateInvoice(ctx *gin.Context) {
+//	getEmpty, er := r.invoiceRepo.GetEmptyInvoice(ctx)
+//	if er != nil {
+//		return
+//	}
+//	fmt.Print(currentInvoiceNumber)
+//}

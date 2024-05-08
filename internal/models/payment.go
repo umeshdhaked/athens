@@ -9,10 +9,14 @@ const (
 	TableRzpPayments  = "RzpPayments"
 	TableRzpRefunds   = "RzpRefunds"
 	TableFBTPayment   = "FBTPayment"
+	TableInvoices     = "Invoice"
 
 	ColumnOrderId        = "id"
 	ColumnOrderStatus    = "status"
 	ColumnOrderCreatedAt = "created_at"
+
+	ColumnInvoiceId = "InvoiceId"
+	ColumnOdrId     = "OrderId"
 )
 
 type RzpOrder struct {
@@ -93,8 +97,10 @@ type RzpRefunds struct {
 	Status         string `dynamodbav:"status"`
 }
 
-type Invoices struct {
-	ID        string
-	InvoiceId string
-	OrderId   string
+type Invoice struct {
+	ID            string
+	InvoiceNumber int
+	InvoiceId     string
+	OrderId       string
+	Status        string
 }
