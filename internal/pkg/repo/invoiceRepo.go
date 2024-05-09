@@ -3,6 +3,7 @@ package repo
 import (
 	"context"
 	"fmt"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
@@ -26,6 +27,18 @@ func GetInvoiceRepo() *InvoiceRepo {
 	return invoiceRepo
 }
 
+func (r InvoiceRepo) CreateInvoice(ctx *gin.Context, invoice *models.Invoice) error {
+	invoiceMp, err := attributevalue.MarshalMap(invoice)
+	if err != nil {
+		return err
+	}
+	er := r.Repository.CreateItem(ctx, models.TableInvoices, invoiceMp)
+	if er != nil {
+		return er
+	}
+	return nil
+}
+
 func (r InvoiceRepo) GetEmptyInvoice(ctx *gin.Context) (*models.Invoice, error) {
 	invoicecounter, err := r.GetInvoiceFromInvoiceId(ctx, "invoicecounter")
 	if nil != err {
@@ -37,7 +50,6 @@ func (r InvoiceRepo) GetEmptyInvoice(ctx *gin.Context) (*models.Invoice, error) 
 			InvoiceId:     "invoicecounter",
 			InvoiceNumber: 0,
 			Status:        "INVALID",
-			OrderId:       "dummyOrder",
 		}
 		invMap, err := attributevalue.MarshalMap(invoicecounter)
 		if err != nil {
@@ -67,7 +79,6 @@ func (r InvoiceRepo) GetEmptyInvoice(ctx *gin.Context) (*models.Invoice, error) 
 		InvoiceNumber: newInvoiceNumber,
 		InvoiceId:     invoiceNum,
 		Status:        "CANCELLED",
-		OrderId:       "dummyOrder",
 	}
 	invoiceMp, err := attributevalue.MarshalMap(newInvoice)
 	if err != nil {
@@ -75,9 +86,9 @@ func (r InvoiceRepo) GetEmptyInvoice(ctx *gin.Context) (*models.Invoice, error) 
 	}
 	er = r.Repository.CreateItem(ctx, models.TableInvoices, invoiceMp)
 	if er != nil {
-		return nil, err
+		return nil, er
 	}
-	return newInvoice, err
+	return newInvoice, nil
 }
 
 func (r *InvoiceRepo) GetInvoiceFromInvoiceId(ctx context.Context, invoiceId string) (*models.Invoice, error) {

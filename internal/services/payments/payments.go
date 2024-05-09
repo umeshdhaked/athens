@@ -2,6 +2,9 @@ package payments
 
 import (
 	"errors"
+	"log"
+	"sync"
+
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/fastbiztech/hastinapura/internal/constants"
 	"github.com/fastbiztech/hastinapura/internal/models"
@@ -11,8 +14,6 @@ import (
 	"github.com/fastbiztech/hastinapura/pkg/dtos"
 	"github.com/gin-gonic/gin"
 	"github.com/razorpay/razorpay-go/utils"
-	"log"
-	"sync"
 )
 
 var once sync.Once
@@ -168,10 +169,6 @@ func (r *PaymentService) PaymentOrderWebhook(ctx *gin.Context, orderReq *dtos.Pa
 	if err != nil {
 		return err
 	}
-	err = r.paymentRepo.CreateItem(ctx, models.TableRzpOrders, orderItem)
-	if err != nil {
-		return err
-	}
 
 	//// get latest payment from razorpay
 	paymentBody := orderReq.Payload["payment"].Entity
@@ -198,11 +195,26 @@ func (r *PaymentService) PaymentOrderWebhook(ctx *gin.Context, orderReq *dtos.Pa
 		}
 	}
 
-	// update our order table only if credits are added/given to user for payment
+	err = r.paymentRepo.CreateItem(ctx, models.TableRzpOrders, orderItem)
+	if err != nil {
+		return err
+	}
 	err = r.paymentRepo.CreateItem(ctx, models.TableRzpPayments, paymentItem)
 	if err != nil {
 		return err
 	}
+
+	//Get Empty Invoice
+	invoice, err := r.invoiceRepo.GetEmptyInvoice(ctx)
+	if err != nil {
+		return err
+	}
+	invoice.OrderId = rzpOrder.ID
+	invoice.Status = "CREATED"
+	invoice.UserId = rzpOrder.Notes.UserID
+	invoice.Data = paymentBody
+
+	r.invoiceRepo.CreateInvoice(ctx, invoice)
 
 	return nil
 }

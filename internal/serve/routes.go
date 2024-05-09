@@ -161,4 +161,11 @@ var routeList = [...]route{
 			{http.MethodPost, "/updateOrderWebhook", controllers.HandlePaymentOrderWebhook},
 		},
 	},
+	{
+		group:      "/v1/invoices",
+		middleware: []gin.HandlerFunc{},
+		endpoints: []endpoint{
+			{http.MethodPost, "/getInvoice", controllers.HandleInvoice},
+		},
+	},
 }

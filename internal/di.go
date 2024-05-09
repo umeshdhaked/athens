@@ -9,6 +9,7 @@ import (
 	"github.com/fastbiztech/hastinapura/internal/pkg/rzp"
 	"github.com/fastbiztech/hastinapura/internal/services/contacts"
 	"github.com/fastbiztech/hastinapura/internal/services/group"
+	"github.com/fastbiztech/hastinapura/internal/services/invoices"
 	otcSvc "github.com/fastbiztech/hastinapura/internal/services/otp"
 	"github.com/fastbiztech/hastinapura/internal/services/payments"
 	"github.com/fastbiztech/hastinapura/internal/services/pendingJobs"
@@ -45,6 +46,7 @@ func InitialiseDeps() {
 	subscription.NewSubscriptionService(repo.GetPricingRepo(), repo.GetSubscriptionRepo(), repo.GetUserRepo(), repo.GetCreditsRepo(), repo.GetCreditsAuditRepo())
 	register.NewRegistrationService(repo.GetUserRepo(), otcSvc.GetOtpService(), crypto.GetCrypto(), subscription.GetSubscriptionService())
 	rzp.NewRzpService()
+	invoices.NewInvoiceService(repo.GetInvoiceRepo())
 	payments.NewPaymentService(rzp.GetRzpService(), repo.GetPaymentsRepo(), repo.GetInvoiceRepo(), subscription.GetSubscriptionService())
 	payments.NewPaymentCronService(rzp.GetRzpService(), repo.GetPaymentsRepo())
 

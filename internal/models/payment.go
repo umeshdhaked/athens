@@ -103,4 +103,6 @@ type Invoice struct {
 	InvoiceId     string
 	OrderId       string
 	Status        string
+	UserId        string
+	Data          map[string]interface{}
 }
