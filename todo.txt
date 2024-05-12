@@ -1,3 +1,9 @@
-// store s3 group contacts counts somewhere
+// Mukesh
+1. graceful shutdown
+2. mysql driver add
+3. metrics push
 
-// graceful shutdown
+// Umesh
+1. add logging via logger
+2. push logs
+3. validations in controller
