@@ -2,6 +2,7 @@ package group
 
 import (
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"log"
 	"mime/multipart"
@@ -14,15 +15,16 @@ import (
 	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
 	"github.com/fastbiztech/hastinapura/internal/utils"
 	"github.com/fastbiztech/hastinapura/pkg/dtos"
+	"github.com/fastbiztech/hastinapura/pkg/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
 type Service struct {
-	baseRepo         *repo.Repository
-	groupRepo        *repo.GroupRepo
-	s3ProcessingRepo *repo.S3ProcessingRepo
-	pendingJobsRepo  *repo.PendingJobsRepo
+	baseRepo           *repo.Repository
+	groupRepo          *repo.GroupRepo
+	cronProcessingRepo *repo.CronProcessingRepo
+	pendingJobsRepo    *repo.PendingJobsRepo
 }
 
 var (
@@ -38,10 +40,10 @@ var (
 func InitialiseService() {
 	once.Do(func() {
 		service = &Service{
-			baseRepo:         repo.GetRepository(),
-			groupRepo:        repo.GetGroupRepo(),
-			s3ProcessingRepo: repo.GetS3ProcessingRepo(),
-			pendingJobsRepo:  repo.GetPendingJobsRepo(),
+			baseRepo:           repo.GetRepository(),
+			groupRepo:          repo.GetGroupRepo(),
+			cronProcessingRepo: repo.GetCronProcessingRepo(),
+			pendingJobsRepo:    repo.GetPendingJobsRepo(),
 		}
 	})
 }
@@ -53,12 +55,14 @@ func GetService() *Service {
 func (s *Service) UploadGroupToS3(c *gin.Context, file multipart.File, request dtos.UploadGroupContactsRequest) (interface{}, error) {
 	//  add validation for same name already existed
 	items, err := s.groupRepo.FetchByUserIDAndName(c, c.GetString(constants.JwtTokenUserID), request.Name)
-	if err != nil {
-		log.Fatalf("error fetching column item: %v", err)
+	if err != nil && err.Error() != repo.ErrCodeNoDataFound {
+		logger.GetLogger().Error(err.Error())
+		return nil, err
 	}
 
 	if len(items) > 0 {
-		log.Fatalf("duplicate UserID/Name entry")
+		logger.GetLogger().Error("duplicate UserID/Name entry")
+		return nil, errors.New("duplicate UserID/Name entry")
 	}
 
 	s3FileID := uuid.New().String()
@@ -66,11 +70,13 @@ func (s *Service) UploadGroupToS3(c *gin.Context, file multipart.File, request d
 	// Add entry in group table
 	columnNames, err := getCsvColumnNames(file)
 	if err != nil {
-		log.Fatalf("error fetching column item: %v", err)
+		logger.GetLogger().Error(err.Error())
+		return nil, err
 	}
 
 	if !isValidColumnNamesForGroupContacts(columnNames) {
-		log.Fatalf("invalid columns")
+		logger.GetLogger().Error("invalid columns")
+		return nil, errors.New("invalid columns")
 	}
 
 	// Insert item into the database
@@ -83,11 +89,13 @@ func (s *Service) UploadGroupToS3(c *gin.Context, file multipart.File, request d
 
 	err = s.groupRepo.CreateGroup(c, &entryGroupItem)
 	if err != nil {
-		log.Fatalf("error inserting item: %v", err)
+		logger.GetLogger().Error(err.Error())
+		return nil, err
 	}
 
 	// Upload file to S3
 	if err := aws.GetS3Client().Upload(file, aws.BucketContactUpload, s3FileID); err != nil {
+		logger.GetLogger().Error(err.Error())
 		return nil, err
 	}
 
@@ -103,7 +111,8 @@ func (s *Service) UploadGroupToS3(c *gin.Context, file multipart.File, request d
 
 	err = s.pendingJobsRepo.Create(c, &entryPendingJobsItem)
 	if err != nil {
-		log.Fatalf("error inserting item: %v", err)
+		logger.GetLogger().Error(err.Error())
+		return nil, err
 	}
 
 	return nil, nil

@@ -102,11 +102,11 @@
   {
     "TableName": "SmsTemplate",
     "KeySchema": [
-      {"AttributeName": "ID", "KeyType": "HASH"}
+      {"AttributeName": "id", "KeyType": "HASH"}
     ],
     "AttributeDefinitions": [
-      {"AttributeName": "ID", "AttributeType": "S"},
-      { "AttributeName": "UserID", "AttributeType": "S" }
+      {"AttributeName": "id", "AttributeType": "S"},
+      { "AttributeName": "user_id", "AttributeType": "S" }
     ],
     "ProvisionedThroughput": {
       "ReadCapacityUnits": 5,
@@ -116,7 +116,7 @@
       {
         "IndexName": "index_smstemplate_userid",
         "KeySchema": [
-          { "AttributeName": "UserID", "KeyType": "HASH" }
+          { "AttributeName": "user_id", "KeyType": "HASH" }
         ],
         "Projection": {
           "ProjectionType": "ALL"
@@ -203,25 +203,28 @@
       {"AttributeName": "ID", "KeyType": "HASH"}
     ],
     "AttributeDefinitions": [
-      {"AttributeName": "ID", "AttributeType": "S"}
+      {"AttributeName": "ID", "AttributeType": "S"},
+      {"AttributeName": "UserId", "AttributeType": "S"}
     ],
     "ProvisionedThroughput": {
       "ReadCapacityUnits": 5,
       "WriteCapacityUnits": 5
-    }
-  },
-  {
-    "TableName": "S3ContactsData",
-    "KeySchema": [
-      {"AttributeName": "ID", "KeyType": "HASH"}
-    ],
-    "AttributeDefinitions": [
-      {"AttributeName": "ID", "AttributeType": "S"}
-    ],
-    "ProvisionedThroughput": {
-      "ReadCapacityUnits": 5,
-      "WriteCapacityUnits": 5
-    }
+    },
+    "GlobalSecondaryIndexes": [
+      {
+        "IndexName": "index_subscription_userid",
+        "KeySchema": [
+          { "AttributeName": "UserId", "KeyType": "HASH" }
+        ],
+        "Projection": {
+          "ProjectionType": "ALL"
+        },
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": 5,
+          "WriteCapacityUnits": 5
+        }
+      }
+    ]
   },
   {
     "TableName": "Credits",
@@ -380,35 +383,6 @@
     ]
   },
   {
-    "TableName": "UserSubscriptions",
-    "KeySchema": [
-      {"AttributeName": "Id", "KeyType": "HASH"}
-    ],
-    "AttributeDefinitions": [
-      {"AttributeName": "Id", "AttributeType": "S"},
-      {"AttributeName": "UserId", "AttributeType": "S"}
-    ],
-    "ProvisionedThroughput": {
-      "ReadCapacityUnits": 5,
-      "WriteCapacityUnits": 5
-    },
-    "GlobalSecondaryIndexes": [
-      {
-        "IndexName": "index_usersub_userid",
-        "KeySchema": [
-          { "AttributeName": "UserId", "KeyType": "HASH" }
-        ],
-        "Projection": {
-          "ProjectionType": "ALL"
-        },
-        "ProvisionedThroughput": {
-          "ReadCapacityUnits": 5,
-          "WriteCapacityUnits": 5
-        }
-      }
-    ]
-  },
-  {
     "TableName": "User",
     "KeySchema": [
       {"AttributeName": "ID", "KeyType": "HASH"}
@@ -451,7 +425,7 @@
     }
   },
   {
-    "TableName": "s3Processing",
+    "TableName": "cron_processing",
     "KeySchema": [
       {"AttributeName": "id", "KeyType": "HASH"}
     ],
@@ -465,7 +439,7 @@
     },
     "GlobalSecondaryIndexes": [
       {
-        "IndexName": "index_s3Processing_name",
+        "IndexName": "index_cron_processing_name",
         "KeySchema": [
           { "AttributeName": "name", "KeyType": "HASH" }
         ],

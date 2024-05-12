@@ -9,8 +9,10 @@ type DbQueryInputConditions struct {
 	Limit   int
 }
 
-type DbFilterQueryConditions struct {
-	Filters map[string]types.AttributeValue
+type DbScanQueryConditions struct {
+	ExclusiveStartKey map[string]types.AttributeValue
+	Filters           map[string]types.AttributeValue
+	Limit             int
 }
 
 type DbUpdateQueryConditions struct {

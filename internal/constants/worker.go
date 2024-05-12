@@ -1,7 +1,8 @@
 package constants
 
 const (
-	WorkerCronArg = "cron_arg"
+	WorkerCronArg = "CRON_ARG"
 
 	WorkerCronArgS3Contacts = "cron_arg_s3_contacts"
+	WorkerCronArgCampaign   = "cron_arg_campaign"
 )

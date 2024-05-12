@@ -1,6 +1,7 @@
 package repo
 
 import (
+	"errors"
 	"log"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -8,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/fastbiztech/hastinapura/internal/models"
+	"github.com/fastbiztech/hastinapura/pkg/dtos"
 	"github.com/gin-gonic/gin"
 )
 
@@ -23,6 +25,33 @@ func newPricingRepo(client *dynamodb.Client) {
 
 func GetPricingRepo() *PricingRepo {
 	return pricingRepo
+}
+
+func (s *PricingRepo) FetchByID(ctx *gin.Context, id string) (*models.Pricing, error) {
+	queryInput := dtos.DbQueryInputConditions{
+		PKey: map[string]interface{}{
+			models.ColumnPricingID: id,
+		},
+	}
+
+	items, err := s.QueryItems(ctx, models.TablePricing, queryInput)
+	if err != nil {
+		log.Printf("error fetching item: %v\n", err)
+		return nil, err
+	}
+
+	if len(items) != 1 {
+		log.Println("fetch by id returned more than 1 items")
+		return nil, errors.New("fetch by id returned more than 1 items")
+	}
+
+	var entity models.Pricing
+	if err := attributevalue.UnmarshalMap(items[0], &entity); err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	return &entity, nil
 }
 
 func (p *PricingRepo) GetDefaultPricingsForCategoryAndSubCategory(ctx *gin.Context, category string, subCategory string) ([]models.Pricing, error) {
@@ -59,7 +88,7 @@ func (p *PricingRepo) FetchAllActivePricing(ctx *gin.Context) ([]models.Pricing,
 		TableName: aws.String(models.TablePricing),
 		IndexName: aws.String(models.IndexTablePricingIndexPricingState),
 		KeyConditions: map[string]types.Condition{
-			models.ColumnPricingState: {
+			models.ColumnSubscriptionsPricingStatus: {
 				ComparisonOperator: types.ComparisonOperatorEq,
 				AttributeValueList: []types.AttributeValue{
 					&types.AttributeValueMemberS{Value: "ACTIVE"},

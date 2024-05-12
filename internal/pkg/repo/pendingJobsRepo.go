@@ -41,7 +41,7 @@ func (c *PendingJobsRepo) Create(ctx *gin.Context, model *models.PendingJobs) er
 	return er
 }
 
-func (s *PendingJobsRepo) FetchByNameAndConditions(ctx *gin.Context, name string, conditions dtos.DbFilterQueryConditions) (models.PendingJobs, error) {
+func (s *PendingJobsRepo) FetchByNameAndConditions(ctx *gin.Context, name string, conditions dtos.DbScanQueryConditions) (models.PendingJobs, error) {
 	queryInput := dtos.DbQueryInputConditions{
 		PKey: map[string]interface{}{
 			models.ColumnPendingJobsName: name,
@@ -73,7 +73,7 @@ func (s *PendingJobsRepo) FetchByNameAndConditions(ctx *gin.Context, name string
 }
 
 func (s *PendingJobsRepo) FetchAllByConditions(ctx *gin.Context, conditions dtos.GetPendingJobsRequest) ([]models.PendingJobs, error) {
-	queryInput := dtos.DbFilterQueryConditions{}
+	queryInput := dtos.DbScanQueryConditions{}
 	queryInput.Filters = make(map[string]types.AttributeValue)
 
 	if !utils.IsEmpty(conditions.Name) {

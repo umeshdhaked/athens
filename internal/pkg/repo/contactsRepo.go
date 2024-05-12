@@ -86,8 +86,8 @@ func (c *ContactsRepo) BulkCreate(ctx *gin.Context, contacts []models.Contacts) 
 	return nil
 }
 
-func (s *ContactsRepo) FetchAllByConditions(ctx *gin.Context, conditions dtos.GetContactsRequest) ([]models.Contacts, error) {
-	queryInput := dtos.DbFilterQueryConditions{}
+func (s *ContactsRepo) FetchAllByConditions(ctx *gin.Context, conditions dtos.GetContactsRequest, paginationPkeyValue string) ([]models.Contacts, error) {
+	queryInput := dtos.DbScanQueryConditions{}
 	queryInput.Filters = make(map[string]types.AttributeValue)
 
 	if !utils.IsEmpty(conditions.Name) {
@@ -123,6 +123,16 @@ func (s *ContactsRepo) FetchAllByConditions(ctx *gin.Context, conditions dtos.Ge
 	if !utils.IsEmpty(conditions.To) {
 		queryInput.Filters[fmt.Sprintf("%s_%s", models.ColumnCreatedAt, ComparisonOperatorLE)] = &types.AttributeValueMemberN{
 			Value: fmt.Sprintf("%d", conditions.To),
+		}
+	}
+
+	if !utils.IsEmpty(conditions.Limit) {
+		queryInput.Limit = conditions.Limit
+	}
+
+	if !utils.IsEmpty(paginationPkeyValue) {
+		queryInput.ExclusiveStartKey[models.ColumnContactsID] = &types.AttributeValueMemberS{
+			Value: paginationPkeyValue,
 		}
 	}
 

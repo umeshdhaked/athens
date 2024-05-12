@@ -58,15 +58,15 @@ func (s *SubscriptionService) AddDefaultSubscriptionToUser(ctx *gin.Context, sub
 	admin, _ := ctx.Get(constants.JwtTokenUserID)
 
 	// create Subscriptions to USER
-	userSubsDto := []models.UserSubscription{}
+	userSubsDto := []models.Subscription{}
 	for _, dp := range defaultPricings {
-		userSubsDto = append(userSubsDto, models.UserSubscription{
+		userSubsDto = append(userSubsDto, models.Subscription{
 			Id:        uuid.New().String(),
 			PricingId: dp.Id,
 			UserId:    user.ID,
 			Type:      dp.Category,
 			SubType:   dp.SubCategory,
-			SubStatus: "INACTIVE",
+			Status:    "ACTIVE",
 			AddedBy:   admin.(string),
 			BaseModel: models.BaseModel{CreatedAt: time.Now().Unix()},
 		})
@@ -97,13 +97,13 @@ func (s *SubscriptionService) UpdateSubscriptionToUser(ctx *gin.Context, subReq 
 	admin, _ := ctx.Get(constants.JwtTokenUserID)
 
 	// update existing Subscriptions for type-subtype
-	userSubsDto := models.UserSubscription{
+	userSubsDto := models.Subscription{
 		Id:        uuid.New().String(),
 		PricingId: pricing.Id,
 		UserId:    user.ID,
 		Type:      pricing.Category,
 		SubType:   pricing.SubCategory,
-		SubStatus: "ACTIVE",
+		Status:    "ACTIVE",
 		AddedBy:   admin.(string),
 		BaseModel: models.BaseModel{CreatedAt: time.Now().Unix()},
 	}
@@ -114,12 +114,12 @@ func (s *SubscriptionService) UpdateSubscriptionToUser(ctx *gin.Context, subReq 
 		return err
 	}
 	if len(existingsSubs) > 0 {
-		userSubsDto = models.UserSubscription{
+		userSubsDto = models.Subscription{
 			Id: existingsSubs[0].Id,
 		}
 	}
 
-	if er := s.subRepo.CreateUserSubscription(ctx, &userSubsDto); er != nil {
+	if er := s.subRepo.Create(ctx, &userSubsDto); er != nil {
 		return errors.Join(er, errors.New("unable to create subscription for user"))
 	}
 	return nil
@@ -145,7 +145,7 @@ func (s *SubscriptionService) FetchAllActiveSubscriptionsForUser(ctx *gin.Contex
 			UserId:    s.UserId,
 			Type:      s.Type,
 			SubType:   s.SubType,
-			Status:    s.SubStatus,
+			Status:    s.Status,
 			AddedBy:   s.AddedBy,
 			CreatedAt: s.CreatedAt,
 			DeletedAt: s.DeletedAt,
@@ -160,10 +160,10 @@ func (s *SubscriptionService) SubscriptionsStatusUpdate(ctx *gin.Context, subReq
 		return err
 	}
 
-	subsription.SubStatus = "INACTIVE"
+	subsription.Status = "INACTIVE"
 	if subRequest.Enable {
-		subsription.SubStatus = "ACTIVE"
+		subsription.Status = "ACTIVE"
 	}
 
-	return s.subRepo.CreateUserSubscription(ctx, subsription)
+	return s.subRepo.Create(ctx, subsription)
 }

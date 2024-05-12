@@ -8,8 +8,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var once *sync.Once
-var invoiceService *InvoiceService
+var (
+	once           sync.Once
+	invoiceService *InvoiceService
+)
 
 type InvoiceService struct {
 	invoiceRepo *repo.InvoiceRepo

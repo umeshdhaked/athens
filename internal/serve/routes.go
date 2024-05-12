@@ -104,7 +104,7 @@ var routeList = [...]route{
 		group:      "/v1/s3_processing",
 		middleware: []gin.HandlerFunc{},
 		endpoints: []endpoint{
-			{http.MethodGet, "", controllers.GetS3Processing},
+			{http.MethodGet, "", controllers.GetCronProcessing},
 		},
 	},
 	{

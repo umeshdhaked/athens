@@ -7,6 +7,7 @@ type GetContactsRequest struct {
 	GroupName string `form:"group_name"`
 	From      int    `form:"from"`
 	To        int    `form:"to"`
+	Limit     int    `form:"limit"`
 }
 
 type GetGroupContactsRequest struct {

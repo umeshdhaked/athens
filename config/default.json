@@ -34,7 +34,6 @@
             }
         }
     },
-    
     "crons": {
         "s3_contacts": {
             "enable"              : true,
@@ -43,8 +42,13 @@
         },
         "payment_refunds": {
             "enable"              : true,
-            "start_time"          : 14400,
-            "execution_time"      : 14400
+            "start_time"          : 60,
+            "execution_time"      : 300
+        },
+        "campaign": {
+            "enable"              : true,
+            "start_time"          : 0,
+            "execution_time"      : 10
         }
     }
 }

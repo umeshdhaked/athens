@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
+	"reflect"
 	"strings"
 	"sync"
 
@@ -13,6 +15,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/fastbiztech/hastinapura/internal/utils"
 	"github.com/fastbiztech/hastinapura/pkg/dtos"
+	"github.com/gin-gonic/gin"
 )
 
 const (
@@ -21,6 +24,9 @@ const (
 	ComparisonOperatorG  = "g"
 	ComparisonOperatorLE = "le"
 	ComparisonOperatorGE = "ge"
+
+	// Error codes
+	ErrCodeNoDataFound = "no_data_found"
 )
 
 var (
@@ -43,7 +49,7 @@ func InitialiseRepositories(dynamodb *dynamodb.Client) {
 		newCreditsRepo(dynamodb)
 		newGroupRepo(dynamodb)
 		newPendingJobsRepo(dynamodb)
-		newS3ProcessingRepo(dynamodb)
+		newCronProcessingRepo(dynamodb)
 		newContactsRepos(dynamodb)
 		newOtpRepo(dynamodb)
 		newPricingRepo(dynamodb)
@@ -120,6 +126,44 @@ func (r *Repository) UpdateItem(ctx context.Context, tableName string, dbUpdateQ
 	return updateItem, nil
 }
 
+func (s *Repository) UpdateByID(ctx *gin.Context,
+	id string,
+	tableName string,
+	updatableValues map[string]interface{},
+	entity interface{}) error {
+
+	queryInput := dtos.DbUpdateQueryConditions{
+		Key: map[string]types.AttributeValue{
+			"ID": &types.AttributeValueMemberS{Value: id},
+		},
+	}
+
+	queryInput.ToUpdate = make(map[string]types.AttributeValue)
+
+	// todo add all types
+	for k, v := range updatableValues {
+		if reflect.ValueOf(v).Kind() == reflect.Bool {
+			queryInput.ToUpdate[k] = &types.AttributeValueMemberBOOL{Value: v.(bool)}
+		} else {
+			queryInput.ToUpdate[k] = &types.AttributeValueMemberS{Value: v.(string)}
+		}
+	}
+
+	// Insert item into the database
+	updateItem, err := s.UpdateItem(ctx, tableName, queryInput)
+	if err != nil {
+		log.Printf("error inserting item: %v\n", err)
+		return err
+	}
+
+	if err := attributevalue.UnmarshalMap(updateItem.Attributes, &entity); err != nil {
+		log.Println(err)
+		return err
+	}
+
+	return nil
+}
+
 // DeleteItem deletes an item from the database
 func (r *Repository) DeleteItem(ctx context.Context, tableName string, key map[string]types.AttributeValue) error {
 	// Implement logic to delete an item from the database
@@ -169,7 +213,7 @@ func (r *Repository) QueryItems(ctx context.Context, tableName string, condition
 }
 
 // ScanItems retrieves items from the DynamoDB table based on the provided scan conditions.
-func (r *Repository) ScanItems(ctx context.Context, tableName string, conditions dtos.DbFilterQueryConditions) ([]map[string]types.AttributeValue, error) {
+func (r *Repository) ScanItems(ctx context.Context, tableName string, conditions dtos.DbScanQueryConditions) ([]map[string]types.AttributeValue, error) {
 	// Prepare ScanInput
 	input := &dynamodb.ScanInput{
 		TableName: aws.String(tableName),
@@ -184,6 +228,15 @@ func (r *Repository) ScanItems(ctx context.Context, tableName string, conditions
 		input.FilterExpression = aws.String(filterExpr)
 		input.ExpressionAttributeNames = expressionAttributeNames
 		input.ExpressionAttributeValues = expressionAttributeValues
+	}
+
+	if !utils.IsEmpty(conditions.ExclusiveStartKey) {
+		input.ExclusiveStartKey = conditions.ExclusiveStartKey
+	}
+
+	// Set the limit
+	if !utils.IsEmpty(conditions.Limit) {
+		input.Limit = aws.Int32(int32(conditions.Limit))
 	}
 
 	// Execute the Scan operation

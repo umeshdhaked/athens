@@ -3,13 +3,13 @@ package controllers
 import (
 	"net/http"
 
-	"github.com/fastbiztech/hastinapura/internal/services/s3Processing"
+	"github.com/fastbiztech/hastinapura/internal/services/cronProcessing"
 	"github.com/fastbiztech/hastinapura/pkg/dtos"
 	"github.com/gin-gonic/gin"
 )
 
-func GetS3Processing(c *gin.Context) {
-	var request = dtos.GetS3ProcessingRequest{}
+func GetCronProcessing(c *gin.Context) {
+	var request = dtos.GetCronProcessingRequest{}
 
 	// Bind the form data into the FormInput struct
 	if err := c.BindQuery(&request); err != nil {
@@ -17,7 +17,7 @@ func GetS3Processing(c *gin.Context) {
 		return
 	}
 
-	response, err := s3Processing.GetService().GetS3Processing(c, request)
+	response, err := cronProcessing.GetService().GetCronProcessing(c, request)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

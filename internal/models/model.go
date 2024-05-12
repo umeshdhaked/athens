@@ -21,8 +21,8 @@ const (
 	// indexes: credits table
 	IndexTableCreditsIndexUserID = "index_credits_userid"
 
-	// indexes: user subscription table
-	IndexTableUserSubscriptionIndexUserID = "index_usersub_userid"
+	// indexes: subscription table
+	IndexTableSubscriptionIndexUserID = "index_subscription_userid"
 
 	// indexes: sms campaign table
 	IndexTableSmsCampaignIndexUserID = "index_smscampaign_userid"
@@ -42,8 +42,8 @@ const (
 	IndexTablePromoPhoneIndexIsAlreadyContacted = "index_promo-phones-no_isAlreadyContacted"
 	IndexTablePromoPhoneIndexMobile             = "index_promo-phones-no_mobile"
 
-	// indexes: s3Processing table
-	IndexTableS3ProcessingIndexName = "index_s3Processing_name"
+	// indexes: cronProcessing table
+	IndexTableCronProcessingIndexName = "index_cron_processing_name"
 
 	// indexes: RzpOrder table
 	IndexTableRzpOrdersIndexStatus    = "index_rzpOrders_status"

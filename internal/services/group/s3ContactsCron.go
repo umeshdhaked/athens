@@ -30,10 +30,10 @@ const (
 )
 
 type s3ContactsCronExecutor struct {
-	ctx              *gin.Context
-	pendingJobsRepo  *repo.PendingJobsRepo
-	s3ProcessingRepo *repo.S3ProcessingRepo
-	contactsRepo     *repo.ContactsRepo
+	ctx                *gin.Context
+	pendingJobsRepo    *repo.PendingJobsRepo
+	cronProcessingRepo *repo.CronProcessingRepo
+	contactsRepo       *repo.ContactsRepo
 }
 
 // CsvData represents the CSV data containing both column names and rows
@@ -61,10 +61,10 @@ func InitialiseS3ContactsCron() {
 		time.Duration(config.GetConfig().Crons.CronsConfigS3Contacts.ExecutionTime)*time.Second,
 		time.Duration(config.GetConfig().Crons.CronsConfigS3Contacts.StartTime)*time.Second,
 		&s3ContactsCronExecutor{
-			ctx:              newCtx,
-			pendingJobsRepo:  repo.GetPendingJobsRepo(),
-			s3ProcessingRepo: repo.GetS3ProcessingRepo(),
-			contactsRepo:     repo.GetContactsRepo(),
+			ctx:                newCtx,
+			pendingJobsRepo:    repo.GetPendingJobsRepo(),
+			cronProcessingRepo: repo.GetCronProcessingRepo(),
+			contactsRepo:       repo.GetContactsRepo(),
 		})
 }
 
@@ -103,14 +103,14 @@ func (s *s3ContactsCronExecutor) JobExecutor() {
 
 	groupName = toProcessPendingJob.Extra[constants.ConstGroupName].(string)
 
-	s3ProcessingEntity, err := s.getS3ProcessingRowNumber(s.ctx, toProcessPendingJob.Name, int(S3ContactsFetchProcessingBatchSize))
+	cronProcessingEntity, err := s.getCronProcessingRowNumber(s.ctx, toProcessPendingJob.Name, int(S3ContactsFetchProcessingBatchSize))
 	if err != nil {
 		fmt.Println("failed to fetch next row number to update")
 		return
 	}
 
 	// get all the rows to be updated and check if they already exists in the contacts table.
-	rowsToProcess, err := s.getRowsFromS3CsvFile(s.ctx, toProcessPendingJob.Name, s3ProcessingEntity.InProgress+1, s3ProcessingEntity.InProgress+int(S3ContactsFetchProcessingBatchSize))
+	rowsToProcess, err := s.getRowsFromS3CsvFile(s.ctx, toProcessPendingJob.Name, cronProcessingEntity.InProgress+1, cronProcessingEntity.InProgress+int(S3ContactsFetchProcessingBatchSize))
 	if err != nil {
 		log.Println("failed fetching new rows from csv file")
 		return
@@ -144,7 +144,7 @@ func (s *s3ContactsCronExecutor) JobExecutor() {
 				Name:   toUpdateContact.Name,
 				Email:  toUpdateContact.Email,
 				Mobile: toUpdateContact.Mobile,
-			})
+			}, "")
 		if err != nil || len(dedupEntities) > 0 {
 			fmt.Println("either err fetching contacts or entry already exists")
 			continue
@@ -160,17 +160,17 @@ func (s *s3ContactsCronExecutor) JobExecutor() {
 		return
 	}
 
-	// update s3Processing item
-	_, err = s.s3ProcessingRepo.UpdateStatusByID(s.ctx, s3ProcessingEntity.ID, models.S3ProcessingStatusCompleted)
+	// update cronProcessing item
+	_, err = s.cronProcessingRepo.UpdateStatusByID(s.ctx, cronProcessingEntity.ID, models.CronProcessingStatusCompleted)
 	if err != nil {
 		fmt.Println("error in updating s3 processing entity")
 		return
 	}
 
-	// if lesser rows to process then just update s3Processing table and pendingJobs table and mark it completed
+	// if lesser rows to process then just update cronProcessing table and pendingJobs table and mark it completed
 	if len(rowsToProcess.Rows) < S3ContactsFetchProcessingBatchSize {
-		// update s3Processing item
-		_, err = s.s3ProcessingRepo.UpdateStatusByID(s.ctx, s3ProcessingEntity.ID, models.S3ProcessingStatusLastRun)
+		// update cronProcessing item
+		_, err = s.cronProcessingRepo.UpdateStatusByID(s.ctx, cronProcessingEntity.ID, models.CronProcessingStatusLastRun)
 		if err != nil {
 			fmt.Println("error in updating s3 processing entity")
 			return
@@ -188,53 +188,53 @@ func (s *s3ContactsCronExecutor) JobExecutor() {
 		return
 	}
 
-	fmt.Printf("sucessfully created contacts. Processed row number: %v\n", s3ProcessingEntity.InProgress)
+	fmt.Printf("sucessfully created contacts. Processed row number: %v\n", cronProcessingEntity.InProgress)
 }
 
-func (s *s3ContactsCronExecutor) getS3ProcessingRowNumber(ctx *gin.Context, s3FileName string, batch int) (models.S3Processing, error) {
+func (s *s3ContactsCronExecutor) getCronProcessingRowNumber(ctx *gin.Context, s3FileName string, batch int) (models.CronProcessing, error) {
 
 	// acquire lock on file name
-	output, err := mutex.GetS3ProcessingMutexLockManager().
+	output, err := mutex.GetCronProcessingMutexLockManager().
 		AcquireAndRelease(ctx,
 			fmt.Sprintf(MutexKeyS3ContactsFetchProcessing, s3FileName),
 			[]byte("Dummy Data"),
 			func() (interface{}, error) {
 
 				// get the last in progress row number
-				s3ProcessingItems, err := repo.GetS3ProcessingRepo().FetchByName(ctx, s3FileName)
+				cronProcessingItems, err := repo.GetCronProcessingRepo().FetchByName(ctx, s3FileName)
 				if err != nil {
 					fmt.Println("error in item fetch")
 					return nil, err
 				}
 
 				// fetch last inProgress row
-				lastInProgressRow := fetchLastInProgressRowForS3ContactsProcessing(s3ProcessingItems)
+				lastInProgressRow := fetchLastInProgressRowForS3ContactsProcessing(cronProcessingItems)
 
 				// insert entry for current batch
-				s3ProcessingInsertItem := models.S3Processing{
+				cronProcessingInsertItem := models.CronProcessing{
 					ID:         uuid.New().String(),
 					Name:       s3FileName,
 					Batch:      batch,
 					InProgress: lastInProgressRow,
-					Status:     models.S3ProcessingStatusProcessing,
+					Status:     models.CronProcessingStatusProcessing,
 				}
 
-				err = s.s3ProcessingRepo.Create(ctx, &s3ProcessingInsertItem)
+				err = s.cronProcessingRepo.Create(ctx, &cronProcessingInsertItem)
 				if err != nil {
-					fmt.Println("error in s3 processing new batch insertion")
-					return models.S3Processing{}, err
+					fmt.Println("error in cron processing item insertion")
+					return models.CronProcessing{}, err
 				}
 
 				// return batch number
-				return s3ProcessingInsertItem, nil
+				return cronProcessingInsertItem, nil
 			})
 
 	if err != nil {
 		// todo: mutex already acquire handling
-		return models.S3Processing{}, err
+		return models.CronProcessing{}, err
 	}
 
-	return output.(models.S3Processing), nil
+	return output.(models.CronProcessing), nil
 }
 
 func (s *s3ContactsCronExecutor) getRowsFromS3CsvFile(ctx *gin.Context, s3FileName string, from, to int) (*s3ContactsCsvData, error) {
@@ -286,7 +286,7 @@ func (s *s3ContactsCronExecutor) getRowsFromS3CsvFile(ctx *gin.Context, s3FileNa
 	}, nil
 }
 
-func fetchLastInProgressRowForS3ContactsProcessing(models []models.S3Processing) int {
+func fetchLastInProgressRowForS3ContactsProcessing(models []models.CronProcessing) int {
 	var lastInProgressRow int
 
 	if len(models) == 0 {

@@ -25,7 +25,7 @@ func PostSmsTemplate(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Sender ID added successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "Sms Template added successfully"})
 }
 
 func GetSmsTemplate(c *gin.Context) {

@@ -44,7 +44,7 @@ func (s *SmsSenderRepo) FetchSmsSenderByUserIDSenderCode(ctx *gin.Context, userI
 
 	if len(smsSenderItems) == 0 {
 		log.Println("no data found")
-		return nil, errors.New("no data found")
+		return nil, errors.New(ErrCodeNoDataFound)
 	}
 
 	var smsSenderEntity []models.SmsSender

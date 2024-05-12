@@ -8,6 +8,7 @@ import (
 	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
 	"github.com/fastbiztech/hastinapura/internal/pkg/rzp"
 	"github.com/fastbiztech/hastinapura/internal/services/contacts"
+	"github.com/fastbiztech/hastinapura/internal/services/cronProcessing"
 	"github.com/fastbiztech/hastinapura/internal/services/group"
 	"github.com/fastbiztech/hastinapura/internal/services/invoices"
 	otcSvc "github.com/fastbiztech/hastinapura/internal/services/otp"
@@ -15,7 +16,6 @@ import (
 	"github.com/fastbiztech/hastinapura/internal/services/pendingJobs"
 	"github.com/fastbiztech/hastinapura/internal/services/promo"
 	"github.com/fastbiztech/hastinapura/internal/services/register"
-	"github.com/fastbiztech/hastinapura/internal/services/s3Processing"
 	"github.com/fastbiztech/hastinapura/internal/services/sms"
 	"github.com/fastbiztech/hastinapura/internal/services/subscription"
 	"github.com/fastbiztech/hastinapura/pkg/logger"
@@ -53,12 +53,13 @@ func InitialiseDeps() {
 	group.InitialiseService()
 	contacts.InitialiseService()
 	pendingJobs.InitialiseService()
-	s3Processing.InitialiseService()
+	cronProcessing.InitialiseService()
 	sms.InitialiseService()
 
 	// crons initialisation : TODO - move to worker initialisation
 	// todo : stop all crons at graceful shutdown
 	group.InitialiseS3ContactsCron()
+	sms.InitialiseCampaignCron()
 	payments.InitiateRefundForStuckOrdersCron(payments.GetPaymentCronService())
 
 	// mutex connection check

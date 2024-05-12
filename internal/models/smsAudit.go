@@ -16,7 +16,7 @@ const (
 	ColumnSmsAuditID              = "ID"
 	ColumnSmsAuditUserID          = "UserID"
 	ColumnSmsAuditCreditsConsumed = "CreditsConsumed"
-	ColumnSmsAuditTemplateID      = "TemplateID"
+	ColumnSmsAuditTemplateID      = "TemplateCode"
 	ColumnSmsAuditSenderCode      = "SenderCode"
 	ColumnSmsAuditContactID       = "ContactID"
 	ColumnSmsAuditStatus          = "Status"

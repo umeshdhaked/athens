@@ -1,6 +1,6 @@
 package dtos
 
-type GetS3ProcessingRequest struct {
+type GetCronProcessingRequest struct {
 	Name   string `form:"name"`
 	Status string `form:"status"`
 	Type   string `form:"type"`

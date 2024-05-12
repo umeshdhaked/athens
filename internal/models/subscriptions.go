@@ -1,47 +1,24 @@
 package models
 
 const (
-	TablePricing          = "Pricing"
-	TableUserSubscription = "UserSubscriptions"
-	TableCreditAudits     = "CreditsAudit"
+	TableSubscription = "Subscription"
 )
 
 const (
-	ColumnId           = "Id"
-	ColumnUserId       = "UserId"
-	ColumnType         = "Type"
-	ColumnPricingState = "PricingState"
+	ColumnSubscriptionsID            = "Id"
+	ColumnSubscriptionsUserId        = "UserId"
+	ColumnSubscriptionsPricingStatus = "status"
+	ColumnSubscriptionsType          = "type"
+	ColumnSubscriptionsSubType       = "sub_type"
 )
 
-type Pricing struct {
-	Id           string  `json:"id"`
-	Category     string  `json:"category"`
-	SubCategory  string  `json:"sub_category"`
-	PricingType  string  `json:"pricing_type"`
-	Rates        float64 `json:"rates"`
-	PricingState string  `json:"pricing_state"`
-	BaseModel
-}
-
-type UserSubscription struct {
-	Id        string `json:"id"`
-	PricingId string `json:"pricing_id"`
-	UserId    string `json:"user_id"`
-	Type      string `json:"type"`
-	SubType   string `json:"sub_type"`
-	SubStatus string `json:"status"`
-	AddedBy   string `json:"added_by"`
-	BaseModel
-}
-
-type CreditAudits struct {
-	Id             string  `json:"id"`
-	Category       string  `json:"category"`
-	SubCategory    string  `json:"sub_category"`
-	DeductedAmount float64 `json:"deducted_amount"`
-	AddedAmount    float64 `json:"added_amount"`
-	CreditId       string  `json:"credit_id"`
-	UserId         string  `json:"user_id"`
-	PaymentOrderId string  `json:"payment_order_id"`
+type Subscription struct {
+	Id        string `json:"ID" dynamodbav:"ID"`
+	PricingId string `json:"pricing_id" dynamodbav:"pricing_id"`
+	UserId    string `json:"UserId" dynamodbav:"UserId"`
+	Type      string `json:"type" dynamodbav:"type"`
+	SubType   string `json:"sub_type" dynamodbav:"sub_type"`
+	Status    string `json:"status" dynamodbav:"status"`
+	AddedBy   string `json:"added_by" dynamodbav:"added_by"`
 	BaseModel
 }

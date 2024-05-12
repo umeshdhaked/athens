@@ -23,12 +23,12 @@ type DeleteSenderCodeRequest struct {
 }
 
 type PostSmsTemplateRequest struct {
-	SenderID   string `json:"sender_id"`
-	SenderCode string `json:"sender_code"`
-	TemplateID string `json:"template_id"`
-	Body       string `json:"body"`
-	Type       string `json:"type"`
-	Language   string `json:"language"`
+	SenderID     string `json:"sender_id"`
+	SenderCode   string `json:"sender_code"`
+	TemplateCode string `json:"template_code"`
+	Body         string `json:"body"`
+	Type         string `json:"type"`
+	Language     string `json:"language"`
 }
 
 type GetSmsTemplateRequest struct {
@@ -64,12 +64,14 @@ type PostSmsRequest struct {
 	TemplateID string `json:"template_id"`
 }
 
+// todo: validation tags
 type CreateSmsCampaignRequest struct {
 	Name        string `json:"name"`
 	ScheduledAt int    `json:"scheduled_at"`
 	TemplateID  string `json:"template_id"`
 	SenderCode  string `json:"sender_code"`
 	Type        string `json:"type"`
+	GroupName   string `json:"group_name"`
 }
 
 type GetSmsCampaignsRequest struct {

@@ -38,7 +38,7 @@ func GetService() *Service {
 func (s *Service) GetContacts(c *gin.Context, request dtos.GetGroupContactsRequest) (interface{}, error) {
 	items, err := s.contactsRepo.FetchAllByConditions(c, dtos.GetContactsRequest{
 		GroupName: request.GroupName,
-	})
+	}, "")
 	if err != nil {
 		log.Fatalf("error fetching item: %v", err)
 	}

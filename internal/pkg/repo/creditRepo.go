@@ -28,6 +28,7 @@ func GetCreditsRepo() *CreditsRepo {
 	return creditsRepo
 }
 
+// TODO: use transaction
 func (c *CreditsRepo) CreateUserCredit(ctx *gin.Context, credit *models.Credits) error {
 	item, _ := attributevalue.MarshalMap(credit)
 	params := &dynamodb.PutItemInput{
@@ -40,6 +41,7 @@ func (c *CreditsRepo) CreateUserCredit(ctx *gin.Context, credit *models.Credits)
 	return er
 }
 
+// TODO: use transaction
 func (c *CreditsRepo) FetchCreditByUserID(ctx *gin.Context, userID string) (*models.Credits, error) {
 	queryInput := dtos.DbQueryInputConditions{
 		Index: models.IndexTableCreditsIndexUserID,
@@ -55,7 +57,7 @@ func (c *CreditsRepo) FetchCreditByUserID(ctx *gin.Context, userID string) (*mod
 	}
 
 	if len(creditItems) == 0 {
-		return nil, nil
+		return nil, errors.New(ErrCodeNoDataFound)
 	}
 
 	if len(creditItems) != 1 {
@@ -72,6 +74,7 @@ func (c *CreditsRepo) FetchCreditByUserID(ctx *gin.Context, userID string) (*mod
 	return &creditsEntity, nil
 }
 
+// TODO: use transaction
 func (c *CreditsRepo) UpdateCreditsLeftByID(ctx *gin.Context, id string, creditsLeft float64) (*models.Credits, error) {
 	queryInput := dtos.DbUpdateQueryConditions{
 		Key: map[string]types.AttributeValue{

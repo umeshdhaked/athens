@@ -25,7 +25,7 @@ func CreateSmsCampaign(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Sender ID added successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "Sms campaign created successfully"})
 }
 
 func GetSmsCampaigns(c *gin.Context) {

@@ -2,14 +2,15 @@ package subscription
 
 import (
 	"errors"
+	"log"
+	"sort"
+	"time"
+
 	"github.com/fastbiztech/hastinapura/internal/constants"
 	"github.com/fastbiztech/hastinapura/internal/models"
 	"github.com/fastbiztech/hastinapura/pkg/dtos"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"log"
-	"sort"
-	"time"
 )
 
 func (s *SubscriptionService) AddCreditToUser(ctx *gin.Context, subRequest *dtos.AddCreditsRequest) error {
@@ -23,10 +24,10 @@ func (s *SubscriptionService) AddCreditToUser(ctx *gin.Context, subRequest *dtos
 		return err
 	}
 
-	var userSubsDto []models.UserSubscription
+	var userSubsDto []models.Subscription
 	if nil != subscriptions {
 		for _, sub := range subscriptions {
-			sub.SubStatus = "ACTIVE"
+			sub.Status = "ACTIVE"
 			userSubsDto = append(userSubsDto, sub)
 		}
 		err = s.subRepo.BatchCreateUserSubscription(ctx, userSubsDto)
@@ -104,9 +105,9 @@ func (s *SubscriptionService) ChargeUser(ctx *gin.Context, userId string, catego
 	sort.Slice(usersSubscription[:], func(i, j int) bool {
 		return usersSubscription[i].CreatedAt > usersSubscription[j].CreatedAt
 	})
-	var currentActiveSub models.UserSubscription
+	var currentActiveSub models.Subscription
 	for _, sub := range usersSubscription {
-		if sub.SubStatus == "ACTIVE" && sub.Type == category && sub.SubType == subCategory {
+		if sub.Status == "ACTIVE" && sub.Type == category && sub.SubType == subCategory {
 			currentActiveSub = sub
 			break
 		}

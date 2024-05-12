@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/fastbiztech/hastinapura/internal/models"
+	"github.com/fastbiztech/hastinapura/pkg/dtos"
 
 	"github.com/gin-gonic/gin"
 )
@@ -27,16 +28,45 @@ func GetSubscriptionRepo() *SubscriptionRepo {
 	return subscriptionRepo
 }
 
-func (s *SubscriptionRepo) FetchAllSubscriptionByStatus(ctx *gin.Context, userId string, status string) ([]models.UserSubscription, error) {
+func (s *SubscriptionRepo) FetchByUserIDAndConditions(ctx *gin.Context, userID string, conditions map[string]interface{}) ([]models.Subscription, error) {
+	queryInput := dtos.DbQueryInputConditions{
+		Index: models.IndexTableSubscriptionIndexUserID,
+		PKey: map[string]interface{}{
+			models.ColumnSubscriptionsUserId: userID,
+		},
+	}
+
+	queryInput.NonPKey = make(map[string]interface{})
+
+	for k, v := range conditions {
+		queryInput.NonPKey[k] = v
+	}
+
+	subscriptionItems, err := s.QueryItems(ctx, models.TableSubscription, queryInput)
+	if err != nil {
+		log.Printf("error fetching pending jobs item: %v\n", err)
+		return nil, err
+	}
+
+	var subscriptionEntity []models.Subscription
+	if err := attributevalue.UnmarshalListOfMaps(subscriptionItems, &subscriptionEntity); err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	return subscriptionEntity, nil
+}
+
+func (s *SubscriptionRepo) FetchAllSubscriptionByStatus(ctx *gin.Context, userId string, status string) ([]models.Subscription, error) {
 	queryInput := &dynamodb.QueryInput{
-		TableName:        aws.String(models.TableUserSubscription),
-		IndexName:        aws.String(models.IndexTableUserSubscriptionIndexUserID),
+		TableName:        aws.String(models.TableSubscription),
+		IndexName:        aws.String(models.IndexTableSubscriptionIndexUserID),
 		FilterExpression: aws.String("SubStatus= :var0"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":var0": &types.AttributeValueMemberS{Value: status},
 		},
 		KeyConditions: map[string]types.Condition{
-			models.ColumnUserId: {
+			models.ColumnSubscriptionsUserId: {
 				ComparisonOperator: types.ComparisonOperatorEq,
 				AttributeValueList: []types.AttributeValue{
 					&types.AttributeValueMemberS{Value: userId},
@@ -51,7 +81,7 @@ func (s *SubscriptionRepo) FetchAllSubscriptionByStatus(ctx *gin.Context, userId
 	}
 
 	if resp.Count > 0 {
-		subscriptions := []models.UserSubscription{}
+		subscriptions := []models.Subscription{}
 		if err := attributevalue.UnmarshalListOfMaps(resp.Items, &subscriptions); err != nil {
 			log.Println(err)
 			return nil, err
@@ -61,22 +91,22 @@ func (s *SubscriptionRepo) FetchAllSubscriptionByStatus(ctx *gin.Context, userId
 	return nil, nil
 }
 
-func (s *SubscriptionRepo) FetchSubscriptionByTypeSubType(ctx *gin.Context, userId string, Type string, SubType string) ([]models.UserSubscription, error) {
+func (s *SubscriptionRepo) FetchSubscriptionByTypeSubType(ctx *gin.Context, userId string, Type string, SubType string) ([]models.Subscription, error) {
 	queryInput := &dynamodb.QueryInput{
-		TableName:        aws.String(models.TableUserSubscription),
-		IndexName:        aws.String(models.IndexTableUserSubscriptionIndexUserID),
+		TableName:        aws.String(models.TableSubscription),
+		IndexName:        aws.String(models.IndexTableSubscriptionIndexUserID),
 		FilterExpression: aws.String("SubType = :var0"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":var0": &types.AttributeValueMemberS{Value: SubType},
 		},
 		KeyConditions: map[string]types.Condition{
-			models.ColumnUserId: {
+			models.ColumnSubscriptionsUserId: {
 				ComparisonOperator: types.ComparisonOperatorEq,
 				AttributeValueList: []types.AttributeValue{
 					&types.AttributeValueMemberS{Value: userId},
 				},
 			},
-			models.ColumnType: {
+			models.ColumnSubscriptionsType: {
 				ComparisonOperator: types.ComparisonOperatorEq,
 				AttributeValueList: []types.AttributeValue{
 					&types.AttributeValueMemberS{Value: Type},
@@ -91,7 +121,7 @@ func (s *SubscriptionRepo) FetchSubscriptionByTypeSubType(ctx *gin.Context, user
 	}
 
 	if resp.Count > 0 {
-		subscriptions := []models.UserSubscription{}
+		subscriptions := []models.Subscription{}
 		if err := attributevalue.UnmarshalListOfMaps(resp.Items, &subscriptions); err != nil {
 			log.Println(err)
 			return nil, err
@@ -101,12 +131,12 @@ func (s *SubscriptionRepo) FetchSubscriptionByTypeSubType(ctx *gin.Context, user
 	return nil, nil
 }
 
-func (s *SubscriptionRepo) GetSubscriptionFromId(ctx *gin.Context, subId string) (*models.UserSubscription, error) {
+func (s *SubscriptionRepo) GetSubscriptionFromId(ctx *gin.Context, subId string) (*models.Subscription, error) {
 	queryInput := &dynamodb.QueryInput{
-		TableName: aws.String(models.TableUserSubscription),
+		TableName: aws.String(models.TableSubscription),
 		//IndexName: aws.String("id-index"),
 		KeyConditions: map[string]types.Condition{
-			models.ColumnId: {
+			models.ColumnSubscriptionsID: {
 				ComparisonOperator: types.ComparisonOperatorEq,
 				AttributeValueList: []types.AttributeValue{
 					&types.AttributeValueMemberS{Value: subId},
@@ -121,7 +151,7 @@ func (s *SubscriptionRepo) GetSubscriptionFromId(ctx *gin.Context, subId string)
 	}
 
 	if resp.Count > 0 {
-		subscriptions := []models.UserSubscription{}
+		subscriptions := []models.Subscription{}
 		if err := attributevalue.UnmarshalListOfMaps(resp.Items, &subscriptions); err != nil {
 			log.Println(err)
 			return nil, err
@@ -131,7 +161,7 @@ func (s *SubscriptionRepo) GetSubscriptionFromId(ctx *gin.Context, subId string)
 	return nil, nil
 }
 
-func (s *SubscriptionRepo) BatchCreateUserSubscription(ctx *gin.Context, userSubsDto []models.UserSubscription) error {
+func (s *SubscriptionRepo) BatchCreateUserSubscription(ctx *gin.Context, userSubsDto []models.Subscription) error {
 	writeRequests := []types.WriteRequest{}
 	for _, us := range userSubsDto {
 		item, _ := attributevalue.MarshalMap(us)
@@ -141,7 +171,7 @@ func (s *SubscriptionRepo) BatchCreateUserSubscription(ctx *gin.Context, userSub
 
 	batchWrite := dynamodb.BatchWriteItemInput{
 		RequestItems: map[string][]types.WriteRequest{
-			models.TableUserSubscription: writeRequests,
+			models.TableSubscription: writeRequests,
 		},
 	}
 	output, er := s.dbClient.BatchWriteItem(ctx, &batchWrite)
@@ -152,14 +182,14 @@ func (s *SubscriptionRepo) BatchCreateUserSubscription(ctx *gin.Context, userSub
 	return nil
 }
 
-func (s *SubscriptionRepo) CreateUserSubscription(ctx *gin.Context, userSubsDto *models.UserSubscription) error {
-	item, _ := attributevalue.MarshalMap(userSubsDto)
+func (s *SubscriptionRepo) Create(ctx *gin.Context, model *models.Subscription) error {
+	item, _ := attributevalue.MarshalMap(model)
 	params := &dynamodb.PutItemInput{
-		TableName: aws.String(models.TableUserSubscription),
+		TableName: aws.String(models.TableSubscription),
 		Item:      item,
 	}
 
-	output, err := s.dbClient.PutItem(ctx, params)
-	log.Println(output)
-	return err
+	_, er := s.dbClient.PutItem(ctx, params)
+
+	return er
 }

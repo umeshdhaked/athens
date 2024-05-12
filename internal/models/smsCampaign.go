@@ -8,7 +8,8 @@ const (
 	// States
 	SmsCampaignStateCreated     = "CREATED"
 	SmsCampaignStateDeActivated = "DEACTIVATED"
-	SmsCampaignStateApproved    = "EXECUTED"
+	SmsCampaignStateInProgress  = "IN_PROGRESS"
+	SmsCampaignStateExecuted    = "EXECUTED"
 
 	// Columns
 	ColumnSmsCampaignID          = "ID"
@@ -16,7 +17,7 @@ const (
 	ColumnSmsCampaignScheduledAt = "ScheduledAt"
 	ColumnSmsCampaignStatus      = "Status"
 	ColumnSmsCampaignUserID      = "UserID"
-	ColumnSmsCampaignTemplateID  = "TemplateID"
+	ColumnSmsCampaignTemplateID  = "TemplateCode"
 	ColumnSmsCampaignSenderID    = "SenderID"
 	ColumnSmsCampaignType        = "Type"
 )
@@ -29,6 +30,7 @@ type SmsCampaign struct {
 	UserID      string `json:"user_id"`
 	TemplateID  string `json:"template_id"`
 	SenderCode  string `json:"sender_code"`
+	GroupName   string `json:"group_name"`
 	Type        string `json:"type"`
 	BaseModel
 }

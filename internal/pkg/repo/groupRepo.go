@@ -64,7 +64,7 @@ func (s *GroupRepo) FetchByUserIDAndName(ctx *gin.Context, userID, name string) 
 
 	if len(groupItems) == 0 {
 		log.Println("no data found")
-		return nil, nil
+		return nil, errors.New(ErrCodeNoDataFound)
 	}
 
 	var groupEntity []models.Group
@@ -77,7 +77,7 @@ func (s *GroupRepo) FetchByUserIDAndName(ctx *gin.Context, userID, name string) 
 }
 
 func (s *GroupRepo) FetchAllByConditions(ctx *gin.Context, conditions dtos.GetGroupRequest) ([]models.Group, error) {
-	queryInput := dtos.DbFilterQueryConditions{}
+	queryInput := dtos.DbScanQueryConditions{}
 	queryInput.Filters = make(map[string]types.AttributeValue)
 
 	if !utils.IsEmpty(conditions.Name) {

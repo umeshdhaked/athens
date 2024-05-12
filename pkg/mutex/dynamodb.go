@@ -31,7 +31,7 @@ const (
 
 var (
 	once                         sync.Once
-	s3ProcessingMutex            *DynamoDBLockManager
+	cronProcessingMutex          *DynamoDBLockManager
 	paymentRefundProcessingMutex *DynamoDBLockManager
 )
 
@@ -53,8 +53,8 @@ func Initialise() {
 	once.Do(func() {
 		var err error
 
-		// s3 processing mutex instance
-		s3ProcessingMutex, err = NewDynamoDBLockManager(S3ContactsFetchProcessingLeaseDuration, S3ContactsFetchProcessingStartAtDuration)
+		// cron processing mutex instance
+		cronProcessingMutex, err = NewDynamoDBLockManager(S3ContactsFetchProcessingLeaseDuration, S3ContactsFetchProcessingStartAtDuration)
 		paymentRefundProcessingMutex, err = NewDynamoDBLockManager(PaymentRefundProcessingLeaseDuration, PaymentRefundProcessingStartAtDuration)
 
 		if err != nil {
@@ -63,8 +63,8 @@ func Initialise() {
 	})
 }
 
-func GetS3ProcessingMutexLockManager() *DynamoDBLockManager {
-	return s3ProcessingMutex
+func GetCronProcessingMutexLockManager() *DynamoDBLockManager {
+	return cronProcessingMutex
 }
 
 func PaymentRefundProcessingMutexLockManager() *DynamoDBLockManager {

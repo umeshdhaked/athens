@@ -72,11 +72,11 @@ func (s *SmsCampaignRepo) FetchByID(ctx *gin.Context, id string) (models.SmsCamp
 	return smsCampaignEntity, nil
 }
 
-func (s *SmsCampaignRepo) FetchSmsCampaignByUserIDAndConditions(ctx *gin.Context, userID string, conditions dtos.DbFilterQueryConditions) ([]models.SmsCampaign, error) {
+func (s *SmsCampaignRepo) FetchByUserIDAndConditions(ctx *gin.Context, userID string, conditions dtos.DbScanQueryConditions) ([]models.SmsCampaign, error) {
 	queryInput := dtos.DbQueryInputConditions{
 		Index: models.IndexTableSmsCampaignIndexUserID,
 		PKey: map[string]interface{}{
-			models.ColumnSmsTemplateUserID: userID,
+			models.ColumnSmsCampaignUserID: userID,
 		},
 	}
 
@@ -99,11 +99,11 @@ func (s *SmsCampaignRepo) FetchSmsCampaignByUserIDAndConditions(ctx *gin.Context
 	return smsCampaignEntities, nil
 }
 
-func (s *SmsCampaignRepo) FetchSmsCampaignByStatusAndConditions(ctx *gin.Context, status string, conditions dtos.DbFilterQueryConditions) ([]models.SmsCampaign, error) {
+func (s *SmsCampaignRepo) FetchByStatusAndConditions(ctx *gin.Context, status string, conditions dtos.DbScanQueryConditions) ([]models.SmsCampaign, error) {
 	queryInput := dtos.DbQueryInputConditions{
 		Index: models.IndexTableSmsCampaignIndexStatus,
 		PKey: map[string]interface{}{
-			models.ColumnSmsTemplateStatus: status,
+			models.ColumnSmsCampaignStatus: status,
 		},
 	}
 
@@ -127,7 +127,7 @@ func (s *SmsCampaignRepo) FetchSmsCampaignByStatusAndConditions(ctx *gin.Context
 }
 
 func (s *SmsCampaignRepo) FetchAllByConditions(ctx *gin.Context, conditions dtos.GetSmsCampaignsRequest) ([]models.SmsCampaign, error) {
-	queryInput := dtos.DbFilterQueryConditions{}
+	queryInput := dtos.DbScanQueryConditions{}
 	queryInput.Filters = make(map[string]types.AttributeValue)
 
 	if !utils.IsEmpty(conditions.Name) {
