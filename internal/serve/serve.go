@@ -1,7 +1,7 @@
 package serve
 
 import (
-	"log"
+	"github.com/fastbiztech/hastinapura/pkg/logger"
 	"net/http"
 	"time"
 
@@ -28,7 +28,7 @@ func Serve() {
 		MaxHeaderBytes: 1 << 20,
 	}
 
-	log.Println("application running on port : " + config.GetConfig().App.Port)
+	logger.GetLogger().Info("application running on port : " + config.GetConfig().App.Port)
 
 	err := srv.ListenAndServe()
 	if err != nil {

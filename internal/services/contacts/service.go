@@ -1,7 +1,6 @@
 package contacts
 
 import (
-	"log"
 	"sync"
 
 	"github.com/fastbiztech/hastinapura/internal/constants"
@@ -54,7 +53,7 @@ func (s *Service) GetContacts(c *gin.Context, request dtos.GetGroupContactsReque
 	// todo: add order by.
 	err = utils.SortByField(items, "Name", "asc")
 	if err != nil {
-		log.Fatalf("error sorting items: %v", err)
+		logger.GetLogger().WithField("error", err).Error("error sorting items:")
 	}
 
 	return items, nil

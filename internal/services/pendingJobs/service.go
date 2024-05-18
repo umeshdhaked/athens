@@ -1,7 +1,7 @@
 package pendingJobs
 
 import (
-	"log"
+	"github.com/fastbiztech/hastinapura/pkg/logger"
 	"sync"
 
 	"github.com/fastbiztech/hastinapura/internal/constants"
@@ -45,7 +45,7 @@ func (s *Service) GetPendingJobs(c *gin.Context, request dtos.GetPendingJobsRequ
 		To:   request.To,
 	})
 	if err != nil {
-		log.Fatalf("error fetching item: %v", err)
+		logger.GetLogger().WithField("error", err).Error("error fetching item:")
 	}
 
 	return items, nil

@@ -5,10 +5,10 @@ import (
 	"errors"
 	"github.com/fastbiztech/hastinapura/internal/services/payments"
 	"github.com/fastbiztech/hastinapura/pkg/dtos"
+	"github.com/fastbiztech/hastinapura/pkg/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/razorpay/razorpay-go/utils"
 	"io"
-	"log"
 	"net/http"
 )
 
@@ -62,7 +62,7 @@ func HandlePaymentOrderWebhook(ctx *gin.Context) {
 	sign := ctx.Request.Header["X-Razorpay-Signature"][0]
 	isValid := utils.VerifyWebhookSignature(string(jsonData), sign, "23e12f50-3ee6-41b8-bcdb-fd123dfd28cb")
 	if !isValid {
-		log.Println("unable to validate signature with secret")
+		logger.GetLogger().Info("unable to validate signature with secret")
 		ctx.String(http.StatusInternalServerError, errors.New("invalid signature").Error())
 		return
 	}

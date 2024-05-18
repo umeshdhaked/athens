@@ -1,7 +1,7 @@
 package payments
 
 import (
-	"log"
+	"github.com/fastbiztech/hastinapura/pkg/logger"
 	"sync"
 	"time"
 
@@ -166,7 +166,7 @@ func (r *PaymentService) PaymentOrderWebhook(ctx *gin.Context, orderReq *dtos.Pa
 		return err
 	}
 	if existingOrder.Status == "paid" {
-		log.Println("idempotent request for order id")
+		logger.GetLogger().Error("idempotent request for order id")
 		return nil
 	}
 

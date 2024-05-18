@@ -1,7 +1,7 @@
 package cron
 
 import (
-	"log"
+	"github.com/fastbiztech/hastinapura/pkg/logger"
 	"time"
 
 	"github.com/go-co-op/gocron/v2"
@@ -13,7 +13,7 @@ func (sh *Scheduler) NewScheduler() ICronJob {
 	// create a scheduler
 	s, err := gocron.NewScheduler(gocron.WithLocation(time.UTC))
 	if err != nil {
-		log.Fatal("failed initialising cron job")
+		logger.GetLogger().WithField("error", err).Error("failed initialising cron job")
 	}
 
 	return &job{

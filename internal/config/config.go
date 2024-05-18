@@ -2,7 +2,7 @@ package config
 
 import (
 	"fmt"
-	"log"
+	"github.com/fastbiztech/hastinapura/pkg/logger"
 	"strings"
 	"sync"
 
@@ -117,7 +117,7 @@ func LoadConfig() {
 
 		err := viper.ReadInConfig()
 		if err != nil {
-			log.Fatal(err.Error())
+			logger.GetLogger().Panic(err.Error())
 		}
 
 		// Load env specific values and merge.
@@ -125,13 +125,13 @@ func LoadConfig() {
 
 		err = viper.MergeInConfig() // This will merge env.json with default.json
 		if err != nil {
-			log.Fatalf("Error reading env config: %s", err)
+			logger.GetLogger().WithField("error", err).Panic("Error reading env config")
 		}
 
 		err = viper.Unmarshal(&config)
 		if err != nil {
-			fmt.Printf("unable to decode into config struct, %v", err)
-			panic("failed to load config")
+			logger.GetLogger().WithField("error", err).Error("unable to decode into config struct")
+			logger.GetLogger().Panic("failed to load config")
 		}
 	})
 }

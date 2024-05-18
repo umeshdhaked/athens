@@ -4,7 +4,6 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"strings"
 	"time"
@@ -117,7 +116,7 @@ func (s *s3ContactsCronExecutor) JobExecutor() {
 	// get all the rows to be updated and check if they already exists in the contacts table.
 	rowsToProcess, err := s.getRowsFromS3CsvFile(s.ctx, toProcessPendingJob.Name, cronProcessingEntity.InProgress+1, cronProcessingEntity.InProgress+int(S3ContactsFetchProcessingBatchSize))
 	if err != nil {
-		log.Println("failed fetching new rows from csv file")
+		logger.GetLogger().WithField("error", err).Error("failed fetching new rows from csv file")
 		return
 	}
 
@@ -254,7 +253,7 @@ func (s *s3ContactsCronExecutor) getRowsFromS3CsvFile(ctx *gin.Context, s3FileNa
 	// pull s3 file
 	body, err = aws.GetS3Client().Fetch(ctx, aws.BucketContactUpload, s3FileName)
 	if err != nil {
-		log.Println("error fetching s3 file")
+		logger.GetLogger().WithField("error", err).Error("error fetching s3 file")
 		return nil, err
 	}
 

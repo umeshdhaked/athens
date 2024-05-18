@@ -1,7 +1,7 @@
 package cron
 
 import (
-	"log"
+	"github.com/fastbiztech/hastinapura/pkg/logger"
 	"time"
 
 	"github.com/go-co-op/gocron/v2"
@@ -26,7 +26,7 @@ func (j *job) Initialize(interval time.Duration, startDelay time.Duration, execu
 		gocron.WithStartAt(startAt),
 		gocron.WithSingletonMode(gocron.LimitModeReschedule))
 	if err != nil {
-		log.Fatalf("err: %v", err)
+		logger.GetLogger().WithField("error", err).Error("err: ")
 	}
 
 	j.scheduler.Start()

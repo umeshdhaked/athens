@@ -2,8 +2,8 @@ package otp
 
 import (
 	"crypto/rand"
+	"github.com/fastbiztech/hastinapura/pkg/logger"
 	"io"
-	"log"
 	"sync"
 )
 
@@ -41,7 +41,7 @@ func (o *OtpSender) GenerateOtp() string {
 }
 
 func (o *OtpSender) SendOtp(otp string) error {
-	log.Printf("otp sent: %s", otp)
+	logger.GetLogger().WithField("otp", otp).Info("otp sent")
 	//send otp here
 	return nil
 }

@@ -23,6 +23,32 @@
       "base_url": "https://smsheader.trai.gov.in/",
       "path": "query_header",
       "method": "POST"
+    },
+    "instant_sms": {
+      "base_url": "https://smsheader.trai.gov.in/",
+      "path": "query_header",
+      "method": "POST",
+      "auth" : {
+        "key": "${API_INSTANT_SMS_AUTH_KEY}",
+        "secret": ""
+      }
+    }
+  },
+  "crons": {
+    "s3_contacts": {
+      "enable": true,
+      "start_time": 60,
+      "execution_time": 5
+    },
+    "payment_refunds": {
+      "enable": true,
+      "start_time": 60,
+      "execution_time": 300
+    },
+    "campaign": {
+      "enable": true,
+      "start_time": 0,
+      "execution_time": 10
     }
   }
 }

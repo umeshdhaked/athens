@@ -2,7 +2,6 @@ package register
 
 import (
 	"errors"
-	"log"
 	"sync"
 
 	"github.com/fastbiztech/hastinapura/internal/constants"
@@ -51,13 +50,13 @@ func GetRegistrationService() *RegistrationService {
 func (s *RegistrationService) SendOtp(ctx *gin.Context, user dtos.RegisterUserRequest) error {
 	err := s.otpService.SendOtp(ctx, user.MobileNumber)
 	// add OTP send logic here.
-	log.Println("otp sent for user ", user.MobileNumber)
+	logger.GetLogger().WithField("mobile", user.MobileNumber).Info("otp sent for user")
 	// save hashed otp after sending otp....
 	return err
 }
 
 func (s *RegistrationService) UpdateUserRoleToAdmin(ctx *gin.Context, request dtos.RegisterUserRequest) (*dtos.LoginSuccessResponse, error) {
-	log.Println("Received update user role to admin: " + request.MobileNumber)
+	logger.GetLogger().WithField("mobile", request.MobileNumber).Info("Received update user role to admin: ")
 
 	var (
 		user *models.User = &models.User{}
@@ -84,7 +83,7 @@ func (s *RegistrationService) UpdateUserRoleToAdmin(ctx *gin.Context, request dt
 }
 
 func (s *RegistrationService) RegisterUser(ctx *gin.Context, request dtos.RegisterUserRequest) (*dtos.LoginSuccessResponse, error) {
-	log.Println("Received register user request for user ", request)
+	logger.GetLogger().WithField("request", request).Info("Received register user request for user ")
 	if err := s.otpService.VerifyOtp(ctx, request.MobileNumber, request.Otp); err != nil {
 		return nil, err
 	}

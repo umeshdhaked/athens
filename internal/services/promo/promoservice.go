@@ -2,8 +2,8 @@ package promo
 
 import (
 	"errors"
+	"github.com/fastbiztech/hastinapura/pkg/logger"
 	"gorm.io/gorm"
-	"log"
 	"sync"
 
 	"github.com/fastbiztech/hastinapura/internal/models"
@@ -48,7 +48,7 @@ func (s *PromoService) SavePhoneNo(ctx *gin.Context, phoneNo string) error {
 		Mobile: phoneNo,
 	}
 	if !errors.Is(err, gorm.ErrRecordNotFound) && exPromoPh.IsAlreadyContacted == "true" {
-		log.Print("promo phone existed and already contacted")
+		logger.GetLogger().Info("promo phone existed and already contacted")
 		return nil
 	} else {
 		obj.IsAlreadyContacted = "false"

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"mime/multipart"
 	"strconv"
 	"strings"
@@ -163,7 +162,7 @@ func (s *Service) GetContacts(c *gin.Context, request dtos.GetGroupRequest) (int
 		To:   request.To,
 	})
 	if err != nil {
-		log.Fatalf("error fetching item: %v", err)
+		logger.GetLogger().WithField("error", err).Error("error fetching item:")
 	}
 
 	return items, nil

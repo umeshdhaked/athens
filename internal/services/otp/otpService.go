@@ -2,8 +2,8 @@ package otp
 
 import (
 	"errors"
+	"github.com/fastbiztech/hastinapura/pkg/logger"
 	"gorm.io/gorm"
-	"log"
 	"sync"
 	"time"
 
@@ -42,7 +42,7 @@ func GetOtpService() *OtpService {
 
 func (o *OtpService) SendOtp(ctx *gin.Context, mobile string) error {
 	generatedOtp := o.otpSender.GenerateOtp()
-	log.Printf("generated otp %s", generatedOtp)
+	logger.GetLogger().WithField("generatedOtp", generatedOtp).Info("generated otp:")
 	if err := o.otpSender.SendOtp(generatedOtp); err != nil {
 		return err
 	}

@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
+	"github.com/fastbiztech/hastinapura/pkg/logger"
 	"reflect"
 	"strings"
 
@@ -113,12 +113,12 @@ func (d *DynamoRepository) UpdateByID(ctx *gin.Context,
 	// Insert item into the database
 	updateItem, err := d.UpdateItem(ctx, tableName, queryInput)
 	if err != nil {
-		log.Printf("error inserting item: %v\n", err)
+		logger.GetLogger().WithField("error", err).Error("error inserting item:")
 		return err
 	}
 
 	if err := attributevalue.UnmarshalMap(updateItem.Attributes, &entity); err != nil {
-		log.Println(err)
+		logger.GetLogger().WithField("error", err).Error(err.Error())
 		return err
 	}
 

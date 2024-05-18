@@ -3,7 +3,7 @@ package jwt
 import (
 	"errors"
 	"fmt"
-	"log"
+	"github.com/fastbiztech/hastinapura/pkg/logger"
 	"time"
 
 	"github.com/fastbiztech/hastinapura/internal/constants"
@@ -65,7 +65,7 @@ func RefreshToken(ctx *gin.Context) (*dtos.LoginSuccessResponse, error) {
 	jwtToken := ctx.Request.Header["Authorization"][0]
 
 	if er := VerifyToken(jwtToken); er != nil {
-		log.Println("INVALID_TOKEN")
+		logger.GetLogger().Info("INVALID_TOKEN")
 		return nil, errors.Join(er, errors.New("INVALID_TOKEN"))
 	}
 	claims, _ := DecodeToken(jwtToken)

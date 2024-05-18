@@ -3,7 +3,6 @@ package sms
 import (
 	"errors"
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 	"sync"
@@ -86,7 +85,7 @@ func (s *Service) AddSenderCode(c *gin.Context, request dtos.PostSenderCodeReque
 	// Insert item into the database
 	err = s.baseRepo.Create(c, &entrySmsSenderItem)
 	if err != nil {
-		log.Fatalf("error inserting item: %v", err)
+		logger.GetLogger().WithField("error", err).Error("error inserting item:")
 	}
 
 	return nil, nil
@@ -185,7 +184,7 @@ func (s *Service) GetSenderCodeInfoFromTrai(c *gin.Context, senderCode string) (
 	// Parse HTML
 	doc, err := html.Parse(strings.NewReader(string(response)))
 	if err != nil {
-		log.Fatal(err)
+		logger.GetLogger().WithField("error", err).Error(err.Error())
 	}
 
 	// Find and extract data from <td> tags
@@ -202,8 +201,8 @@ func (s *Service) GetSenderCodeInfoFromTrai(c *gin.Context, senderCode string) (
 	extractData(doc)
 
 	if len(traiData) > 2 && traiData[0] == senderCode {
-		log.Println("Company Profile: ", traiData[1])
-		log.Println("Sender id type: ", traiData[2])
+		logger.GetLogger().WithField("traiData_1", traiData[1]).Info("Company Profile: ")
+		logger.GetLogger().WithField("traiData_2", traiData[2]).Info("Sender id type: ")
 	}
 
 	return nil, nil
@@ -331,7 +330,7 @@ func (s *Service) DeActivateSmsTemplate(c *gin.Context, request dtos.DeActivateS
 	})
 
 	if err != nil {
-		log.Fatalf("error deactivating sms template: %v", err)
+		logger.GetLogger().WithField("error", err).Error("error deactivating sms template:")
 	}
 
 	return nil, nil
@@ -407,7 +406,7 @@ func (s *Service) SendInstantSms(c *gin.Context, request dtos.PostSmsRequest) (i
 
 	err = s.baseRepo.Create(c, &smsAuditItem)
 	if err != nil {
-		log.Fatalf("error: %v", err)
+		logger.GetLogger().WithField("error", err).Error("error:")
 	}
 
 	return nil, nil
