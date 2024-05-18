@@ -1,17 +1,19 @@
 package cronProcessing
 
 import (
-	"log"
 	"sync"
 
+	"github.com/fastbiztech/hastinapura/internal/constants"
+	"github.com/fastbiztech/hastinapura/internal/models"
 	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
 	"github.com/fastbiztech/hastinapura/pkg/dtos"
+	"github.com/fastbiztech/hastinapura/pkg/logger"
 	"github.com/gin-gonic/gin"
 )
 
 type Service struct {
-	baseRepo           *repo.Repository
-	cronProcessingRepo *repo.CronProcessingRepo
+	baseRepo           repo.IRepository
+	cronProcessingRepo repo.ICronProcessingRepo
 }
 
 var (
@@ -33,9 +35,19 @@ func GetService() *Service {
 }
 
 func (s *Service) GetCronProcessing(c *gin.Context, request dtos.GetCronProcessingRequest) (interface{}, error) {
-	items, err := s.cronProcessingRepo.FetchAllByConditions(c, request)
+	var items []models.CronProcessing
+	err := s.baseRepo.FindMultiplePagination(c,
+		&items,
+		map[string]interface{}{
+			constants.Name:   request.Name,
+			constants.Status: request.Status,
+		}, dtos.Pagination{
+			From: request.From,
+			To:   request.To,
+		})
 	if err != nil {
-		log.Fatalf("error fetching item: %v", err)
+		logger.GetLogger().Error(err.Error())
+		return nil, err
 	}
 
 	return items, nil

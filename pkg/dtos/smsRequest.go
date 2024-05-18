@@ -61,7 +61,7 @@ type PostSmsRequest struct {
 	Language   string `json:"language"`
 	Mobile     string `json:"mobile"`
 	Body       string `json:"body"`
-	TemplateID string `json:"template_id"`
+	TemplateID int64  `json:"template_id"`
 }
 
 // todo: validation tags

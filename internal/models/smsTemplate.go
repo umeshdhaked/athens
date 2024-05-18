@@ -1,7 +1,7 @@
 package models
 
 const (
-	TableSmsTemplate = "SmsTemplate"
+	TableSmsTemplate = "sms_template"
 )
 
 const (
@@ -9,23 +9,12 @@ const (
 	SmsTemplateStateCreated     = "CREATED"
 	SmsTemplateStateApproved    = "APPROVED"
 	SmsTemplateStateDeActivated = "DEACTIVATED"
-
-	// Columns
-	ColumnSmsTemplateID           = "id"
-	ColumnSmsTemplateUserID       = "user_id"
-	ColumnSmsTemplateSenderID     = "sender_id"
-	ColumnSmsTemplateSenderCode   = "sender_coe"
-	ColumnSmsTemplateTemplateCode = "template_code"
-	ColumnSmsTemplateBody         = "body"
-	ColumnSmsTemplateStatus       = "status"
-	ColumnSmsTemplateType         = "type"
-	ColumnSmsTemplateLanguage     = "language"
 )
 
 type SmsTemplate struct {
-	ID           string `json:"id" dynamodbav:"id"`
+	ID           int64  `json:"id" dynamodbav:"id"`
 	UserID       string `json:"user_id" dynamodbav:"user_id"`
-	SenderID     string `json:"sender_id" dynamodbav:"sender_id"`
+	SenderID     int64  `json:"sender_id" dynamodbav:"sender_id"`
 	SenderCode   string `json:"sender_code" dynamodbav:"sender_code"`
 	TemplateCode string `json:"template_code" dynamodbav:"template_code"`
 	Body         string `json:"body" dynamodbav:"body"`
@@ -34,4 +23,16 @@ type SmsTemplate struct {
 	Length       int    `json:"length" dynamodbav:"length"`
 	Language     string `json:"language" dynamodbav:"language"`
 	BaseModel
+}
+
+func (o *SmsTemplate) TableName() string {
+	return TableSmsTemplate
+}
+
+func (o *SmsTemplate) GetID() int64 {
+	return o.ID
+}
+
+func (o *SmsTemplate) SetID(id int64) {
+	o.ID = id
 }

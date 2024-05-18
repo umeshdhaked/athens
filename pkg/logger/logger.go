@@ -48,7 +48,7 @@ func Build() {
 		core := zapcore.NewCore(consoleEncoder, stdoutSyncer, zapcore.DebugLevel)
 
 		// Create a logger
-		l := zap.New(core)
+		l := zap.New(core, zap.AddStacktrace(zap.ErrorLevel))
 
 		// Flush the logger
 		defer l.Sync()

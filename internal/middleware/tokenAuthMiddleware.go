@@ -21,7 +21,7 @@ func TokenAuthMiddleware() gin.HandlerFunc {
 
 		ctx.Set(constants.JwtTokenRole, "admin")
 		ctx.Set(constants.JwtTokenMobile, "sys-admin-mobile")
-		ctx.Set(constants.JwtTokenUserID, "sys-admin-id")
+		ctx.Set(constants.JwtTokenUserID, int64(-1))
 		ctx.Next()
 	}
 

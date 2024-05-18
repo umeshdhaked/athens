@@ -2,6 +2,8 @@ package subscription
 
 import (
 	"errors"
+	"gorm.io/gorm"
+	"strconv"
 	"sync"
 	"time"
 
@@ -9,8 +11,8 @@ import (
 	"github.com/fastbiztech/hastinapura/internal/models"
 	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
 	"github.com/fastbiztech/hastinapura/pkg/dtos"
+	"github.com/fastbiztech/hastinapura/pkg/logger"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 var (
@@ -19,16 +21,23 @@ var (
 )
 
 type SubscriptionService struct {
-	pricingRepo     *repo.PricingRepo
-	subRepo         *repo.SubscriptionRepo
-	userRepo        *repo.UserRepo
-	creditRepo      *repo.CreditsRepo
-	creditAuditRepo *repo.CreditsAuditRepo
+	baseRepo        repo.IRepository
+	pricingRepo     repo.IPricingRepo
+	subRepo         repo.ISubscriptionRepo
+	userRepo        repo.IUserRepo
+	creditRepo      repo.ICreditsRepo
+	creditAuditRepo repo.ICreditsAuditRepo
 }
 
-func NewSubscriptionService(pricingRepo *repo.PricingRepo, subRepo *repo.SubscriptionRepo, userRepo *repo.UserRepo, creditRepo *repo.CreditsRepo, creditAuditRepo *repo.CreditsAuditRepo) {
+func NewSubscriptionService(pricingRepo repo.IPricingRepo, subRepo repo.ISubscriptionRepo, userRepo repo.IUserRepo, creditRepo repo.ICreditsRepo, creditAuditRepo repo.ICreditsAuditRepo) {
 	once.Do(func() {
-		service = &SubscriptionService{pricingRepo: pricingRepo, subRepo: subRepo, userRepo: userRepo, creditRepo: creditRepo, creditAuditRepo: creditAuditRepo}
+		service = &SubscriptionService{
+			baseRepo:        repo.GetRepository(),
+			pricingRepo:     pricingRepo,
+			subRepo:         subRepo,
+			userRepo:        userRepo,
+			creditRepo:      creditRepo,
+			creditAuditRepo: creditAuditRepo}
 	})
 }
 
@@ -36,7 +45,7 @@ func GetSubscriptionService() *SubscriptionService {
 	return service
 }
 
-func (s *SubscriptionService) AddDefaultSubscriptionToUser(ctx *gin.Context, subReq *dtos.UserDefaultSubscriptionRequest) error {
+func (s *SubscriptionService) AddDefaultSubscriptionToUser(ctx *gin.Context, request *dtos.UserDefaultSubscriptionRequest) error {
 	if role, exists := ctx.Get(constants.JwtTokenRole); !exists {
 		return errors.New("internal server error, user role not found")
 	} else if "admin" != role {
@@ -44,38 +53,44 @@ func (s *SubscriptionService) AddDefaultSubscriptionToUser(ctx *gin.Context, sub
 	}
 
 	// get User
-	mobile := subReq.UserMobile
-	user, er := s.userRepo.GetUserFromMobile(ctx, mobile)
-	if er != nil {
-		return er
+	var user models.User
+	err := s.baseRepo.Find(ctx, &user, map[string]interface{}{
+		models.ColumnUserMobile: request.UserMobile,
+	})
+	if err != nil {
+		logger.GetLogger().Error(err.Error())
+		return err
 	}
 
 	// get default Pricing models
-	defaultPricings, err := s.pricingRepo.GetAllDefaultActivePricings(ctx)
+	var defaultPricings []models.Pricing
+	err = s.baseRepo.FindMultiple(ctx, &defaultPricings, map[string]interface{}{
+		constants.PricingType: "DEFAULT",
+		constants.State:       "ACTIVE",
+	})
 	if err != nil {
 		return err
 	}
-	admin, _ := ctx.Get(constants.JwtTokenUserID)
+	admin := ctx.GetInt64(constants.JwtTokenUserID)
 
 	// create Subscriptions to USER
 	userSubsDto := []models.Subscription{}
-	for _, dp := range defaultPricings {
+	for _, pricing := range defaultPricings {
 		userSubsDto = append(userSubsDto, models.Subscription{
-			Id:        uuid.New().String(),
-			PricingId: dp.Id,
+			PricingId: pricing.ID,
 			UserId:    user.ID,
-			Type:      dp.Category,
-			SubType:   dp.SubCategory,
+			Type:      pricing.Category,
+			SubType:   pricing.SubCategory,
 			Status:    "ACTIVE",
-			AddedBy:   admin.(string),
+			AddedBy:   strconv.Itoa(int(admin)),
 			BaseModel: models.BaseModel{CreatedAt: time.Now().Unix()},
 		})
 	}
 
-	return s.subRepo.BatchCreateUserSubscription(ctx, userSubsDto)
+	return s.baseRepo.CreateInBatches(ctx, userSubsDto, len(userSubsDto))
 }
 
-func (s *SubscriptionService) UpdateSubscriptionToUser(ctx *gin.Context, subReq *dtos.UserSubscriptionRequest) error {
+func (s *SubscriptionService) UpdateSubscriptionToUser(ctx *gin.Context, request *dtos.UserSubscriptionRequest) error {
 	if role, exists := ctx.Get(constants.JwtTokenRole); !exists {
 		return errors.New("internal server error, user role not found")
 	} else if "admin" != role {
@@ -83,79 +98,100 @@ func (s *SubscriptionService) UpdateSubscriptionToUser(ctx *gin.Context, subReq 
 	}
 
 	// get User
-	mobile := subReq.UserMobile
-	user, er := s.userRepo.GetUserFromMobile(ctx, mobile)
-	if er != nil {
-		return er
+	var user models.User
+	err := s.baseRepo.Find(ctx, &user, map[string]interface{}{
+		models.ColumnUserMobile: request.UserMobile,
+	})
+	if err != nil {
+		logger.GetLogger().Error(err.Error())
+		return err
 	}
 
-	pricing, err := s.pricingRepo.GetPricingByPricingID(ctx, subReq.PricingId)
+	var pricing models.Pricing
+	err = s.baseRepo.FindByID(ctx, request.PricingId, &pricing)
 	if err != nil {
 		return err
 	}
 
-	admin, _ := ctx.Get(constants.JwtTokenUserID)
+	admin := ctx.GetInt64(constants.JwtTokenUserID)
 
 	// update existing Subscriptions for type-subtype
 	userSubsDto := models.Subscription{
-		Id:        uuid.New().String(),
-		PricingId: pricing.Id,
+		PricingId: pricing.ID,
 		UserId:    user.ID,
 		Type:      pricing.Category,
 		SubType:   pricing.SubCategory,
 		Status:    "ACTIVE",
-		AddedBy:   admin.(string),
+		AddedBy:   strconv.Itoa(int(admin)),
 		BaseModel: models.BaseModel{CreatedAt: time.Now().Unix()},
 	}
 
 	// get existing subscription from type and subtype
-	existingsSubs, err := s.subRepo.FetchSubscriptionByTypeSubType(ctx, user.ID, pricing.Category, pricing.SubCategory)
-	if err != nil {
+	var subscription models.Subscription
+	err = s.baseRepo.Find(ctx, &subscription, map[string]interface{}{
+		constants.UserID:  user.ID,
+		constants.Type:    pricing.Category,
+		constants.SubType: pricing.SubCategory,
+	})
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		logger.GetLogger().Error(err.Error())
 		return err
 	}
-	if len(existingsSubs) > 0 {
-		userSubsDto = models.Subscription{
-			Id: existingsSubs[0].Id,
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		if er := s.baseRepo.Create(ctx, &userSubsDto); er != nil {
+			return errors.Join(er, errors.New("unable to create subscription for user"))
+		}
+	} else {
+		userSubsDto.ID = subscription.ID
+		if er := s.baseRepo.Update(ctx, &userSubsDto); er != nil {
+			return errors.Join(er, errors.New("unable to update subscription for user"))
 		}
 	}
 
-	if er := s.subRepo.Create(ctx, &userSubsDto); er != nil {
-		return errors.Join(er, errors.New("unable to create subscription for user"))
-	}
 	return nil
 }
 
-func (s *SubscriptionService) FetchAllActiveSubscriptionsForUser(ctx *gin.Context, req *dtos.FetchSubscriptionRequest) ([]*dtos.SubscriptionResponse, error) {
+func (s *SubscriptionService) FetchAllActiveSubscriptionsForUser(ctx *gin.Context, request *dtos.FetchSubscriptionRequest) ([]*dtos.SubscriptionResponse, error) {
 	// get User
-	user, er := s.userRepo.GetUserFromMobile(ctx, req.UserMobile)
-	if er != nil {
-		return nil, er
+	var user models.User
+	err := s.baseRepo.Find(ctx, &user, map[string]interface{}{
+		models.ColumnUserMobile: request.UserMobile,
+	})
+	if err != nil {
+		logger.GetLogger().Error(err.Error())
+		return nil, err
 	}
 
-	subscriptions, err := s.subRepo.FetchAllSubscriptionByStatus(ctx, user.ID, "ACTIVE")
+	var subscriptionEntities []models.Subscription
+	err = s.baseRepo.FindMultiple(ctx, &subscriptionEntities, map[string]interface{}{
+		constants.UserID: user.ID,
+		constants.Status: "ACTIVE",
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	resp := []*dtos.SubscriptionResponse{}
-	for _, s := range subscriptions {
+	var resp []*dtos.SubscriptionResponse
+	for _, subscription := range subscriptionEntities {
 		resp = append(resp, &dtos.SubscriptionResponse{
-			Id:        s.Id,
-			PricingId: s.PricingId,
-			UserId:    s.UserId,
-			Type:      s.Type,
-			SubType:   s.SubType,
-			Status:    s.Status,
-			AddedBy:   s.AddedBy,
-			CreatedAt: s.CreatedAt,
-			DeletedAt: s.DeletedAt,
+			Id:        subscription.ID,
+			PricingId: subscription.PricingId,
+			UserId:    subscription.UserId,
+			Type:      subscription.Type,
+			SubType:   subscription.SubType,
+			Status:    subscription.Status,
+			AddedBy:   subscription.AddedBy,
+			CreatedAt: subscription.CreatedAt,
+			DeletedAt: subscription.DeletedAt,
 		})
 	}
 	return resp, nil
 }
 
 func (s *SubscriptionService) SubscriptionsStatusUpdate(ctx *gin.Context, subRequest *dtos.DeactivateSubscriptionRequest) error {
-	subsription, err := s.subRepo.GetSubscriptionFromId(ctx, subRequest.Id)
+	var subsription models.Subscription
+	err := s.baseRepo.FindByID(ctx, subRequest.Id, &subsription)
 	if err != nil {
 		return err
 	}
@@ -165,5 +201,6 @@ func (s *SubscriptionService) SubscriptionsStatusUpdate(ctx *gin.Context, subReq
 		subsription.Status = "ACTIVE"
 	}
 
-	return s.subRepo.Create(ctx, subsription)
+	// todo: why create?
+	return s.baseRepo.Create(ctx, &subsription)
 }

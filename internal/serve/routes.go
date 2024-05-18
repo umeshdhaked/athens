@@ -3,7 +3,6 @@ package serve
 import (
 	"net/http"
 
-	"github.com/fastbiztech/hastinapura/internal/constants"
 	middleware2 "github.com/fastbiztech/hastinapura/internal/middleware"
 
 	"github.com/fastbiztech/hastinapura/internal/controllers"
@@ -84,10 +83,8 @@ var routeList = [...]route{
 		},
 	},
 	{
-		group: "/v1/group",
-		middleware: []gin.HandlerFunc{func(context *gin.Context) {
-			context.Set(constants.JwtTokenUserID, "user123") // todo: remove
-		}},
+		group:      "/v1/group",
+		middleware: []gin.HandlerFunc{middleware2.JwtAuthMiddleware()},
 		endpoints: []endpoint{
 			{http.MethodPost, "/contacts", controllers.UploadGroupContacts},
 			{http.MethodGet, "", controllers.GetGroup},
@@ -95,28 +92,28 @@ var routeList = [...]route{
 	},
 	{
 		group:      "/v1/pending_jobs",
-		middleware: []gin.HandlerFunc{},
+		middleware: []gin.HandlerFunc{middleware2.JwtAuthMiddleware()},
 		endpoints: []endpoint{
 			{http.MethodGet, "", controllers.GetPendingJobs},
 		},
 	},
 	{
 		group:      "/v1/s3_processing",
-		middleware: []gin.HandlerFunc{},
+		middleware: []gin.HandlerFunc{middleware2.JwtAuthMiddleware()},
 		endpoints: []endpoint{
 			{http.MethodGet, "", controllers.GetCronProcessing},
 		},
 	},
 	{
 		group:      "/v1/contacts",
-		middleware: []gin.HandlerFunc{},
+		middleware: []gin.HandlerFunc{middleware2.JwtAuthMiddleware()},
 		endpoints: []endpoint{
 			{http.MethodGet, "", controllers.GetGroupContacts},
 		},
 	},
 	{
 		group:      "/v1/sms",
-		middleware: []gin.HandlerFunc{},
+		middleware: []gin.HandlerFunc{middleware2.JwtAuthMiddleware()},
 		endpoints: []endpoint{
 			// Sender ID related apis
 			{http.MethodPost, "/senderid", controllers.PostSenderCode},

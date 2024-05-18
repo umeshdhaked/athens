@@ -2,10 +2,12 @@ package group
 
 import (
 	"encoding/csv"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
 	"mime/multipart"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -17,23 +19,23 @@ import (
 	"github.com/fastbiztech/hastinapura/pkg/dtos"
 	"github.com/fastbiztech/hastinapura/pkg/logger"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
+	gormLogger "gorm.io/gorm/logger"
 )
 
 type Service struct {
-	baseRepo           *repo.Repository
-	groupRepo          *repo.GroupRepo
-	cronProcessingRepo *repo.CronProcessingRepo
-	pendingJobsRepo    *repo.PendingJobsRepo
+	baseRepo           repo.IRepository
+	groupRepo          repo.IGroupRepo
+	cronProcessingRepo repo.ICronProcessingRepo
+	pendingJobsRepo    repo.IPendingJobsRepo
 }
 
 var (
 	once                     sync.Once
 	service                  *Service
 	validGroupContactsColumn = []string{
-		models.ColumnContactsName,
-		models.ColumnContactsMobile,
-		models.ColumnContactsEmail,
+		constants.Name,
+		constants.Mobile,
+		constants.Email,
 	}
 )
 
@@ -54,8 +56,12 @@ func GetService() *Service {
 
 func (s *Service) UploadGroupToS3(c *gin.Context, file multipart.File, request dtos.UploadGroupContactsRequest) (interface{}, error) {
 	//  add validation for same name already existed
-	items, err := s.groupRepo.FetchByUserIDAndName(c, c.GetString(constants.JwtTokenUserID), request.Name)
-	if err != nil && err.Error() != repo.ErrCodeNoDataFound {
+	var items []models.ContactGroups
+	err := s.baseRepo.FindMultiple(c, &items, map[string]interface{}{
+		constants.UserID: c.GetInt64(constants.JwtTokenUserID),
+		constants.Name:   request.Name,
+	})
+	if err != nil && !errors.Is(err, gormLogger.ErrRecordNotFound) {
 		logger.GetLogger().Error(err.Error())
 		return nil, err
 	}
@@ -64,8 +70,6 @@ func (s *Service) UploadGroupToS3(c *gin.Context, file multipart.File, request d
 		logger.GetLogger().Error("duplicate UserID/Name entry")
 		return nil, errors.New("duplicate UserID/Name entry")
 	}
-
-	s3FileID := uuid.New().String()
 
 	// Add entry in group table
 	columnNames, err := getCsvColumnNames(file)
@@ -79,37 +83,38 @@ func (s *Service) UploadGroupToS3(c *gin.Context, file multipart.File, request d
 		return nil, errors.New("invalid columns")
 	}
 
+	columnNamesBytes, _ := json.Marshal(columnNames)
 	// Insert item into the database
-	entryGroupItem := models.Group{
-		ID:          s3FileID,
+	entryGroupItem := models.ContactGroups{
 		Name:        request.Name,
-		UserID:      c.GetString(constants.JwtTokenUserID),
-		ColumnNames: columnNames,
+		UserID:      c.GetInt64(constants.JwtTokenUserID),
+		ColumnNames: string(columnNamesBytes),
 	}
 
-	err = s.groupRepo.CreateGroup(c, &entryGroupItem)
+	err = s.baseRepo.Create(c, &entryGroupItem)
 	if err != nil {
 		logger.GetLogger().Error(err.Error())
 		return nil, err
 	}
 
 	// Upload file to S3
-	if err := aws.GetS3Client().Upload(file, aws.BucketContactUpload, s3FileID); err != nil {
+	if err := aws.GetS3Client().Upload(file, aws.BucketContactUpload, strconv.FormatInt(entryGroupItem.ID, 10)); err != nil {
 		logger.GetLogger().Error(err.Error())
 		return nil, err
 	}
 
 	// add pending job entry
+	extraData, _ := json.Marshal(map[string]interface{}{
+		constants.ConstGroupName: request.Name,
+	})
 	entryPendingJobsItem := models.PendingJobs{
-		Name:   s3FileID,
+		Name:   strconv.FormatInt(entryGroupItem.ID, 10),
 		Type:   models.PendingJobsTypeSmsContactsPullFromS3,
 		Status: models.PendingJobsStatusPending,
-		Extra: map[string]interface{}{
-			constants.ConstGroupName: request.Name,
-		},
+		Extra:  extraData,
 	}
 
-	err = s.pendingJobsRepo.Create(c, &entryPendingJobsItem)
+	err = s.baseRepo.Create(c, &entryPendingJobsItem)
 	if err != nil {
 		logger.GetLogger().Error(err.Error())
 		return nil, err
@@ -149,7 +154,14 @@ func isValidColumnNamesForGroupContacts(columnNames []string) bool {
 }
 
 func (s *Service) GetContacts(c *gin.Context, request dtos.GetGroupRequest) (interface{}, error) {
-	items, err := s.groupRepo.FetchAllByConditions(c, request)
+	var items []models.ContactGroups
+	err := s.baseRepo.FindMultiplePagination(c, &items, map[string]interface{}{
+		constants.Name:   request.Name,
+		constants.UserID: request.UserID,
+	}, dtos.Pagination{
+		From: request.From,
+		To:   request.To,
+	})
 	if err != nil {
 		log.Fatalf("error fetching item: %v", err)
 	}

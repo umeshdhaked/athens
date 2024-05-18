@@ -19,3 +19,8 @@ type DbUpdateQueryConditions struct {
 	Key      map[string]types.AttributeValue
 	ToUpdate map[string]types.AttributeValue
 }
+
+type Pagination struct {
+	From int `form:"from"`
+	To   int `form:"to"`
+}

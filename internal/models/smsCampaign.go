@@ -1,7 +1,7 @@
 package models
 
 const (
-	TableSmsCampaign = "SmsCampaign"
+	TableSmsCampaign = "sms_campaign"
 )
 
 const (
@@ -10,27 +10,29 @@ const (
 	SmsCampaignStateDeActivated = "DEACTIVATED"
 	SmsCampaignStateInProgress  = "IN_PROGRESS"
 	SmsCampaignStateExecuted    = "EXECUTED"
-
-	// Columns
-	ColumnSmsCampaignID          = "ID"
-	ColumnSmsCampaignName        = "Name"
-	ColumnSmsCampaignScheduledAt = "ScheduledAt"
-	ColumnSmsCampaignStatus      = "Status"
-	ColumnSmsCampaignUserID      = "UserID"
-	ColumnSmsCampaignTemplateID  = "TemplateCode"
-	ColumnSmsCampaignSenderID    = "SenderID"
-	ColumnSmsCampaignType        = "Type"
 )
 
 type SmsCampaign struct {
-	ID          string `json:"id"`
+	ID          int64  `json:"id"`
 	Name        string `json:"name"`
 	ScheduledAt int    `json:"scheduled_at"`
 	Status      string `json:"status"`
 	UserID      string `json:"user_id"`
-	TemplateID  string `json:"template_id"`
+	TemplateID  int64  `json:"template_id"`
 	SenderCode  string `json:"sender_code"`
 	GroupName   string `json:"group_name"`
 	Type        string `json:"type"`
 	BaseModel
+}
+
+func (o *SmsCampaign) TableName() string {
+	return TableSmsCampaign
+}
+
+func (o *SmsCampaign) GetID() int64 {
+	return o.ID
+}
+
+func (o *SmsCampaign) SetID(id int64) {
+	o.ID = id
 }

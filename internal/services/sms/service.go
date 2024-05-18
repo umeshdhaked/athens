@@ -1,38 +1,35 @@
 package sms
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/fastbiztech/hastinapura/internal/config"
 	"github.com/fastbiztech/hastinapura/internal/constants"
 	"github.com/fastbiztech/hastinapura/internal/models"
 	"github.com/fastbiztech/hastinapura/internal/pkg/apiClient"
 	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
-	"github.com/fastbiztech/hastinapura/internal/utils"
 	"github.com/fastbiztech/hastinapura/pkg/dtos"
 	"github.com/fastbiztech/hastinapura/pkg/http"
 	"github.com/fastbiztech/hastinapura/pkg/logger"
 	"golang.org/x/net/html"
+	gormLogger "gorm.io/gorm/logger"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 type Service struct {
-	baseRepo        *repo.Repository
-	creditsRepo     *repo.CreditsRepo
-	smsAuditRepo    *repo.SmsAuditRepo
-	smsSenderRepo   *repo.SmsSenderRepo
-	smsTemplateRepo *repo.SmsTemplateRepo
-	smsCampaignRepo *repo.SmsCampaignRepo
+	baseRepo        repo.IRepository
+	creditsRepo     repo.ICreditsRepo
+	smsAuditRepo    repo.ISmsAuditRepo
+	smsSenderRepo   repo.ISmsSenderRepo
+	smsTemplateRepo repo.ISmsTemplateRepo
+	smsCampaignRepo repo.ISmsCampaignRepo
 }
 
 var (
@@ -64,32 +61,30 @@ func GetService() *Service {
 
 func (s *Service) AddSenderCode(c *gin.Context, request dtos.PostSenderCodeRequest) (interface{}, error) {
 	// verify sender code duplication check
-	smsSenderEntities, err := s.smsSenderRepo.FetchSmsSenderByUserIDSenderCode(c, c.GetString(constants.JwtTokenUserID), request.SenderCode)
-	if err != nil && err.Error() != repo.ErrCodeNoDataFound {
+	var smsSender models.SmsSender
+	err := s.baseRepo.Find(c, &smsSender, map[string]interface{}{
+		constants.UserID: c.GetInt64(constants.JwtTokenUserID),
+		constants.Code:   request.SenderCode,
+	})
+	if err != nil && !errors.Is(err, gormLogger.ErrRecordNotFound) {
 		logger.GetLogger().Error(err.Error())
 		return nil, err
 	}
 
-	if len(smsSenderEntities) > 0 {
-		logger.GetLogger().Error("duplicate entry")
+	if smsSender.ID != 0 {
+		logger.GetLogger().Error("sms sender code already exists")
 		return nil, err
 	}
 
 	entrySmsSenderItem := models.SmsSender{
-		ID:     uuid.New().String(),
 		Code:   request.SenderCode,
-		UserID: c.GetString(constants.JwtTokenUserID), //TODO fetch from jwt token
+		UserID: c.GetString(constants.JwtTokenUserID),
 		Type:   request.Type,
 		Status: models.SmsSenderStateCreated,
 	}
 
-	entrySmsSenderItemMap, err := attributevalue.MarshalMap(entrySmsSenderItem)
-	if err != nil {
-		log.Fatalf("error marhsalling item: %v", err)
-	}
-
 	// Insert item into the database
-	err = s.baseRepo.CreateItem(context.Background(), models.TableSmsSender, entrySmsSenderItemMap)
+	err = s.baseRepo.Create(c, &entrySmsSenderItem)
 	if err != nil {
 		log.Fatalf("error inserting item: %v", err)
 	}
@@ -98,68 +93,38 @@ func (s *Service) AddSenderCode(c *gin.Context, request dtos.PostSenderCodeReque
 }
 
 func (s *Service) GetSenderCode(c *gin.Context, request dtos.GetSenderCodeRequest) (interface{}, error) {
-	filters := dtos.DbScanQueryConditions{
-		Filters: map[string]types.AttributeValue{
-			models.ColumnSmsSenderCode: utils.Ternary(!utils.IsEmpty(request.SenderCode), &types.AttributeValueMemberS{
-				Value: request.SenderCode,
-			}, &types.AttributeValueMemberS{}).(*types.AttributeValueMemberS),
-			models.ColumnSmsSenderType: utils.Ternary(!utils.IsEmpty(request.Type), &types.AttributeValueMemberS{
-				Value: request.Type,
-			}, &types.AttributeValueMemberS{}).(*types.AttributeValueMemberS),
-			models.ColumnSmsSenderUserID: utils.Ternary(!utils.IsEmpty(request.UserID), &types.AttributeValueMemberS{
-				Value: request.UserID,
-			}, &types.AttributeValueMemberS{}).(*types.AttributeValueMemberS),
-			models.ColumnSmsSenderStatus: utils.Ternary(!utils.IsEmpty(request.Status), &types.AttributeValueMemberS{
-				Value: request.Status,
-			}, &types.AttributeValueMemberS{}).(*types.AttributeValueMemberS),
-		},
-	}
-
-	items, err := s.baseRepo.ScanItems(context.Background(), models.TableSmsSender, filters)
+	var smsSenderEntities []models.SmsSender
+	err := s.baseRepo.FindMultiplePagination(c, &smsSenderEntities, map[string]interface{}{
+		constants.Code:   request.SenderCode,
+		constants.Type:   request.Type,
+		constants.UserID: request.UserID,
+		constants.Status: request.Status,
+	}, dtos.Pagination{})
 	if err != nil {
-		log.Fatalf("error fetching column item: %v", err)
+		logger.GetLogger().Error(err.Error())
+		return nil, err
 	}
 
-	return items, nil
+	return smsSenderEntities, nil
 }
 
 func (s *Service) ApproveSenderCode(c *gin.Context, request dtos.ApproveSenderCodeRequest) (interface{}, error) {
-	//  Check if sender id exists
-	smsSenderExistsConditions := dtos.DbQueryInputConditions{
-		Index: models.IndexTableSmsSenderIndexUserID,
-		PKey: map[string]interface{}{
-			models.ColumnSmsSenderUserID: request.UserID,
-		},
-		NonPKey: map[string]interface{}{
-			models.ColumnSmsSenderCode: request.SenderCode,
-		},
-	}
-
-	items, err := s.baseRepo.QueryItems(context.Background(), models.TableSmsSender, smsSenderExistsConditions)
+	var smsSender models.SmsSender
+	err := s.baseRepo.Find(c, &smsSender, map[string]interface{}{
+		constants.UserID: request.UserID,
+		constants.Code:   request.SenderCode,
+	})
 	if err != nil {
-		log.Fatalf("error fetching column item: %v", err)
-	}
-
-	if len(items) != 1 {
-		log.Fatalf("something wrong with UserID/Name entries")
-	}
-
-	senderIDEntity := items[0]
-
-	// Update conditions
-	updateConditions := dtos.DbUpdateQueryConditions{
-		Key: map[string]types.AttributeValue{
-			models.ColumnSmsSenderID: &types.AttributeValueMemberS{Value: senderIDEntity["ID"].(*types.AttributeValueMemberS).Value},
-		},
-		ToUpdate: map[string]types.AttributeValue{
-			models.ColumnSmsSenderStatus: &types.AttributeValueMemberS{Value: models.SmsSenderStateApproved},
-		},
+		logger.GetLogger().Error(err.Error())
+		return nil, err
 	}
 
 	// Insert item into the database
-	_, err = s.baseRepo.UpdateItem(context.Background(), models.TableSmsSender, updateConditions)
+	smsSender.Status = models.SmsSenderStateApproved
+	err = s.baseRepo.Update(c, &smsSender)
 	if err != nil {
-		log.Fatalf("error inserting item: %v", err)
+		logger.GetLogger().Error(err.Error())
+		return nil, err
 	}
 
 	return nil, nil
@@ -167,41 +132,21 @@ func (s *Service) ApproveSenderCode(c *gin.Context, request dtos.ApproveSenderCo
 
 func (s *Service) DeActivateSenderCode(c *gin.Context, request dtos.DeleteSenderCodeRequest) (interface{}, error) {
 	//  Check if sender id exists
-	smsSenderExistsConditions := dtos.DbQueryInputConditions{
-		Index: models.IndexTableSmsSenderIndexUserID,
-		PKey: map[string]interface{}{
-			models.ColumnSmsSenderUserID: c.GetString(constants.JwtTokenUserID), // TODO get user id from token
-		},
-		NonPKey: map[string]interface{}{
-			models.ColumnSmsSenderCode: request.SenderCode,
-		},
-	}
-
-	items, err := s.baseRepo.QueryItems(context.Background(), models.TableSmsSender, smsSenderExistsConditions)
+	var smsSender models.SmsSender
+	err := s.baseRepo.Find(c, &smsSender, map[string]interface{}{
+		constants.Code: request.SenderCode,
+	})
 	if err != nil {
-		log.Fatalf("error fetching column item: %v", err)
-	}
-
-	if len(items) != 1 {
-		log.Fatalf("sender id does not exists")
-	}
-
-	senderIDEntity := items[0]
-
-	// Update conditions
-	updateConditions := dtos.DbUpdateQueryConditions{
-		Key: map[string]types.AttributeValue{
-			models.ColumnSmsSenderID: &types.AttributeValueMemberS{Value: senderIDEntity["ID"].(*types.AttributeValueMemberS).Value},
-		},
-		ToUpdate: map[string]types.AttributeValue{
-			models.ColumnSmsSenderStatus: &types.AttributeValueMemberS{Value: models.SmsSenderStateDeActivated},
-		},
+		logger.GetLogger().Error(err.Error())
+		return nil, err
 	}
 
 	// Insert item into the database
-	_, err = s.baseRepo.UpdateItem(context.Background(), models.TableSmsSender, updateConditions)
+	smsSender.Status = models.SmsSenderStateDeActivated
+	err = s.baseRepo.Update(c, &smsSender)
 	if err != nil {
-		log.Fatalf("error inserting item: %v", err)
+		logger.GetLogger().Error(err.Error())
+		return nil, err
 	}
 
 	return nil, nil
@@ -266,33 +211,34 @@ func (s *Service) GetSenderCodeInfoFromTrai(c *gin.Context, senderCode string) (
 
 func (s *Service) AddSmsTemplate(c *gin.Context, request dtos.PostSmsTemplateRequest) (interface{}, error) {
 	// verify sender code
-	smsSenderEntities, err := s.smsSenderRepo.FetchSmsSenderByUserIDSenderCode(c, c.GetString(constants.JwtTokenUserID), request.SenderCode)
+	var smsSender models.SmsSender
+	err := s.baseRepo.Find(c, &smsSender, map[string]interface{}{
+		constants.UserID: c.GetInt64(constants.JwtTokenUserID),
+		constants.Code:   request.SenderCode,
+	})
 	if err != nil {
 		logger.GetLogger().Error(err.Error())
 		return nil, err
 	}
 
-	if smsSenderEntities == nil {
-		logger.GetLogger().Error("sender code does not exists")
-		return nil, errors.New("sender code does not exists")
-	}
-
 	// Verify Template ID duplication
-	smsTemplateEntities, err := s.smsTemplateRepo.FetchByUserIDTemplateCode(c, c.GetString(constants.JwtTokenUserID), request.TemplateCode)
-	if err != nil && err.Error() != repo.ErrCodeNoDataFound {
+	var smsTemplate models.SmsTemplate
+	err = s.baseRepo.FindMultiple(c, &smsTemplate, map[string]interface{}{
+		constants.TemplateCode: request.TemplateCode,
+		constants.UserID:       c.GetInt64(constants.JwtTokenUserID),
+	})
+	if err != nil && !errors.Is(err, gormLogger.ErrRecordNotFound) {
 		logger.GetLogger().Error(err.Error())
 		return nil, err
 	}
 
-	if len(smsTemplateEntities) > 0 {
-		logger.GetLogger().Error("duplicate entry")
-		return nil, errors.New("duplicate entry")
+	if smsTemplate.ID != 0 {
+		return nil, errors.New("sms template already exists")
 	}
 
-	entrySmsTemplateItem := models.SmsTemplate{
-		ID:           uuid.New().String(),
-		UserID:       c.GetString(constants.JwtTokenUserID),
-		SenderID:     smsSenderEntities[0].ID,
+	insertSmsTemplate := models.SmsTemplate{
+		UserID:       strconv.Itoa(int(c.GetInt64(constants.JwtTokenUserID))),
+		SenderID:     smsSender.ID,
 		SenderCode:   request.SenderCode,
 		Body:         request.Body,
 		Status:       models.SmsTemplateStateCreated,
@@ -302,108 +248,78 @@ func (s *Service) AddSmsTemplate(c *gin.Context, request dtos.PostSmsTemplateReq
 		TemplateCode: request.TemplateCode,
 	}
 
-	entrySmsTemplateItemMap, err := attributevalue.MarshalMap(entrySmsTemplateItem)
-	if err != nil {
-		log.Fatalf("error marhsalling item: %v", err)
-	}
-
 	// Insert item into the database
-	err = s.baseRepo.CreateItem(context.Background(), models.TableSmsTemplate, entrySmsTemplateItemMap)
+	err = s.baseRepo.Create(c, &insertSmsTemplate)
 	if err != nil {
-		log.Fatalf("error inserting item: %v", err)
+		logger.GetLogger().Error(err.Error())
+		return nil, err
 	}
 
 	return nil, nil
 }
 
 func (s *Service) GetSmsTemplate(c *gin.Context, request dtos.GetSmsTemplateRequest) (interface{}, error) {
-	filters := dtos.DbScanQueryConditions{
-		Filters: map[string]types.AttributeValue{
-			models.ColumnSmsTemplateSenderCode: utils.Ternary(!utils.IsEmpty(request.SenderCode), &types.AttributeValueMemberS{
-				Value: request.SenderCode,
-			}, &types.AttributeValueMemberS{}).(*types.AttributeValueMemberS),
-			models.ColumnSmsTemplateID: utils.Ternary(!utils.IsEmpty(request.TemplateID), &types.AttributeValueMemberS{
-				Value: request.TemplateID,
-			}, &types.AttributeValueMemberS{}).(*types.AttributeValueMemberS),
-			models.ColumnSmsTemplateStatus: utils.Ternary(!utils.IsEmpty(request.Status), &types.AttributeValueMemberS{
-				Value: request.Status,
-			}, &types.AttributeValueMemberS{}).(*types.AttributeValueMemberS),
-			models.ColumnSmsTemplateUserID: utils.Ternary(!utils.IsEmpty(request.UserID), &types.AttributeValueMemberS{
-				Value: request.UserID,
-			}, &types.AttributeValueMemberS{}).(*types.AttributeValueMemberS),
-		},
-	}
 
-	items, err := s.baseRepo.ScanItems(context.Background(), models.TableSmsTemplate, filters)
+	var smsTemplateEntities []models.SmsTemplate
+	err := s.baseRepo.FindMultiplePagination(c, &smsTemplateEntities, map[string]interface{}{
+		constants.SenderCode: request.SenderCode,
+		constants.ID:         request.TemplateID,
+		constants.Status:     request.Status,
+		constants.UserID:     request.UserID,
+	}, dtos.Pagination{})
 	if err != nil {
-		log.Fatalf("error fetching column item: %v", err)
+		logger.GetLogger().Error(err.Error())
+		return nil, err
 	}
 
-	return items, nil
+	return smsTemplateEntities, nil
 }
 
 func (s *Service) ApproveSmsTemplate(c *gin.Context, request dtos.ApproveSmsTemplateRequest) (interface{}, error) {
 	//  Check if template exists
-	smsTemplateEntity, err := s.smsTemplateRepo.FetchByIDAndUserID(c, request.TemplateID, c.GetString(constants.JwtTokenUserID))
+	var smsTemplate models.SmsTemplate
+	err := s.baseRepo.Find(c, &smsTemplate, map[string]interface{}{
+		constants.ID:     request.TemplateID,
+		constants.UserID: c.GetInt64(constants.JwtTokenUserID),
+	})
 	if err != nil {
 		logger.GetLogger().Error(err.Error())
 		return nil, err
 	}
 
 	// Update conditions
-	var updatedSmsTemplateEntity models.SmsTemplate
-	err = s.smsTemplateRepo.UpdateByID(c, smsTemplateEntity.ID,
-		models.TableSmsTemplate,
-		map[string]interface{}{
-			models.ColumnSmsTemplateStatus: models.SmsSenderStateApproved,
-		}, &updatedSmsTemplateEntity)
+	smsTemplate.Status = models.SmsSenderStateApproved
+	err = s.baseRepo.Update(c, &smsTemplate)
 	if err != nil {
 		logger.GetLogger().Error(err.Error())
 		return nil, err
 	}
 
-	return updatedSmsTemplateEntity, nil
+	return smsTemplate, nil
 }
 
 func (s *Service) UpdateSmsTemplate(c *gin.Context, request dtos.UpdateSmsTemplateRequest) (interface{}, error) {
 	//  Check if template exists
-	smsTemplateExistsCondition := dtos.DbQueryInputConditions{
-		//Index: models.IndexTableSmsTemplateIndexUserID,
-		PKey: map[string]interface{}{
-			models.ColumnSmsTemplateID: request.TemplateID,
-		},
-		NonPKey: map[string]interface{}{
-			models.ColumnSmsSenderUserID: request.UserID,
-		},
-	}
-
-	items, err := s.baseRepo.QueryItems(context.Background(), models.TableSmsTemplate, smsTemplateExistsCondition)
+	var smsTemplate models.SmsTemplate
+	err := s.baseRepo.Find(c, &smsTemplate, map[string]interface{}{
+		constants.ID:     request.TemplateID,
+		constants.UserID: request.UserID,
+	})
 	if err != nil {
-		log.Fatalf("error fetching column item: %v", err)
-	}
-
-	if len(items) != 1 {
-		log.Fatalf("template id does not exists or exists more than 1")
-	}
-
-	// Update conditions
-	updateConditions := dtos.DbUpdateQueryConditions{
-		Key: map[string]types.AttributeValue{
-			models.ColumnSmsTemplateID: &types.AttributeValueMemberS{Value: items[0][models.ColumnSmsTemplateID].(*types.AttributeValueMemberS).Value},
-		},
-		ToUpdate: map[string]types.AttributeValue{
-			models.ColumnSmsTemplateBody:   &types.AttributeValueMemberS{Value: request.Body},
-			models.ColumnSmsTemplateStatus: &types.AttributeValueMemberS{Value: request.Status},
-		},
+		logger.GetLogger().Error(err.Error())
+		return nil, err
 	}
 
 	// Insert item into the database
-	_, err = s.baseRepo.UpdateItem(context.Background(), models.TableSmsTemplate, updateConditions)
+	smsTemplate.Body = request.Body
+	smsTemplate.Status = request.Status
+	err = s.baseRepo.Update(c, &smsTemplate)
 	if err != nil {
-		log.Fatalf("error inserting item: %v", err)
+		logger.GetLogger().Error(err.Error())
+		return nil, err
 	}
 
-	return nil, nil
+	return smsTemplate, nil
 }
 
 func (s *Service) DeActivateSmsTemplate(c *gin.Context, request dtos.DeActivateSmsTemplateRequest) (interface{}, error) {
@@ -423,23 +339,30 @@ func (s *Service) DeActivateSmsTemplate(c *gin.Context, request dtos.DeActivateS
 
 func (s *Service) SendInstantSms(c *gin.Context, request dtos.PostSmsRequest) (interface{}, error) {
 	// Verify Template ID
-	smsTemplateEntity, err := s.smsTemplateRepo.FetchByIDAndUserID(c, c.GetString(constants.JwtTokenUserID), request.TemplateID)
+	var smsTemplate models.SmsTemplate
+	err := s.baseRepo.Find(c, &smsTemplate, map[string]interface{}{
+		constants.ID:     request.TemplateID,
+		constants.UserID: c.GetInt64(constants.JwtTokenUserID),
+	})
 	if err != nil {
-		log.Fatalf("error: %v", err)
+		logger.GetLogger().Error(err.Error())
+		return nil, err
 	}
 
-	if smsTemplateEntity.Status != models.SmsTemplateStateApproved {
-		log.Fatalf("sms template not approved")
+	if smsTemplate.Status != models.SmsTemplateStateApproved {
+		logger.GetLogger().Error("sms template not approved")
+		return nil, err
 	}
 
 	// verify sender code
-	smsSenderEntities, err := s.smsSenderRepo.FetchSmsSenderByUserIDSenderCode(c, c.GetString(constants.JwtTokenUserID), request.SenderCode)
+	var smsSender models.SmsSender
+	err = s.baseRepo.Find(c, &smsSender, map[string]interface{}{
+		constants.UserID: c.GetInt64(constants.JwtTokenUserID),
+		constants.Code:   request.SenderCode,
+	})
 	if err != nil {
-		log.Fatalf("error: %v", err)
-	}
-
-	if smsSenderEntities == nil {
-		log.Fatalf("sender code does not exists")
+		logger.GetLogger().Error(err.Error())
+		return nil, err
 	}
 
 	// TODO create contact id
@@ -454,21 +377,26 @@ func (s *Service) SendInstantSms(c *gin.Context, request dtos.PostSmsRequest) (i
 	creditsUsed := getSmsCreditUsage()
 
 	// fetch credit entry
-	creditItem, err := s.creditsRepo.FetchCreditByUserID(c, c.GetString(constants.JwtTokenUserID))
+	var credit models.Credits
+	err = s.baseRepo.Find(c, &credit, map[string]interface{}{
+		constants.UserID: c.GetInt64(constants.JwtTokenUserID),
+	})
 	if err != nil {
-		log.Fatalf("error: %v", err)
+		logger.GetLogger().Error(err.Error())
+		return nil, err
 	}
 
-	// Deduct Credits
-	creditItem, err = s.creditsRepo.UpdateCreditsLeftByID(c, creditItem.ID, creditItem.CreditsLeft-creditsUsed)
+	// Deduct Balance
+	credit.BalanceLeft = credit.BalanceLeft - creditsUsed
+	err = s.baseRepo.Update(c, &credit)
 	if err != nil {
-		log.Fatalf("error: %v", err)
+		logger.GetLogger().Error(err.Error())
+		return nil, err
 	}
 
 	// Create sms audit
-	entrySmsAuditItem := models.SmsAudit{
-		ID:              uuid.New().String(),
-		UserID:          c.GetString(constants.JwtTokenUserID), // ToDO get userid from token
+	smsAuditItem := models.SmsAudit{
+		UserID:          strconv.Itoa(int(c.GetInt64(constants.JwtTokenUserID))), // ToDO get userid from token
 		CreditsConsumed: creditsUsed,
 		TemplateID:      request.TemplateID,
 		SenderCode:      request.SenderCode,
@@ -477,7 +405,7 @@ func (s *Service) SendInstantSms(c *gin.Context, request dtos.PostSmsRequest) (i
 		TriggeredMode: models.ModeSmsAuditInstant,
 	}
 
-	err = s.smsAuditRepo.CreateSmsAudit(c, &entrySmsAuditItem)
+	err = s.baseRepo.Create(c, &smsAuditItem)
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
@@ -491,37 +419,39 @@ func getSmsCreditUsage() float64 {
 
 func (s *Service) CreateSmsCampaign(c *gin.Context, request dtos.CreateSmsCampaignRequest) (interface{}, error) {
 	// Verify Template ID
-	smsTemplateEntities, err := s.smsTemplateRepo.FetchByIDAndUserID(c, request.TemplateID, c.GetString(constants.JwtTokenUserID))
+	var smsTemplate models.SmsTemplate
+	err := s.baseRepo.Find(c, &smsTemplate, map[string]interface{}{
+		constants.ID:     request.TemplateID,
+		constants.UserID: c.GetInt64(constants.JwtTokenUserID),
+	})
 	if err != nil {
 		logger.GetLogger().Error(err.Error())
 		return nil, err
 	}
 
 	// verify sender code
-	smsSenderEntities, err := s.smsSenderRepo.FetchSmsSenderByUserIDSenderCode(c, c.GetString(constants.JwtTokenUserID), request.SenderCode)
+	var smsSender models.SmsSender
+	err = s.baseRepo.Find(c, &smsSender, map[string]interface{}{
+		constants.UserID: c.GetInt64(constants.JwtTokenUserID),
+		constants.Code:   request.SenderCode,
+	})
 	if err != nil {
 		logger.GetLogger().Error(err.Error())
 		return nil, err
 	}
 
-	if smsSenderEntities == nil {
-		logger.GetLogger().Error("sender code does not exists")
-		return nil, errors.New("sender code does not exists")
-	}
-
 	// create sms campaign
-	entrySmsCampaignItem := models.SmsCampaign{
-		ID:          uuid.New().String(),
+	smsCampaign := models.SmsCampaign{
 		Name:        request.Name,
 		ScheduledAt: request.ScheduledAt,
 		Status:      models.SmsCampaignStateCreated,
-		UserID:      c.GetString(constants.JwtTokenUserID),
-		TemplateID:  smsTemplateEntities.ID,
+		UserID:      strconv.Itoa(int(c.GetInt64(constants.JwtTokenUserID))),
+		TemplateID:  smsTemplate.ID,
 		SenderCode:  request.SenderCode,
 		GroupName:   request.GroupName,
 	}
 
-	err = s.smsCampaignRepo.CreateSmsCampaign(c, &entrySmsCampaignItem)
+	err = s.baseRepo.Create(c, &smsCampaign)
 	if err != nil {
 		logger.GetLogger().Error(err.Error())
 		return nil, err
@@ -531,7 +461,15 @@ func (s *Service) CreateSmsCampaign(c *gin.Context, request dtos.CreateSmsCampai
 }
 
 func (s *Service) GetSmsCampaigns(c *gin.Context, request dtos.GetSmsCampaignsRequest) (interface{}, error) {
-	smsCampaignEntities, err := s.smsCampaignRepo.FetchAllByConditions(c, request)
+	var smsCampaignEntities []models.SmsCampaign
+	err := s.baseRepo.FindMultiplePagination(c, &smsCampaignEntities, map[string]interface{}{
+		constants.Name:   request.Name,
+		constants.Status: request.Status,
+		constants.UserID: request.UserID,
+	}, dtos.Pagination{
+		From: request.From,
+		To:   request.To,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -540,14 +478,18 @@ func (s *Service) GetSmsCampaigns(c *gin.Context, request dtos.GetSmsCampaignsRe
 
 func (s *Service) DeActivateSmsCampaign(c *gin.Context, request dtos.DeActivateSmsCampaignRequest) (interface{}, error) {
 	// validate sms campaign
-	smsCampaignEntity, err := s.smsCampaignRepo.FetchByID(c, request.ID)
+	var smsCampaign models.SmsCampaign
+	err := s.baseRepo.FindByID(c, request.ID, &smsCampaign)
 	if err != nil {
+		logger.GetLogger().Error(err.Error())
 		return nil, err
 	}
 
 	// Update conditions
-	_, err = s.smsCampaignRepo.DeleteByID(c, smsCampaignEntity.ID, true)
+	smsCampaign.Status = models.SmsCampaignStateDeActivated
+	err = s.baseRepo.Update(c, &smsCampaign)
 	if err != nil {
+		logger.GetLogger().Error(err.Error())
 		return nil, err
 	}
 
@@ -562,27 +504,29 @@ func getCampaignsToRun(ctx *gin.Context) ([]models.SmsCampaign, error) {
 		err    error
 	)
 
-	items, err := repo.GetSmsCampaignRepo().FetchByStatusAndConditions(ctx,
-		models.SmsCampaignStateCreated,
-		dtos.DbScanQueryConditions{})
+	var smsCampaignEntities []models.SmsCampaign
+	err = repo.GetRepository().FindMultiple(ctx, &smsCampaignEntities, map[string]interface{}{
+		constants.Status: models.SmsCampaignStateCreated,
+	})
 	if err != nil {
+		logger.GetLogger().Error(err.Error())
 		return nil, err
 	}
 
 	baseTime := time.Now().Unix()
-	for _, item := range items {
+	for _, smsCampaign := range smsCampaignEntities {
 
-		if int(baseTime) > item.ScheduledAt {
-			result = append(result, item)
+		if int(baseTime) > smsCampaign.ScheduledAt {
+			result = append(result, smsCampaign)
 		}
 	}
 
-	return items, nil
+	return result, nil
 }
 
 func isEnoughBalanceForSmsCampaignRun(ctx *gin.Context,
 	userID string,
-	templateID string,
+	templateID int64,
 	subCategory string,
 	batch int) (*models.Credits, float64, bool) {
 
@@ -591,15 +535,18 @@ func isEnoughBalanceForSmsCampaignRun(ctx *gin.Context,
 		return nil, 0, false
 	}
 
-	itemCredit, err := repo.GetCreditsRepo().FetchCreditByUserID(ctx, userID)
+	var credit models.Credits
+	err = repo.GetRepository().Find(ctx, &credit, map[string]interface{}{
+		constants.UserID: userID,
+	})
 	if err != nil {
 		logger.GetLogger().
 			Info("failed to fetch credit items")
 		return nil, 0, false
 	}
 
-	if (perSmsCost * float64(batch)) <= itemCredit.Credits {
-		return itemCredit, perSmsCost * float64(batch), true
+	if (perSmsCost * float64(batch)) <= credit.Balance {
+		return &credit, perSmsCost * float64(batch), true
 	}
 
 	return nil, 0, false
@@ -607,11 +554,15 @@ func isEnoughBalanceForSmsCampaignRun(ctx *gin.Context,
 
 func getPerSmsCost(ctx *gin.Context,
 	userID string,
-	templateID string,
+	templateID int64,
 	subCategory string) (float64, error) {
 
 	// fetch sms template
-	itemTemplate, err := repo.GetSmsTemplateRepo().FetchByIDAndUserID(ctx, templateID, userID)
+	var smsTemplate models.SmsTemplate
+	err := repo.GetRepository().Find(ctx, &smsTemplate, map[string]interface{}{
+		constants.ID:     templateID,
+		constants.UserID: userID,
+	})
 	if err != nil {
 		logger.GetLogger().
 			WithField("error", err).
@@ -621,32 +572,27 @@ func getPerSmsCost(ctx *gin.Context,
 	}
 
 	// fetch subscription to get the pricing info
-	itemSubscriptions, err := repo.GetSubscriptionRepo().FetchByUserIDAndConditions(ctx, userID, map[string]interface{}{
-		models.ColumnSubscriptionsType:    "SMS",
-		models.ColumnSubscriptionsSubType: subCategory,
+	var subscription models.Subscription
+	err = repo.GetRepository().Find(ctx, &subscription, map[string]interface{}{
+		constants.Type:    "SMS",
+		constants.SubType: subCategory,
+		constants.UserID:  userID,
 	})
 	if err != nil {
 		logger.GetLogger().Error(err.Error())
 		return 0, err
 	}
 
-	if len(itemSubscriptions) != 1 {
-		logger.GetLogger().
-			WithField("item count", len(itemSubscriptions)).
-			Info("fetch items returned more than 1 item")
-		return 0, errors.New("fetch items returned more than 1 item")
-	}
-
-	itemPricing, err := repo.GetPricingRepo().FetchByID(ctx, itemSubscriptions[0].PricingId)
+	var pricing models.Pricing
+	err = repo.GetRepository().FindByID(ctx, subscription.PricingId, &pricing)
 	if err != nil {
-		logger.GetLogger().
-			Info("failed to fetch pricing items")
+		logger.GetLogger().Error(err.Error())
 		return 0, err
 	}
 
-	creditsToUse := getCreditsUseByLength(itemTemplate.Length)
+	creditsToUse := getCreditsUseByLength(smsTemplate.Length)
 
-	return creditsToUse * itemPricing.Rates, err
+	return creditsToUse * pricing.Rates, err
 }
 
 // getCreditsUseByLength gives us the credits consumption as per template length

@@ -1,8 +1,10 @@
 package sms
 
 import (
+	"errors"
 	"fmt"
 	"os"
+	"strconv"
 	"sync"
 	"time"
 
@@ -15,7 +17,7 @@ import (
 	"github.com/fastbiztech/hastinapura/pkg/logger"
 	"github.com/fastbiztech/hastinapura/pkg/mutex"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
+	gormLogger "gorm.io/gorm/logger"
 )
 
 const (
@@ -24,18 +26,20 @@ const (
 	CronProcessingSmsCampaignPrefix = "sms_campaign_run"
 
 	// mutex lock keys
-	MutexKeyCampaignProcessing = "mutex-key-campaign-processing-%s"
+	MutexKeyCampaignProcessing    = "mutex-key-campaign-processing-%s"
+	MutexKeyCampaignProcessingTTL = 30
 )
 
 type campaignCronExecutor struct {
 	ctx                *gin.Context
-	creditsRepo        *repo.CreditsRepo
-	smsAuditRepo       *repo.SmsAuditRepo
-	contactsRepo       *repo.ContactsRepo
-	smsCampaignRepo    *repo.SmsCampaignRepo
-	pendingJobsRepo    *repo.PendingJobsRepo
-	smsTemplateRepo    *repo.SmsTemplateRepo
-	cronProcessingRepo *repo.CronProcessingRepo
+	baseRepo           repo.IRepository
+	creditsRepo        repo.ICreditsRepo
+	smsAuditRepo       repo.ISmsAuditRepo
+	contactsRepo       repo.IContactsRepo
+	smsCampaignRepo    repo.ISmsCampaignRepo
+	pendingJobsRepo    repo.IPendingJobsRepo
+	smsTemplateRepo    repo.ISmsTemplateRepo
+	cronProcessingRepo repo.ICronProcessingRepo
 }
 
 func InitialiseCampaignCron() {
@@ -58,6 +62,7 @@ func InitialiseCampaignCron() {
 		time.Duration(config.GetConfig().Crons.CronsConfigCampaign.StartTime)*time.Second,
 		&campaignCronExecutor{
 			ctx:                newCtx,
+			baseRepo:           repo.GetRepository(),
 			creditsRepo:        repo.GetCreditsRepo(),
 			smsAuditRepo:       repo.GetSmsAuditRepo(),
 			contactsRepo:       repo.GetContactsRepo(),
@@ -93,7 +98,11 @@ func (s *campaignCronExecutor) JobExecutor() {
 			defer wg.Done()
 
 			// Run campaign only if s3 contacts upload is successful
-			smsTemplate, err := repo.GetSmsTemplateRepo().FetchByIDAndUserID(s.ctx, smsCampaign.TemplateID, smsCampaign.UserID)
+			var smsTemplate models.SmsTemplate
+			err := repo.GetRepository().Find(s.ctx, &smsCampaign, map[string]interface{}{
+				constants.ID:     smsCampaign.TemplateID,
+				constants.UserID: smsCampaign.UserID,
+			})
 			if err != nil {
 				logger.GetLogger().Error(err.Error())
 				return
@@ -128,9 +137,8 @@ func (s *campaignCronExecutor) JobExecutor() {
 
 			// mark campaign completed if it is
 			if len(contactEntities) == 0 {
-				err = s.smsCampaignRepo.UpdateByID(s.ctx, smsCampaign.ID, models.TableSmsCampaign, map[string]interface{}{
-					models.ColumnSmsCampaignStatus: models.SmsCampaignStateExecuted,
-				}, &smsCampaign)
+				smsCampaign.Status = models.SmsCampaignStateExecuted
+				err = s.baseRepo.Update(s.ctx, &smsCampaign)
 				if err != nil {
 					logger.GetLogger().Error(err.Error())
 					return
@@ -141,19 +149,19 @@ func (s *campaignCronExecutor) JobExecutor() {
 
 			// Mark completed contacts
 			// And save lastEvaluated key in cron processing
-			err = s.cronProcessingRepo.UpdateByID(s.ctx, cronProcessingEntity.ID, models.TableCronProcessing,
-				map[string]interface{}{
-					models.ColumnCronProcessingLastEvaluatedID: contactEntities[len(contactEntities)-1].ID,
-					models.ColumnCronProcessingStatus:          models.CronProcessingStatusCompleted,
-				}, &cronProcessingEntity)
+			cronProcessingEntity.LastEvaluatedID = contactEntities[len(contactEntities)-1].ID
+			cronProcessingEntity.Status = models.CronProcessingStatusCompleted
+			err = s.baseRepo.Update(s.ctx, &cronProcessingEntity)
 			if err != nil {
 				logger.GetLogger().Error("failed to update cron processing entity after sms processing")
 				return
 			}
 
 			// Consume credits
-			_, err = s.creditsRepo.UpdateCreditsLeftByID(s.ctx, creditEntity.ID, creditEntity.CreditsLeft-creditCost)
+			creditEntity.BalanceLeft = creditEntity.BalanceLeft - creditCost
+			err = s.baseRepo.Update(s.ctx, creditEntity)
 			if err != nil {
+				logger.GetLogger().Error(err.Error())
 				return
 			}
 
@@ -162,7 +170,6 @@ func (s *campaignCronExecutor) JobExecutor() {
 			for _, contactEntity := range contactEntities {
 
 				smsAudit := models.SmsAudit{
-					ID:              uuid.New().String(),
 					UserID:          smsCampaign.UserID,
 					CreditsConsumed: creditCost / float64(campaignCronBatchSize),
 					TemplateID:      smsCampaign.TemplateID,
@@ -192,59 +199,59 @@ func (s *campaignCronExecutor) JobExecutor() {
 
 func (s *campaignCronExecutor) getContactsForCronProcessing(ctx *gin.Context,
 	smsCampaign models.SmsCampaign,
-	lastEvaluatedID string,
+	lastEvaluatedID int64,
 	batch int) ([]models.Contacts, error) {
 
-	contactEntities, err := s.contactsRepo.FetchAllByConditions(ctx, dtos.GetContactsRequest{
-		GroupName: smsCampaign.GroupName,
-		Limit:     batch,
-	}, lastEvaluatedID)
+	var contactEntities []models.Contacts
+	// todo: build pagination thing
+	err := s.baseRepo.FindMultiplePagination(ctx, &contactEntities, map[string]interface{}{
+		constants.Name: smsCampaign.GroupName,
+	}, dtos.Pagination{})
 	if err != nil {
-		logger.GetLogger().
-			Error("failed to fetch contacts")
+		logger.GetLogger().Error("failed to fetch contacts")
 		return nil, err
 	}
 
 	return contactEntities, nil
 }
 
-func (s *campaignCronExecutor) getCronProcessingRowNumber(ctx *gin.Context, smsCampaignID string, batch int) (models.CronProcessing, error) {
+func (s *campaignCronExecutor) getCronProcessingRowNumber(ctx *gin.Context, smsCampaignID int64, batch int) (models.CronProcessing, error) {
 	// acquire lock on file name
-	output, err := mutex.GetCronProcessingMutexLockManager().
-		AcquireAndRelease(ctx,
-			fmt.Sprintf(MutexKeyCampaignProcessing, smsCampaignID),
-			[]byte("Dummy Data"),
-			func() (interface{}, error) {
+	output, err := mutex.GetClient().AcquireAndRelease(ctx,
+		fmt.Sprintf(MutexKeyCampaignProcessing, smsCampaignID),
+		MutexKeyCampaignProcessingTTL*time.Second,
+		func() (interface{}, error) {
 
-				// get the last in progress row number
-				cronProcessingItems, err := repo.GetCronProcessingRepo().FetchByName(ctx,
-					CronProcessingSmsCampaignPrefix+"_"+smsCampaignID)
-				if err != nil && err.Error() != repo.ErrCodeNoDataFound {
-					fmt.Println("error in item fetch")
-					return nil, err
-				}
-
-				// fetch last inProgress row
-				lastInProgressRow := fetchLastInProgressRowForSmsCampaignProcessing(cronProcessingItems)
-
-				// insert entry for current batch
-				cronProcessingInsertItem := models.CronProcessing{
-					ID:         uuid.New().String(),
-					Name:       CronProcessingSmsCampaignPrefix + "_" + smsCampaignID,
-					Batch:      batch,
-					InProgress: lastInProgressRow,
-					Status:     models.CronProcessingStatusProcessing,
-				}
-
-				err = s.cronProcessingRepo.Create(ctx, &cronProcessingInsertItem)
-				if err != nil {
-					fmt.Println("error in cron processing item insertion")
-					return models.CronProcessing{}, err
-				}
-
-				// return batch number
-				return cronProcessingInsertItem, nil
+			// get the last in progress row number
+			var cronProcessingItems []models.CronProcessing
+			err := s.baseRepo.FindMultiple(ctx, &cronProcessingItems, map[string]interface{}{
+				constants.Name: CronProcessingSmsCampaignPrefix + "_" + strconv.FormatInt(smsCampaignID, 10),
 			})
+			if err != nil && !errors.Is(err, gormLogger.ErrRecordNotFound) {
+				fmt.Println("error in item fetch")
+				return nil, err
+			}
+
+			// fetch last inProgress row
+			lastInProgressRow := fetchLastInProgressRowForSmsCampaignProcessing(cronProcessingItems)
+
+			// insert entry for current batch
+			cronProcessingInsertItem := models.CronProcessing{
+				Name:       CronProcessingSmsCampaignPrefix + "_" + strconv.FormatInt(smsCampaignID, 10),
+				Batch:      batch,
+				InProgress: lastInProgressRow,
+				Status:     models.CronProcessingStatusProcessing,
+			}
+
+			err = s.baseRepo.Create(ctx, &cronProcessingInsertItem)
+			if err != nil {
+				fmt.Println("error in cron processing item insertion")
+				return models.CronProcessing{}, err
+			}
+
+			// return batch number
+			return cronProcessingInsertItem, nil
+		})
 
 	if err != nil {
 		// todo: mutex already acquire handling

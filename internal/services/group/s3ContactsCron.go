@@ -15,25 +15,26 @@ import (
 	"github.com/fastbiztech/hastinapura/internal/pkg/aws"
 	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
 	"github.com/fastbiztech/hastinapura/pkg/cron"
-	"github.com/fastbiztech/hastinapura/pkg/dtos"
 	"github.com/fastbiztech/hastinapura/pkg/logger"
 	"github.com/fastbiztech/hastinapura/pkg/mutex"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
+	"github.com/goccy/go-json"
 )
 
 const (
 	S3ContactsFetchProcessingBatchSize = 5
 
 	// mutex lock keys
-	MutexKeyS3ContactsFetchProcessing = "mutex-key-s3-contacts-fetch-processing-%s"
+	MutexKeyS3ContactsFetchProcessing    = "mutex-key-s3-contacts-fetch-processing-%s"
+	MutexKeyS3ContactsFetchProcessingTTL = 30
 )
 
 type s3ContactsCronExecutor struct {
 	ctx                *gin.Context
-	pendingJobsRepo    *repo.PendingJobsRepo
-	cronProcessingRepo *repo.CronProcessingRepo
-	contactsRepo       *repo.ContactsRepo
+	baseRepo           repo.IRepository
+	pendingJobsRepo    repo.IPendingJobsRepo
+	cronProcessingRepo repo.ICronProcessingRepo
+	contactsRepo       repo.IContactsRepo
 }
 
 // CsvData represents the CSV data containing both column names and rows
@@ -62,6 +63,7 @@ func InitialiseS3ContactsCron() {
 		time.Duration(config.GetConfig().Crons.CronsConfigS3Contacts.StartTime)*time.Second,
 		&s3ContactsCronExecutor{
 			ctx:                newCtx,
+			baseRepo:           repo.GetRepository(),
 			pendingJobsRepo:    repo.GetPendingJobsRepo(),
 			cronProcessingRepo: repo.GetCronProcessingRepo(),
 			contactsRepo:       repo.GetContactsRepo(),
@@ -71,6 +73,7 @@ func InitialiseS3ContactsCron() {
 func (s *s3ContactsCronExecutor) JobExecutor() {
 	var (
 		toProcessPendingJob models.PendingJobs
+		pendingJobExtraData map[string]interface{}
 		groupName           string
 	)
 
@@ -79,9 +82,10 @@ func (s *s3ContactsCronExecutor) JobExecutor() {
 		Info("cron run started")
 
 	// fetch pending jobs
-	pendingJobItems, err := s.pendingJobsRepo.FetchAllByConditions(s.ctx, dtos.GetPendingJobsRequest{
-		Status: models.PendingJobsStatusPending,
-		Type:   models.PendingJobsTypeSmsContactsPullFromS3,
+	var pendingJobItems []models.PendingJobs
+	err := s.baseRepo.FindMultiple(s.ctx, &pendingJobItems, map[string]interface{}{
+		constants.Status: models.PendingJobsStatusPending,
+		constants.Type:   models.PendingJobsTypeSmsContactsPullFromS3,
 	})
 	if err != nil {
 		fmt.Println("failed to fetch pending jobs in cron")
@@ -96,12 +100,13 @@ func (s *s3ContactsCronExecutor) JobExecutor() {
 	toProcessPendingJob = pendingJobItems[0]
 
 	// fetch group name info from pending job entity
-	if _, ok := toProcessPendingJob.Extra[constants.ConstGroupName].(string); !ok {
+	_ = json.Unmarshal(toProcessPendingJob.Extra, &pendingJobExtraData)
+	if _, ok := pendingJobExtraData[constants.ConstGroupName].(string); !ok {
 		fmt.Println("group name not attached to pending job of contacts creation")
 		return
 	}
 
-	groupName = toProcessPendingJob.Extra[constants.ConstGroupName].(string)
+	groupName = pendingJobExtraData[constants.ConstGroupName].(string)
 
 	cronProcessingEntity, err := s.getCronProcessingRowNumber(s.ctx, toProcessPendingJob.Name, int(S3ContactsFetchProcessingBatchSize))
 	if err != nil {
@@ -120,17 +125,16 @@ func (s *s3ContactsCronExecutor) JobExecutor() {
 	for _, rowToProcess := range rowsToProcess.Rows {
 		var toUpdateContact models.Contacts
 
-		toUpdateContact.ID = uuid.New().String()
 		toUpdateContact.GroupName = groupName
 		toUpdateContact.Additional = make(map[string]interface{})
 
 		for indexColumn, column := range rowsToProcess.ColumnNames {
 			switch strings.ToLower(column) {
-			case models.ColumnContactsName:
+			case constants.Name:
 				toUpdateContact.Name = rowToProcess[indexColumn]
-			case models.ColumnContactsEmail:
+			case constants.Email:
 				toUpdateContact.Email = rowToProcess[indexColumn]
-			case models.ColumnContactsMobile:
+			case constants.Mobile:
 				toUpdateContact.Mobile = rowToProcess[indexColumn]
 			default:
 				toUpdateContact.Additional[column] = rowToProcess[indexColumn]
@@ -138,13 +142,12 @@ func (s *s3ContactsCronExecutor) JobExecutor() {
 		}
 
 		// check name/email/mobile combination if exists already in the database.
-		dedupEntities, err := s.contactsRepo.FetchAllByConditions(
-			s.ctx,
-			dtos.GetContactsRequest{
-				Name:   toUpdateContact.Name,
-				Email:  toUpdateContact.Email,
-				Mobile: toUpdateContact.Mobile,
-			}, "")
+		var dedupEntities []models.Contacts
+		err := s.baseRepo.FindMultiple(s.ctx, &dedupEntities, map[string]interface{}{
+			constants.Name:   toUpdateContact.Name,
+			constants.Email:  toUpdateContact.Email,
+			constants.Mobile: toUpdateContact.Mobile,
+		})
 		if err != nil || len(dedupEntities) > 0 {
 			fmt.Println("either err fetching contacts or entry already exists")
 			continue
@@ -154,14 +157,15 @@ func (s *s3ContactsCronExecutor) JobExecutor() {
 	}
 
 	// create contacts
-	err = s.contactsRepo.BulkCreate(s.ctx, toUpdateContacts)
+	err = s.baseRepo.CreateInBatches(s.ctx, toUpdateContacts, S3ContactsFetchProcessingBatchSize)
 	if err != nil {
 		fmt.Println("failed contacts bulk insertion")
 		return
 	}
 
 	// update cronProcessing item
-	_, err = s.cronProcessingRepo.UpdateStatusByID(s.ctx, cronProcessingEntity.ID, models.CronProcessingStatusCompleted)
+	cronProcessingEntity.Status = models.CronProcessingStatusCompleted
+	err = s.baseRepo.Update(s.ctx, &cronProcessingEntity)
 	if err != nil {
 		fmt.Println("error in updating s3 processing entity")
 		return
@@ -170,14 +174,16 @@ func (s *s3ContactsCronExecutor) JobExecutor() {
 	// if lesser rows to process then just update cronProcessing table and pendingJobs table and mark it completed
 	if len(rowsToProcess.Rows) < S3ContactsFetchProcessingBatchSize {
 		// update cronProcessing item
-		_, err = s.cronProcessingRepo.UpdateStatusByID(s.ctx, cronProcessingEntity.ID, models.CronProcessingStatusLastRun)
+		cronProcessingEntity.Status = models.CronProcessingStatusLastRun
+		err = s.baseRepo.Update(s.ctx, &cronProcessingEntity)
 		if err != nil {
 			fmt.Println("error in updating s3 processing entity")
 			return
 		}
 
 		// update pendingJobs item
-		_, err = s.pendingJobsRepo.UpdateStatusByName(s.ctx, toProcessPendingJob.Name, models.PendingJobsStatusCompleted)
+		toProcessPendingJob.Status = models.PendingJobsStatusCompleted
+		err = s.baseRepo.Update(s.ctx, &toProcessPendingJob)
 		if err != nil {
 			fmt.Println("error in updating s3 processing entity")
 			return
@@ -194,40 +200,42 @@ func (s *s3ContactsCronExecutor) JobExecutor() {
 func (s *s3ContactsCronExecutor) getCronProcessingRowNumber(ctx *gin.Context, s3FileName string, batch int) (models.CronProcessing, error) {
 
 	// acquire lock on file name
-	output, err := mutex.GetCronProcessingMutexLockManager().
-		AcquireAndRelease(ctx,
-			fmt.Sprintf(MutexKeyS3ContactsFetchProcessing, s3FileName),
-			[]byte("Dummy Data"),
-			func() (interface{}, error) {
+	output, err := mutex.GetClient().AcquireAndRelease(ctx,
+		fmt.Sprintf(MutexKeyS3ContactsFetchProcessing, s3FileName),
+		MutexKeyS3ContactsFetchProcessingTTL*time.Second,
+		func() (interface{}, error) {
 
-				// get the last in progress row number
-				cronProcessingItems, err := repo.GetCronProcessingRepo().FetchByName(ctx, s3FileName)
-				if err != nil {
-					fmt.Println("error in item fetch")
-					return nil, err
-				}
+			// get the last in progress row number
+			var cronProcessingItems []models.CronProcessing
+			err := s.baseRepo.FindMultiple(ctx, &cronProcessingItems,
+				map[string]interface{}{
+					constants.Name: s3FileName,
+				})
+			if err != nil {
+				fmt.Println("error in item fetch")
+				return nil, err
+			}
 
-				// fetch last inProgress row
-				lastInProgressRow := fetchLastInProgressRowForS3ContactsProcessing(cronProcessingItems)
+			// fetch last inProgress row
+			lastInProgressRow := fetchLastInProgressRowForS3ContactsProcessing(cronProcessingItems)
 
-				// insert entry for current batch
-				cronProcessingInsertItem := models.CronProcessing{
-					ID:         uuid.New().String(),
-					Name:       s3FileName,
-					Batch:      batch,
-					InProgress: lastInProgressRow,
-					Status:     models.CronProcessingStatusProcessing,
-				}
+			// insert entry for current batch
+			cronProcessingInsertItem := models.CronProcessing{
+				Name:       s3FileName,
+				Batch:      batch,
+				InProgress: lastInProgressRow,
+				Status:     models.CronProcessingStatusProcessing,
+			}
 
-				err = s.cronProcessingRepo.Create(ctx, &cronProcessingInsertItem)
-				if err != nil {
-					fmt.Println("error in cron processing item insertion")
-					return models.CronProcessing{}, err
-				}
+			err = s.baseRepo.Create(ctx, &cronProcessingInsertItem)
+			if err != nil {
+				fmt.Println("error in cron processing item insertion")
+				return models.CronProcessing{}, err
+			}
 
-				// return batch number
-				return cronProcessingInsertItem, nil
-			})
+			// return batch number
+			return cronProcessingInsertItem, nil
+		})
 
 	if err != nil {
 		// todo: mutex already acquire handling

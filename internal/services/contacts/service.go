@@ -4,16 +4,19 @@ import (
 	"log"
 	"sync"
 
+	"github.com/fastbiztech/hastinapura/internal/constants"
+	"github.com/fastbiztech/hastinapura/internal/models"
 	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
 	"github.com/fastbiztech/hastinapura/internal/utils"
 	"github.com/fastbiztech/hastinapura/pkg/dtos"
+	"github.com/fastbiztech/hastinapura/pkg/logger"
 	"github.com/gin-gonic/gin"
 )
 
 type Service struct {
-	baseRepo     *repo.Repository
-	groupRepo    *repo.GroupRepo
-	contactsRepo *repo.ContactsRepo
+	baseRepo     repo.IRepository
+	groupRepo    repo.IGroupRepo
+	contactsRepo repo.IContactsRepo
 }
 
 var (
@@ -36,13 +39,19 @@ func GetService() *Service {
 }
 
 func (s *Service) GetContacts(c *gin.Context, request dtos.GetGroupContactsRequest) (interface{}, error) {
-	items, err := s.contactsRepo.FetchAllByConditions(c, dtos.GetContactsRequest{
-		GroupName: request.GroupName,
-	}, "")
+	var items []models.Contacts
+	err := s.baseRepo.FindMultiplePagination(c,
+		&items,
+		map[string]interface{}{
+			constants.GroupName: request.GroupName,
+		},
+		dtos.Pagination{})
 	if err != nil {
-		log.Fatalf("error fetching item: %v", err)
+		logger.GetLogger().Error(err.Error())
+		return nil, err
 	}
 
+	// todo: add order by.
 	err = utils.SortByField(items, "Name", "asc")
 	if err != nil {
 		log.Fatalf("error sorting items: %v", err)

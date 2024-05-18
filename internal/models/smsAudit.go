@@ -1,7 +1,7 @@
 package models
 
 const (
-	TableSmsAudit = "SmsAudit"
+	TableSmsAudit = "sms_audit"
 )
 
 const (
@@ -11,26 +11,28 @@ const (
 	// Triggered Modes
 	ModeSmsAuditInstant = "Instant"
 	ModeSmsAuditBulk    = "Bulk"
-
-	// Columns
-	ColumnSmsAuditID              = "ID"
-	ColumnSmsAuditUserID          = "UserID"
-	ColumnSmsAuditCreditsConsumed = "CreditsConsumed"
-	ColumnSmsAuditTemplateID      = "TemplateCode"
-	ColumnSmsAuditSenderCode      = "SenderCode"
-	ColumnSmsAuditContactID       = "ContactID"
-	ColumnSmsAuditStatus          = "Status"
-	ColumnSmsAuditTriggeredMode   = "TriggeredMode"
 )
 
 type SmsAudit struct {
-	ID              string  `json:"id"`
+	ID              int64   `json:"id"`
 	UserID          string  `json:"user_id"`
 	CreditsConsumed float64 `json:"credits_consumed"`
-	TemplateID      string  `json:"template_id"`
+	TemplateID      int64   `json:"template_id"`
 	SenderCode      string  `json:"sender_code"`
-	ContactID       string  `json:"contact_id"`
+	ContactID       int64   `json:"contact_id"`
 	Status          string  `json:"status"`
 	TriggeredMode   string  `json:"triggered_mode"`
 	BaseModel
+}
+
+func (o *SmsAudit) TableName() string {
+	return TableSmsAudit
+}
+
+func (o *SmsAudit) GetID() int64 {
+	return o.ID
+}
+
+func (o *SmsAudit) SetID(id int64) {
+	o.ID = id
 }

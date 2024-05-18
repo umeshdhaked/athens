@@ -29,8 +29,8 @@ func GetRzpService() *RzpService {
 }
 
 func (r *RzpService) CreateOrder(ctx *gin.Context, amount int64) (map[string]interface{}, error) {
-	usrId, _ := ctx.Get(constants.JwtTokenUserID)
-	mobile, _ := ctx.Get(constants.JwtTokenMobile)
+	usrId := ctx.GetInt64(constants.JwtTokenUserID)
+	mobile := ctx.GetString(constants.JwtTokenMobile)
 	data := map[string]interface{}{
 		"amount":          amount,
 		"currency":        models.CurrencyINR,

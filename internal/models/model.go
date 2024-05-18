@@ -64,7 +64,7 @@ const (
 )
 
 type BaseModel struct {
-	CreatedAt int64 `json:"created_at"` // Unix timestamps
-	UpdatedAt int64 `json:"updated_at"`
-	DeletedAt int64 `json:"deleted_at"`
+	CreatedAt int64 `gorm:"column:created_at" json:"created_at"` // Unix timestamps
+	UpdatedAt int64 `gorm:"column:updated_at" json:"updated_at"`
+	DeletedAt int64 `gorm:"column:deleted_at" json:"deleted_at"`
 }

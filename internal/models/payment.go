@@ -1,108 +1,111 @@
 package models
 
+import "time"
+
 const (
 	CurrencyINR       = "INR"
 	PaymentOrgName    = "FastBizTech Solutions"
 	TestPaymentKey    = "rzp_test_NmbdVYr5EuOOo5"
 	TestPaymentSecret = "vW4mQzdP5SL0VlSrRNlkLc7Y"
-	TableRzpOrders    = "RzpOrders"
-	TableRzpPayments  = "RzpPayments"
-	TableRzpRefunds   = "RzpRefunds"
-	TableFBTPayment   = "FBTPayment"
 	TableInvoices     = "Invoice"
 
-	ColumnOrderId        = "id"
-	ColumnOrderStatus    = "status"
-	ColumnOrderCreatedAt = "created_at"
-
-	ColumnInvoiceId = "InvoiceId"
-	ColumnOdrId     = "OrderId"
+	TablePayments           = "payments"
+	SQLColumnInvoiceOrderId = "order_id"
 )
 
-type RzpOrder struct {
-	Amount     int `dynamodbav:"amount"`
-	AmountPaid int `dynamodbav:"amount_paid"`
-	Notes      struct {
-		Mobile string `dynamodbav:"mobile"`
-		UserID string `dynamodbav:"userId"`
-	} `dynamodbav:"notes"`
-	CreatedAt int    `dynamodbav:"created_at"`
-	AmountDue int    `dynamodbav:"amount_due"`
-	Currency  string `dynamodbav:"currency"`
-	Receipt   string `dynamodbav:"receipt"`
-	ID        string `dynamodbav:"id"`
-	OfferID   string `dynamodbav:"offer_id"`
-	Entity    string `dynamodbav:"entity"`
-	Attempts  int    `dynamodbav:"attempts"`
-	Status    string `dynamodbav:"status"`
+type Payments struct {
+	Amount         float64 `json:"amount"`
+	AmountPaid     float64 `json:"amount_paid"`
+	Mobile         string  `json:"mobile"`
+	UserId         float64 `json:"user_id"`
+	OrderCreatedAt float64 `json:"order_created_at"`
+	AmountDue      float64 `json:"amount_due"`
+	Currency       string  `json:"currency"`
+	Receipt        string  `json:"receipt"`
+	OrderId        string  `json:"order_id"`
+	OfferId        string  `json:"offer_id"`
+	Entity         string  `json:"entity"`
+	Attempts       float64 `json:"attempts"`
+	Status         string  `json:"status"`
+	Id             int64   `json:"id"`
+	BaseModel
 }
 
-type RzpPayment struct {
-	ID             string `dynamodbav:"id"`
-	Entity         string `dynamodbav:"entity"`
-	Amount         int    `dynamodbav:"amount"`
-	Currency       string `dynamodbav:"currency"`
-	Status         string `dynamodbav:"status"`
-	OrderID        string `dynamodbav:"order_id"`
-	InvoiceID      any    `dynamodbav:"invoice_id"`
-	International  bool   `dynamodbav:"international"`
-	Method         string `dynamodbav:"method"`
-	AmountRefunded int    `dynamodbav:"amount_refunded"`
-	RefundStatus   any    `dynamodbav:"refund_status"`
-	Captured       bool   `dynamodbav:"captured"`
-	Description    string `dynamodbav:"description"`
-	CardID         any    `dynamodbav:"card_id"`
-	Bank           string `dynamodbav:"bank"`
-	Wallet         any    `dynamodbav:"wallet"`
-	Vpa            any    `dynamodbav:"vpa"`
-	Email          string `dynamodbav:"email"`
-	Contact        string `dynamodbav:"contact"`
-	Notes          struct {
-		Mobile  string `dynamodbav:"mobile"`
-		UserID  string `dynamodbav:"userId"`
-		Address string `dynamodbav:"address"`
-	} `dynamodbav:"notes"`
-	Fee              int `dynamodbav:"fee"`
-	Tax              int `dynamodbav:"tax"`
-	ErrorCode        any `dynamodbav:"error_code"`
-	ErrorDescription any `dynamodbav:"error_description"`
-	ErrorSource      any `dynamodbav:"error_source"`
-	ErrorStep        any `dynamodbav:"error_step"`
-	ErrorReason      any `dynamodbav:"error_reason"`
-	AcquirerData     struct {
-		BankTransactionID string `dynamodbav:"bank_transaction_id"`
-	} `dynamodbav:"acquirer_data"`
-	CreatedAt int `dynamodbav:"created_at"`
+func (o *Payments) TableName() string {
+	return TablePayments
 }
 
-type RzpRefunds struct {
-	AcquirerData struct {
-		Arn string `dynamodbav:"arn"`
-	} `dynamodbav:"acquirer_data"`
-	Amount    int    `dynamodbav:"amount"`
-	BatchID   any    `dynamodbav:"batch_id"`
-	CreatedAt int    `dynamodbav:"created_at"`
-	Currency  string `dynamodbav:"currency"`
-	Entity    string `dynamodbav:"entity"`
-	ID        string `dynamodbav:"id"`
-	Notes     struct {
-		Address string `dynamodbav:"address"`
-		Mobile  string `dynamodbav:"mobile"`
-		UserID  string `dynamodbav:"userId"`
-	} `dynamodbav:"notes"`
-	PaymentID      string `dynamodbav:"payment_id"`
-	Receipt        any    `dynamodbav:"receipt"`
-	SpeedProcessed string `dynamodbav:"speed_processed"`
-	SpeedRequested string `dynamodbav:"speed_requested"`
-	Status         string `dynamodbav:"status"`
+func (o *Payments) GetID() int64 {
+	return o.Id
+}
+
+func (o *Payments) SetID(id int64) {
+	o.Id = id
+}
+
+func (o *Payments) PopulateFromMap(body map[string]interface{}) {
+	if nil != body["entity"] {
+		o.Entity = body["entity"].(string)
+	}
+	if nil != body["amount"] {
+		o.Amount = body["amount"].(float64)
+	}
+	if nil != body["amount_paid"] {
+		o.AmountPaid = body["amount_paid"].(float64)
+	}
+	if nil != body["receipt"] {
+		o.Receipt = body["receipt"].(string)
+	}
+	if nil != body["offer_id"] {
+		o.OfferId = body["offer_id"].(string)
+	}
+	if nil != body["status"] {
+		o.Status = body["status"].(string)
+	}
+	if nil != body["notes"] && nil != (body["notes"].(map[string]interface{}))["mobile"] {
+		o.Mobile = (body["notes"].(map[string]interface{}))["mobile"].(string)
+	}
+	if nil != body["notes"] && nil != (body["notes"].(map[string]interface{}))["userId"] {
+		o.UserId = (body["notes"].(map[string]interface{}))["userId"].(float64)
+	}
+	if nil != body["created_at"] {
+		o.OrderCreatedAt = body["created_at"].(float64)
+	}
+	if nil != body["id"] {
+		o.OrderId = body["id"].(string)
+	}
+	if nil != body["amount_due"] {
+		o.AmountDue = body["amount_due"].(float64)
+	}
+	if nil != body["currency"] {
+		o.Currency = body["currency"].(string)
+	}
+	if nil != body["attempts"] {
+		o.Attempts = body["attempts"].(float64)
+	}
+	o.UpdatedAt = time.Now().Unix()
+	if o.BaseModel.CreatedAt == 0 {
+		o.CreatedAt = time.Now().Unix()
+	}
 }
 
 type Invoice struct {
-	ID            string
-	InvoiceNumber int
-	InvoiceId     string
-	OrderId       string
-	Status        string
-	UserId        string
-	Data          map[string]interface{}
+	ID      int64
+	OrderId string
+	Status  string
+	UserId  float64
+	Receipt string
+	BaseModel
+}
+
+func (o *Invoice) TableName() string {
+	return TableInvoices
+}
+
+func (o *Invoice) GetID() int64 {
+	return o.ID
+}
+
+func (o *Invoice) SetID(id int64) {
+	o.ID = id
 }

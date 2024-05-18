@@ -1,9 +1,12 @@
 package utils
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"sort"
+
+	"github.com/gin-gonic/gin"
 )
 
 // SortByField sorts an array of structs based on the specified field in ascending or descending order.
@@ -54,4 +57,18 @@ func lessThan(val1, val2 reflect.Value) bool {
 	default:
 		panic("SortByField: unsupported type for comparison")
 	}
+}
+
+func MapToStruct(ctx *gin.Context, source interface{}, target interface{}) error {
+	byteArray, err := json.Marshal(source)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(byteArray, &target)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

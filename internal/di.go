@@ -25,45 +25,51 @@ import (
 // InitialiseDeps *Make sure service are in correct order based on their dependency on each other* //
 func InitialiseDeps() {
 
+	// logger initialisation
+	logger.Build()
+
 	// db initialisation
 	db.NewDb()
 
-	// logger initialisation
-	logger.Build()
+	// repos
+	repo.InitialiseRepositories()
 
 	// pkg initialisation
 	pkgAws.InitialiseS3Client()
 
-	// repos
-	repo.InitialiseRepositories(db.GetDb().Client)
+	initServices()
 
+	initCrons()
+
+	// mutex initialisations
+	mutex.Initialise()
+}
+
+func initServices() {
 	// services
 	crypto.NewCrypto()
 
 	otp.NewOtpSender()
-	otcSvc.NewOtpService(otp.GetOtpSender(), crypto.GetCrypto(), repo.GetOtpRepo())
+	otcSvc.NewOtpService(otp.GetOtpSender(), crypto.GetCrypto())
 	promo.NewPromoService(repo.GetPromotionRepo())
 	subscription.NewSubscriptionService(repo.GetPricingRepo(), repo.GetSubscriptionRepo(), repo.GetUserRepo(), repo.GetCreditsRepo(), repo.GetCreditsAuditRepo())
-	register.NewRegistrationService(repo.GetUserRepo(), otcSvc.GetOtpService(), crypto.GetCrypto(), subscription.GetSubscriptionService())
+	register.NewRegistrationService(otcSvc.GetOtpService(), crypto.GetCrypto(), subscription.GetSubscriptionService())
 	rzp.NewRzpService()
 	invoices.NewInvoiceService(repo.GetInvoiceRepo())
 	payments.NewPaymentService(rzp.GetRzpService(), repo.GetPaymentsRepo(), repo.GetInvoiceRepo(), subscription.GetSubscriptionService())
-	payments.NewPaymentCronService(rzp.GetRzpService(), repo.GetPaymentsRepo())
+	//payments.NewPaymentCronService(rzp.GetRzpService(), repo.GetPaymentsRepo())
 
 	group.InitialiseService()
 	contacts.InitialiseService()
 	pendingJobs.InitialiseService()
 	cronProcessing.InitialiseService()
 	sms.InitialiseService()
+}
 
+func initCrons() {
 	// crons initialisation : TODO - move to worker initialisation
 	// todo : stop all crons at graceful shutdown
+
 	group.InitialiseS3ContactsCron()
 	sms.InitialiseCampaignCron()
-	payments.InitiateRefundForStuckOrdersCron(payments.GetPaymentCronService())
-
-	// mutex connection check
-	mutex.ConnectCheck()
-	// mutex initialisations
-	mutex.Initialise()
 }

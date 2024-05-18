@@ -1,13 +1,14 @@
 package models
 
-const (
-	TablePendingJobs = "pendingJobs"
+import (
+	"gorm.io/datatypes"
 )
 
 const (
-	ColumnPendingJobsName   = "name"
-	ColumnPendingJobsType   = "type"
-	ColumnPendingJobsStatus = "status"
+	TablePendingJobs = "pending_jobs"
+)
+
+const (
 
 	// Types
 	PendingJobsTypeSmsContactsPullFromS3 = "sms_contacts_pull_from_s3"
@@ -18,9 +19,22 @@ const (
 )
 
 type PendingJobs struct {
-	Name   string                 `json:"name" dynamodbav:"name"`
-	Type   string                 `json:"type" dynamodbav:"type"`
-	Status string                 `json:"status" dynamodbav:"status"`
-	Extra  map[string]interface{} `json:"extra" dynamodbav:"extra"`
+	ID     int64          `json:"id" dynamodbav:"id"`
+	Name   string         `json:"name" dynamodbav:"name"`
+	Type   string         `json:"type" dynamodbav:"type"`
+	Status string         `json:"status" dynamodbav:"status"`
+	Extra  datatypes.JSON `json:"extra" dynamodbav:"extra"`
 	BaseModel
+}
+
+func (o *PendingJobs) TableName() string {
+	return TablePendingJobs
+}
+
+func (o *PendingJobs) GetID() int64 {
+	return o.ID
+}
+
+func (o *PendingJobs) SetID(id int64) {
+	o.ID = id
 }

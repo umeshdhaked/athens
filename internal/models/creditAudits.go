@@ -1,17 +1,29 @@
 package models
 
 const (
-	TableCreditAudits = "CreditsAudit"
+	TableCreditAudits = "credit_audits"
 )
 
 type CreditAudits struct {
-	Id             string  `json:"id"`
+	ID             int64   `json:"id"`
 	Category       string  `json:"category"`
 	SubCategory    string  `json:"sub_category"`
 	DeductedAmount float64 `json:"deducted_amount"`
 	AddedAmount    float64 `json:"added_amount"`
-	CreditId       string  `json:"credit_id"`
-	UserId         string  `json:"user_id"`
+	CreditId       int64   `json:"credit_id"`
+	UserId         int64   `json:"user_id"`
 	PaymentOrderId string  `json:"payment_order_id"`
 	BaseModel
+}
+
+func (c *CreditAudits) TableName() string {
+	return TableCreditAudits
+}
+
+func (c *CreditAudits) GetID() int64 {
+	return c.ID
+}
+
+func (c *CreditAudits) SetID(id int64) {
+	c.ID = id
 }

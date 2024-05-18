@@ -7,5 +7,7 @@ type InvoicesRequest struct {
 }
 
 type InvoicesResponse struct {
-	*models.Invoice
+	InvoiceId   string
+	Invoice     *models.Invoice
+	RzpOrderDBO *models.Payments
 }

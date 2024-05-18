@@ -1,11 +1,5 @@
 {
     "aws" : {
-        "db": {
-            "key_id": "DUMMY",
-            "access_key": "DUMMY",
-            "region": "ap-south-1",
-            "endpoint": "http://localhost:8000"
-        },
         "s3": {
             "key_id": "DUMMY",
             "access_key": "DUMMY",
@@ -16,6 +10,32 @@
 
     "app": {
         "port" : "8080"
+    },
+
+    "mutex" : {
+        "host": "localhost",
+        "port": "6379",
+        "password": ""
+    },
+
+    "db": {
+        "mysql": {
+            "enabled": true,
+            "dialect" : "mysql",
+            "host" : "127.0.0.1",
+            "port" : 3306,
+            "protocol" : "tcp",
+            "username" : "root",
+            "password" : "1234",
+            "name" : "hastinapur"
+        },
+        "dynamo": {
+            "enabled": false,
+            "key_id": "DUMMY",
+            "access_key": "DUMMY",
+            "region": "ap-south-1",
+            "endpoint": "http://localhost:8000"
+        }
     },
 
     "api": {
@@ -38,17 +58,12 @@
         "s3_contacts": {
             "enable"              : true,
             "start_time"          : 60,
-            "execution_time"      : 5
-        },
-        "payment_refunds": {
-            "enable"              : true,
-            "start_time"          : 60,
-            "execution_time"      : 300
+            "execution_time"      : 100
         },
         "campaign": {
             "enable"              : true,
-            "start_time"          : 0,
-            "execution_time"      : 10
+            "start_time"          : 60,
+            "execution_time"      : 100
         }
     }
 }

@@ -2,6 +2,9 @@
 1. graceful shutdown
 2. mysql driver add
 3. metrics push
+4. ci/cd checks
+5. redis cache/mutexes
+6. Error package
 
 // Umesh
 1. add logging via logger

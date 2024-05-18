@@ -1,70 +1,27 @@
 package repo
 
 import (
-	"log"
-
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"github.com/fastbiztech/hastinapura/internal/models"
-	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
-var otpRepo *OtpRepo
-
-type OtpRepo struct {
-	Repository
+type IOtpRepo interface {
 }
 
-func newOtpRepo(client *dynamodb.Client) {
-	otpRepo = &OtpRepo{Repository: Repository{dbClient: client}}
+var otpRepo IOtpRepo
+
+type MysqlOtpRepo struct {
+	IRepository
 }
 
-func GetOtpRepo() *OtpRepo {
-	return otpRepo
-}
-
-func (o *OtpRepo) SaveOtp(ctx *gin.Context, otp models.Otp) error {
-	item, er := attributevalue.MarshalMap(otp)
-	if er != nil {
-		return er
-	}
-
-	params := &dynamodb.PutItemInput{
-		TableName: aws.String(models.TableOtp),
-		Item:      item,
-	}
-
-	output, err := o.dbClient.PutItem(ctx, params)
-	log.Print(output)
-	return err
-}
-
-func (o *OtpRepo) GetOtp(ctx *gin.Context, mobile string) (*models.Otp, error) {
-	var queryInput = &dynamodb.QueryInput{
-		TableName: aws.String(models.TableOtp),
-		IndexName: aws.String(models.IndexTableOtpIndexMobile),
-		KeyConditions: map[string]types.Condition{
-			models.ColumnMobile: {
-				ComparisonOperator: types.ComparisonOperatorEq,
-				AttributeValueList: []types.AttributeValue{&types.AttributeValueMemberS{Value: mobile}},
-			},
+func newOtpRepo(mysqlDB *gorm.DB, dynamoDB *dynamodb.Client) {
+	otpRepo = &MysqlOtpRepo{
+		IRepository: &MysqlRepository{
+			db: mysqlDB,
 		},
 	}
+}
 
-	var resp, err = o.dbClient.Query(ctx, queryInput)
-	if err != nil {
-		return nil, err
-	}
-	if resp.Count > 0 {
-		otp := []models.Otp{}
-		if err := attributevalue.UnmarshalListOfMaps(resp.Items, &otp); err != nil {
-			log.Println(err)
-			return nil, err
-		}
-		return &otp[0], nil
-	}
-	return nil, nil
-
+func GetOtpRepo() IOtpRepo {
+	return otpRepo
 }

@@ -2,6 +2,7 @@ package otp
 
 import (
 	"errors"
+	"gorm.io/gorm"
 	"log"
 	"sync"
 	"time"
@@ -11,7 +12,6 @@ import (
 	"github.com/fastbiztech/hastinapura/internal/pkg/otp"
 	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 var (
@@ -22,12 +22,17 @@ var (
 type OtpService struct {
 	otpSender *otp.OtpSender
 	crypto    *crypto.Crypto
-	otpRepo   *repo.OtpRepo
+	baseRepo  repo.IRepository
+	otpRepo   repo.IOtpRepo
 }
 
-func NewOtpService(otpSender *otp.OtpSender, crypto *crypto.Crypto, otpRepo *repo.OtpRepo) {
+func NewOtpService(otpSender *otp.OtpSender, crypto *crypto.Crypto) {
 	once.Do(func() {
-		service = &OtpService{otpSender: otpSender, crypto: crypto, otpRepo: otpRepo}
+		service = &OtpService{
+			otpSender: otpSender,
+			crypto:    crypto,
+			baseRepo:  repo.GetRepository(),
+			otpRepo:   repo.GetOtpRepo()}
 	})
 }
 
@@ -42,30 +47,49 @@ func (o *OtpService) SendOtp(ctx *gin.Context, mobile string) error {
 		return err
 	}
 	hashedOtp := o.crypto.HashString(generatedOtp)
-
 	otp := models.Otp{
-		Id:     uuid.New().String(),
 		Mobile: mobile,
 		Otp:    hashedOtp,
 		Exp:    time.Now().Add(2 * time.Minute).Unix(),
 	}
-	if err := o.otpRepo.SaveOtp(ctx, otp); err != nil {
+
+	var fetchedOtp models.Otp
+	err := o.baseRepo.Find(ctx, &fetchedOtp, map[string]interface{}{
+		models.ColumnOtpMobile: mobile,
+	})
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return err
 	}
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		if err := o.baseRepo.Create(ctx, &otp); err != nil {
+			return err
+		}
+		return nil
+	} else {
+		otp.ID = fetchedOtp.ID
+		if err := o.baseRepo.Update(ctx, &otp); err != nil {
+			return err
+		}
+		return nil
+	}
 
-	return nil
 }
 
 func (o *OtpService) VerifyOtp(ctx *gin.Context, mobile string, otp string) error {
 	currentHashedOtp := o.crypto.HashString(otp)
-	fetchedOtp, err := o.otpRepo.GetOtp(ctx, mobile)
+
+	var fetchedOtp models.Otp
+	err := o.baseRepo.Find(ctx, &fetchedOtp, map[string]interface{}{
+		models.ColumnOtpMobile: mobile,
+	})
 	if err != nil {
 		return err
 	}
 
 	currTime := time.Now().Unix()
-	if fetchedOtp != nil && fetchedOtp.Otp == currentHashedOtp && fetchedOtp.Exp > currTime {
+	if fetchedOtp.Otp == currentHashedOtp && fetchedOtp.Exp > currTime {
 		return nil
 	}
+
 	return errors.New("otp verification failed")
 }

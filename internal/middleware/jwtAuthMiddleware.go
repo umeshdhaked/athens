@@ -1,11 +1,11 @@
 package middleware
 
 import (
-	"context"
-	"github.com/fastbiztech/hastinapura/internal/pkg/jwt"
-	"github.com/fastbiztech/hastinapura/internal/services/register"
 	"net/http"
 	"time"
+
+	"github.com/fastbiztech/hastinapura/internal/pkg/jwt"
+	"github.com/fastbiztech/hastinapura/internal/services/register"
 
 	"github.com/fastbiztech/hastinapura/internal/constants"
 	"github.com/gin-gonic/gin"
@@ -36,20 +36,20 @@ func JwtAuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		userNme := claims[constants.JwtTokenMobile]
-		id := claims[constants.JwtTokenUserID]
-		role := claims[constants.JwtTokenRole]
+		userName := claims[constants.JwtTokenMobile].(string)
+		id := claims[constants.JwtTokenUserID].(float64)
+		role := claims[constants.JwtTokenRole].(string)
 
-		usr, err := register.GetRegistrationService().GetUser(context.Background(), userNme.(string))
+		usr, err := register.GetRegistrationService().GetUser(ctx, userName)
 		if err != nil || usr == nil {
 			ctx.JSON(http.StatusUnauthorized, gin.H{"message": "USER_NOT_EXIST"})
 			ctx.Abort()
 			return
 		}
 
-		ctx.Set(constants.JwtTokenMobile, userNme.(string))
-		ctx.Set(constants.JwtTokenUserID, id.(string))
-		ctx.Set(constants.JwtTokenRole, role.(string))
+		ctx.Set(constants.JwtTokenMobile, userName)
+		ctx.Set(constants.JwtTokenUserID, int64(id))
+		ctx.Set(constants.JwtTokenRole, role)
 		ctx.Next()
 	}
 

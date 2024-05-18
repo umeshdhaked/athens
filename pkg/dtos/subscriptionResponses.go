@@ -1,7 +1,7 @@
 package dtos
 
 type PricingResponse struct {
-	Id         string
+	Id         int64
 	Category   string
 	SubCatgory string
 	Type       string
@@ -10,9 +10,9 @@ type PricingResponse struct {
 }
 
 type SubscriptionResponse struct {
-	Id        string
-	PricingId string
-	UserId    string
+	Id        int64
+	PricingId int64
+	UserId    int64
 	Type      string
 	SubType   string
 	Status    string
@@ -22,7 +22,7 @@ type SubscriptionResponse struct {
 }
 
 type CreditsResponse struct {
-	Id              string
+	Id              int64
 	UserMobile      string
 	InitialCredit   float64
 	RemainingCredit float64

@@ -1,22 +1,22 @@
 package register
 
 import (
-	"context"
 	"errors"
-	"fmt"
+	"log"
+	"sync"
+
 	"github.com/fastbiztech/hastinapura/internal/constants"
 	"github.com/fastbiztech/hastinapura/internal/models"
 	"github.com/fastbiztech/hastinapura/internal/services/otp"
 	"github.com/fastbiztech/hastinapura/internal/services/subscription"
-	"log"
-	"sync"
+	"github.com/fastbiztech/hastinapura/pkg/logger"
+	gormLogger "gorm.io/gorm/logger"
 
 	"github.com/fastbiztech/hastinapura/internal/pkg/crypto"
 	"github.com/fastbiztech/hastinapura/internal/pkg/jwt"
 	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
 	"github.com/fastbiztech/hastinapura/pkg/dtos"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 var (
@@ -27,14 +27,16 @@ var (
 type RegistrationService struct {
 	otpService *otp.OtpService
 	cryp       *crypto.Crypto
-	userRepo   *repo.UserRepo
+	baseRepo   repo.IRepository
+	userRepo   repo.IUserRepo
 	sub        *subscription.SubscriptionService
 }
 
-func NewRegistrationService(userRepo *repo.UserRepo, otpService *otp.OtpService, cryp *crypto.Crypto, sub *subscription.SubscriptionService) {
+func NewRegistrationService(otpService *otp.OtpService, cryp *crypto.Crypto, sub *subscription.SubscriptionService) {
 	once.Do(func() {
 		service = &RegistrationService{
-			userRepo:   userRepo,
+			baseRepo:   repo.GetRepository(),
+			userRepo:   repo.GetUserRepo(),
 			otpService: otpService,
 			cryp:       cryp,
 			sub:        sub,
@@ -54,85 +56,117 @@ func (s *RegistrationService) SendOtp(ctx *gin.Context, user dtos.RegisterUserRe
 	return err
 }
 
-func (s *RegistrationService) UpdateUserRoleToAdmin(ctx *gin.Context, user dtos.RegisterUserRequest) (*dtos.LoginSuccessResponse, error) {
-	log.Println("Received update user role to admin: " + user.MobileNumber)
+func (s *RegistrationService) UpdateUserRoleToAdmin(ctx *gin.Context, request dtos.RegisterUserRequest) (*dtos.LoginSuccessResponse, error) {
+	log.Println("Received update user role to admin: " + request.MobileNumber)
 
-	var usr *models.User
-	var er error
-	if usr, er = s.userRepo.GetUserFromMobile(ctx, user.MobileNumber); er != nil {
-		return nil, er
-	}
+	var (
+		user *models.User = &models.User{}
+		err  error
+	)
 
-	usrObj := &models.User{ID: usr.ID, Role: "admin", Mobile: usr.Mobile}
-	if er := s.userRepo.UpdateUser(ctx, usrObj); er != nil {
-		return nil, er
-	}
-
-	return &dtos.LoginSuccessResponse{MobileNumber: user.MobileNumber}, nil
-}
-
-func (s *RegistrationService) RegisterUser(ctx *gin.Context, user dtos.RegisterUserRequest) (*dtos.LoginSuccessResponse, error) {
-	log.Println("Received register user request for user ", user)
-	if err := s.otpService.VerifyOtp(ctx, user.MobileNumber, user.Otp); err != nil {
+	// get User
+	err = s.baseRepo.Find(ctx, user, map[string]interface{}{
+		models.ColumnUserMobile: request.MobileNumber,
+	})
+	if err != nil {
+		logger.GetLogger().Error(err.Error())
 		return nil, err
 	}
 
-	if usr, er := s.userRepo.GetUserFromMobile(ctx, user.MobileNumber); er != nil {
-		return nil, er
-	} else if usr != nil {
+	user.Role = "admin"
+	err = s.baseRepo.Update(ctx, user)
+	if err != nil {
+		logger.GetLogger().Error(err.Error())
+		return nil, err
+	}
+
+	return &dtos.LoginSuccessResponse{MobileNumber: request.MobileNumber}, nil
+}
+
+func (s *RegistrationService) RegisterUser(ctx *gin.Context, request dtos.RegisterUserRequest) (*dtos.LoginSuccessResponse, error) {
+	log.Println("Received register user request for user ", request)
+	if err := s.otpService.VerifyOtp(ctx, request.MobileNumber, request.Otp); err != nil {
+		return nil, err
+	}
+
+	// get User
+	var user models.User
+	err := s.baseRepo.Find(ctx, &user, map[string]interface{}{
+		models.ColumnUserMobile: request.MobileNumber,
+	})
+
+	if err != nil && !errors.Is(err, gormLogger.ErrRecordNotFound) {
+		logger.GetLogger().Error(err.Error())
+		return nil, err
+	}
+
+	if user.ID != 0 {
+		logger.GetLogger().Error("user already exists")
 		return nil, errors.New("user already exists")
 	}
 
-	usrObj := &models.User{ID: uuid.New().String(), Mobile: user.MobileNumber, Hashed_password: s.cryp.HashString(user.Password)}
-	if er := s.userRepo.UpdateUser(ctx, usrObj); er != nil {
-		return nil, er
+	user = models.User{
+		Mobile:          request.MobileNumber,
+		Hashed_password: s.cryp.HashString(request.Password),
+	}
+	if err = s.baseRepo.Create(ctx, &user); err != nil {
+		logger.GetLogger().Error(err.Error())
+		return nil, err
 	}
 
 	// Add default subscriptions to user
 	ctx.Set(constants.JwtTokenRole, "admin")
-	ctx.Set(constants.JwtTokenUserID, "system")
+	ctx.Set(constants.JwtTokenUserID, int64(-1))
 	ctx.Set(constants.JwtTokenMobile, "1234567890")
-	err := s.sub.AddDefaultSubscriptionToUser(ctx, &dtos.UserDefaultSubscriptionRequest{UserMobile: user.MobileNumber})
+	err = s.sub.AddDefaultSubscriptionToUser(ctx, &dtos.UserDefaultSubscriptionRequest{UserMobile: request.MobileNumber})
 	if err != nil {
 		return nil, err
 	}
 
-	token, err := jwt.CreateToken(usrObj.ID, usrObj.Mobile, usrObj.Role)
+	token, err := jwt.CreateToken(user.ID, user.Mobile, user.Role)
 	if err != nil {
 		return nil, err
 	}
 
-	return &dtos.LoginSuccessResponse{MobileNumber: user.MobileNumber, LoginToken: token}, nil
+	return &dtos.LoginSuccessResponse{MobileNumber: request.MobileNumber, LoginToken: token}, nil
 }
 
-func (s *RegistrationService) LoginUser(ctx *gin.Context, user dtos.RegisterUserRequest) (*dtos.LoginSuccessResponse, error) {
-	mobile := user.MobileNumber
-	password := user.Password
+func (s *RegistrationService) LoginUser(ctx *gin.Context, request dtos.RegisterUserRequest) (*dtos.LoginSuccessResponse, error) {
 
-	usr, err := s.userRepo.GetUserFromMobile(ctx, mobile)
+	// get User
+	var user models.User
+	err := s.baseRepo.Find(ctx, &user, map[string]interface{}{
+		models.ColumnUserMobile: request.MobileNumber,
+	})
 	if err != nil {
-		fmt.Println(err)
+		logger.GetLogger().Error(err.Error())
 		return nil, err
-	} else {
-		if s.cryp.HashString(password) == usr.Hashed_password {
-			token, err := jwt.CreateToken(usr.ID, usr.Mobile, usr.Role)
-			if err != nil {
-				return nil, err
-			}
+	}
 
-			return &dtos.LoginSuccessResponse{MobileNumber: usr.Mobile, LoginToken: token}, nil
-		} else {
-			return nil, errors.New("password did not match")
+	if s.cryp.HashString(request.Password) == user.Hashed_password {
+		token, err := jwt.CreateToken(user.ID, user.Mobile, user.Role)
+		if err != nil {
+			return nil, err
 		}
+
+		return &dtos.LoginSuccessResponse{MobileNumber: user.Mobile, LoginToken: token}, nil
+	} else {
+		return nil, errors.New("password did not match")
 	}
+
 }
 
-func (s *RegistrationService) GetUser(ctx context.Context, mobile string) (*models.User, error) {
+func (s *RegistrationService) GetUser(ctx *gin.Context, mobile string) (*models.User, error) {
 
-	usr, err := s.userRepo.GetUserFromMobile(ctx, mobile)
+	// get User
+	var user models.User
+	err := s.baseRepo.Find(ctx, &user, map[string]interface{}{
+		models.ColumnUserMobile: mobile,
+	})
 	if err != nil {
-		fmt.Println(err)
+		logger.GetLogger().Error(err.Error())
 		return nil, err
 	}
-	return usr, nil
+
+	return &user, nil
 }

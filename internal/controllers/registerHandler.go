@@ -1,8 +1,9 @@
 package controllers
 
 import (
-	"github.com/fastbiztech/hastinapura/internal/services/register"
 	"net/http"
+
+	"github.com/fastbiztech/hastinapura/internal/services/register"
 
 	"github.com/fastbiztech/hastinapura/internal/pkg/jwt"
 	"github.com/fastbiztech/hastinapura/pkg/dtos"
@@ -32,8 +33,7 @@ func HandleRegisterUser(ctx *gin.Context) {
 		return
 	}
 
-	var reg *register.RegistrationService = register.GetRegistrationService()
-	registerResp, err := reg.RegisterUser(ctx, user)
+	registerResp, err := register.GetRegistrationService().RegisterUser(ctx, user)
 	if nil != err {
 		ctx.String(http.StatusInternalServerError, err.Error())
 		return

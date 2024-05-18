@@ -10,12 +10,18 @@ import (
 	"github.com/spf13/viper"
 )
 
+const (
+	// MysqlConnectionDSNFormat : DSN for connecting mysql
+	MysqlConnectionDSNFormat = "%s:%s@%s(%s:%d)/%s?charset=utf8&parseTime=True&loc=Local"
+)
+
 var (
 	config *Config
 	once   sync.Once
 )
 
 type AwsDbConfig struct {
+	Enabled   bool   `mapstructure:"enabled"`
 	EndPoint  string `mapstructure:"endpoint"`
 	KeyID     string `mapstructure:"key_id"`
 	AccessKey string `mapstructure:"access_key"`
@@ -30,7 +36,6 @@ type AwsS3Config struct {
 }
 
 type AwsConfig struct {
-	Db AwsDbConfig `mapstructure:"db"`
 	S3 AwsS3Config `mapstructure:"s3"`
 }
 
@@ -55,6 +60,28 @@ type AppConfig struct {
 	Port string `mapstructure:"port"`
 }
 
+type DbConfig struct {
+	Mysql  MysqlConfig `mapstructure:"mysql"`
+	Dynamo AwsDbConfig `mapstructure:"dynamo"`
+}
+
+type MysqlConfig struct {
+	Enabled  bool   `mapstructure:"enabled"`
+	Dialect  string `mapstructure:"dialect"`
+	Host     string `mapstructure:"host"`
+	Port     int    `mapstructure:"port"`
+	Protocol string `mapstructure:"protocol"`
+	UserName string `mapstructure:"username"`
+	Password string `mapstructure:"password"`
+	Name     string `mapstructure:"name"`
+}
+
+type MutexConfig struct {
+	Host     string `mapstructure:"host"`
+	Port     string `mapstructure:"port"`
+	Password string `mapstructure:"password"`
+}
+
 type BaseCronConfig struct {
 	Enable        bool `mapstructure:"enable"`
 	StartTime     int  `mapstructure:"start_time"`
@@ -69,6 +96,8 @@ type CronsConfig struct {
 
 type Config struct {
 	App   AppConfig   `mapstructure:"app"`
+	Db    DbConfig    `mapstructure:"db"`
+	Mutex MutexConfig `mapstructure:"mutex"`
 	Aws   AwsConfig   `mapstructure:"aws"`
 	Api   ApiConfig   `mapstructure:"api"`
 	Crons CronsConfig `mapstructure:"crons"`
@@ -109,4 +138,23 @@ func LoadConfig() {
 
 func GetConfig() *Config {
 	return config
+}
+
+func (c DbConfig) URL() string {
+	// charset=utf8: uses utf8 character set data format
+	// parseTime=true: changes the output type of DATE and DATETIME values to time.Time instead of []byte / strings
+	// loc=Local: Sets the location for time.Time values (when using parseTime=true). "Local" sets the system's location
+	switch c.Mysql.Dialect {
+	case "mysql":
+		return fmt.Sprintf(
+			MysqlConnectionDSNFormat,
+			c.Mysql.UserName,
+			c.Mysql.Password,
+			c.Mysql.Protocol,
+			c.Mysql.Host,
+			c.Mysql.Port,
+			c.Mysql.Name)
+	default:
+		return ""
+	}
 }

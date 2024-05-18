@@ -1,34 +1,77 @@
 package models
 
 const (
-	TableUser       = "User"
-	TablePromoPhone = "PromoPhonesNo"
-	TableOtp        = "Otp"
+	TableUser       = "user"
+	TablePromoPhone = "promo_phones"
+	TableOtp        = "otp"
 )
 
 const (
-	ColumnMobile             = "Mobile"
-	ColumnIsAlreadyContacted = "IsAlreadyContacted"
+	ColumnOtpMobile          = "Mobile"
+	ColumnIsAlreadyContacted = "is_already_contacted"
+
+	ColumnUserMobile = "mobile"
+
+	ColumnPromoPhoneMobile = "mobile"
 )
 
-type User struct { //user in dynamoDB
-	ID              string `json:"id"`
+type User struct {
+	ID              int64  `json:"id"`
 	Mobile          string `json:"mobile"`
 	Hashed_password string `json:"hashed_password"`
 	Name            string `json:"name"`
 	Role            string `json:"role"`
+	BaseModel
 }
 
-type PromoPhone struct { //promo-phones-no table in dynamoDB
+type PromoPhone struct {
+	ID                 int64  `json:"id"`
 	Mobile             string `json:"mobile"`
-	Timestamp          string `json:"timestamp"`
-	IsAlreadyContacted string `json:"isAlreadyContacted"`
-	Comment            string
+	IsAlreadyContacted string `json:"is_already_contacted"`
+	Comment            string `json:"comment"`
+	BaseModel
 }
 
-type Otp struct { // otp table in dynamoDB
-	Id     string `json:"id"`
+type Otp struct {
+	ID     int64  `json:"id"`
 	Mobile string `json:"mobile"`
 	Otp    string `json:"otp"`
 	Exp    int64  `json:"exp"`
+	BaseModel
+}
+
+func (o *Otp) TableName() string {
+	return TableOtp
+}
+
+func (o *Otp) GetID() int64 {
+	return o.ID
+}
+
+func (o *Otp) SetID(id int64) {
+	o.ID = id
+}
+
+func (o *User) TableName() string {
+	return TableUser
+}
+
+func (o *User) GetID() int64 {
+	return o.ID
+}
+
+func (o *User) SetID(id int64) {
+	o.ID = id
+}
+
+func (o *PromoPhone) TableName() string {
+	return TablePromoPhone
+}
+
+func (o *PromoPhone) GetID() int64 {
+	return o.ID
+}
+
+func (o *PromoPhone) SetID(id int64) {
+	o.ID = id
 }

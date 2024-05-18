@@ -1,104 +1,27 @@
 package repo
 
 import (
-	"errors"
-	"fmt"
-	"log"
-
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"github.com/fastbiztech/hastinapura/internal/models"
-	"github.com/fastbiztech/hastinapura/pkg/dtos"
-	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
-var creditsRepo *CreditsRepo
-
-type CreditsRepo struct {
-	Repository
+type ICreditsRepo interface {
 }
 
-func newCreditsRepo(client *dynamodb.Client) {
-	creditsRepo = &CreditsRepo{Repository: Repository{dbClient: client}}
+var creditsRepo ICreditsRepo
+
+type MysqlCreditsRepo struct {
+	IRepository
 }
 
-func GetCreditsRepo() *CreditsRepo {
+func newCreditsRepo(mysqlDB *gorm.DB, dynamoDB *dynamodb.Client) {
+	creditsRepo = &MysqlCreditsRepo{
+		IRepository: &MysqlRepository{
+			db: mysqlDB,
+		},
+	}
+}
+
+func GetCreditsRepo() ICreditsRepo {
 	return creditsRepo
-}
-
-// TODO: use transaction
-func (c *CreditsRepo) CreateUserCredit(ctx *gin.Context, credit *models.Credits) error {
-	item, _ := attributevalue.MarshalMap(credit)
-	params := &dynamodb.PutItemInput{
-		TableName: aws.String(models.TableCredits),
-		Item:      item,
-	}
-
-	_, er := c.dbClient.PutItem(ctx, params)
-
-	return er
-}
-
-// TODO: use transaction
-func (c *CreditsRepo) FetchCreditByUserID(ctx *gin.Context, userID string) (*models.Credits, error) {
-	queryInput := dtos.DbQueryInputConditions{
-		Index: models.IndexTableCreditsIndexUserID,
-		PKey: map[string]interface{}{
-			models.ColumnCreditsUserID: userID,
-		},
-	}
-
-	creditItems, err := c.QueryItems(ctx, models.TableCredits, queryInput)
-	if err != nil {
-		log.Printf("error fetching column item: %v\n", err)
-		return nil, err
-	}
-
-	if len(creditItems) == 0 {
-		return nil, errors.New(ErrCodeNoDataFound)
-	}
-
-	if len(creditItems) != 1 {
-		log.Println("something wrong with credits entries")
-		return nil, errors.New("something wrong with credits entries")
-	}
-
-	creditsEntity := models.Credits{}
-	if err := attributevalue.UnmarshalMap(creditItems[0], &creditsEntity); err != nil {
-		log.Println(err)
-		return nil, err
-	}
-
-	return &creditsEntity, nil
-}
-
-// TODO: use transaction
-func (c *CreditsRepo) UpdateCreditsLeftByID(ctx *gin.Context, id string, creditsLeft float64) (*models.Credits, error) {
-	queryInput := dtos.DbUpdateQueryConditions{
-		Key: map[string]types.AttributeValue{
-			models.ColumnCreditsID: &types.AttributeValueMemberS{Value: id},
-		},
-		ToUpdate: map[string]types.AttributeValue{
-			models.ColumnCreditsCreditsLeft: &types.AttributeValueMemberN{
-				Value: fmt.Sprintf("%f", creditsLeft),
-			},
-		},
-	}
-
-	// Insert item into the database
-	updateItem, err := c.UpdateItem(ctx, models.TableCredits, queryInput)
-	if err != nil {
-		log.Printf("error inserting item: %v\n", err)
-		return nil, err
-	}
-
-	creditsEntity := models.Credits{}
-	if err := attributevalue.UnmarshalMap(updateItem.Attributes, &creditsEntity); err != nil {
-		log.Println(err)
-		return nil, err
-	}
-
-	return &creditsEntity, nil
 }

@@ -15,7 +15,7 @@ import (
 
 var secretKey = []byte("my-jwt-secret-key")
 
-func CreateToken(id string, mobile string, role string) (string, error) {
+func CreateToken(id int64, mobile string, role string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
 			constants.JwtTokenUserID: id,
@@ -73,12 +73,12 @@ func RefreshToken(ctx *gin.Context) (*dtos.LoginSuccessResponse, error) {
 	currTime := time.Now().Unix()
 	mobile := claims[constants.JwtTokenMobile].(string)
 	role := claims[constants.JwtTokenRole].(string)
-	id := claims[constants.JwtTokenUserID].(string)
+	id := claims[constants.JwtTokenUserID].(float64)
 	if int64(exp) < currTime {
 		return nil, errors.New("TOKEN_EXPIRED")
 	}
-	if int64(exp)-currTime < 7200 {
-		tkn, err := CreateToken(id, mobile, role)
+	if int64(exp)-currTime <= 7200 { // you can refresh token only when 2hr is left to existing one expiry.
+		tkn, err := CreateToken(int64(id), mobile, role)
 		if err != nil {
 			return nil, errors.Join(err, errors.New("internal server error"))
 		}

@@ -2,7 +2,6 @@ package subscription
 
 import (
 	"errors"
-	"log"
 	"sort"
 	"time"
 
@@ -10,69 +9,77 @@ import (
 	"github.com/fastbiztech/hastinapura/internal/models"
 	"github.com/fastbiztech/hastinapura/pkg/dtos"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
+	gormLogger "gorm.io/gorm/logger"
 )
 
 func (s *SubscriptionService) AddCreditToUser(ctx *gin.Context, subRequest *dtos.AddCreditsRequest) error {
-	user, err := s.userRepo.GetUserFromMobile(ctx, subRequest.UserMobile)
+	var user models.User
+	err := s.baseRepo.Find(ctx, &user, map[string]interface{}{
+		models.ColumnUserMobile: subRequest.UserMobile,
+	})
 	if err != nil {
 		return err
 	}
 
-	subscriptions, err := s.subRepo.FetchAllSubscriptionByStatus(ctx, user.ID, "INACTIVE")
+	var subscriptions []models.Subscription
+	err = s.baseRepo.FindMultiple(ctx, &subscriptions, map[string]interface{}{
+		constants.UserID: user.ID,
+		constants.Status: "INACTIVE",
+	})
 	if err != nil {
 		return err
 	}
 
 	var userSubsDto []models.Subscription
-	if nil != subscriptions {
+	if nil != subscriptions && len(subscriptions) > 0 {
 		for _, sub := range subscriptions {
 			sub.Status = "ACTIVE"
 			userSubsDto = append(userSubsDto, sub)
 		}
-		err = s.subRepo.BatchCreateUserSubscription(ctx, userSubsDto)
+		err = s.baseRepo.CreateInBatches(ctx, userSubsDto, len(userSubsDto))
 		if err != nil {
 			return err
 		}
 	}
 
-	credit, err := s.creditRepo.FetchCreditByUserID(ctx, user.ID)
-	if err != nil {
+	credit := &models.Credits{}
+	er := s.baseRepo.Find(ctx, credit, map[string]interface{}{
+		constants.UserID: user.ID,
+	})
+	if er != nil && !errors.Is(er, gormLogger.ErrRecordNotFound) {
 		return err
 	}
 
-	log.Println("credit added", subRequest)
-
-	if credit == nil {
-		credit = &models.Credits{
-			ID:          uuid.New().String(),
-			UserID:      user.ID,
-			Credits:     subRequest.InitialCredit,
-			CreditsLeft: subRequest.InitialCredit,
-		}
-	} else {
-		credit.Credits = credit.Credits + subRequest.InitialCredit
-		credit.CreditsLeft = credit.CreditsLeft + subRequest.InitialCredit
-	}
-
-	if err = s.creditAuditRepo.CreateUserCreditAudit(ctx, &models.CreditAudits{
-		Id:             uuid.New().String(),
+	// Do credit audit
+	if err = s.baseRepo.Create(ctx, &models.CreditAudits{
 		DeductedAmount: 0,
 		AddedAmount:    subRequest.InitialCredit,
 		CreditId:       credit.ID,
-		UserId:         credit.UserID,
+		UserId:         credit.UserId,
 		PaymentOrderId: subRequest.PaymentOrderId,
 		BaseModel:      models.BaseModel{UpdatedAt: time.Now().Unix()},
 	}); err != nil {
 		return err
 	}
 
-	return s.creditRepo.CreateUserCredit(ctx, credit)
+	if errors.Is(er, gormLogger.ErrRecordNotFound) { // if not found then create
+		credit = &models.Credits{
+			UserId:      user.ID,
+			Balance:     subRequest.InitialCredit,
+			BalanceLeft: subRequest.InitialCredit,
+		}
+		return s.baseRepo.Create(ctx, credit)
+	} else {
+		credit.Balance = credit.Balance + subRequest.InitialCredit
+		credit.BalanceLeft = credit.BalanceLeft + subRequest.InitialCredit
+		return s.baseRepo.Update(ctx, credit)
+	}
+
 }
 
 func (s *SubscriptionService) FetchCredit(ctx *gin.Context) (*dtos.CreditsResponse, error) {
-	userId, exists := ctx.Get(constants.JwtTokenUserID)
-	if !exists { // create another version of this with payment validation with transaction ID
+	userId := ctx.GetInt64(constants.JwtTokenUserID)
+	if 0 == userId { // create another version of this with payment validation with transaction ID
 		return nil, errors.New("internal server error, user id not found")
 	}
 	mobile, exists := ctx.Get(constants.JwtTokenMobile)
@@ -80,7 +87,10 @@ func (s *SubscriptionService) FetchCredit(ctx *gin.Context) (*dtos.CreditsRespon
 		return nil, errors.New("internal server error, user mobile not found")
 	}
 
-	credit, err := s.creditRepo.FetchCreditByUserID(ctx, userId.(string))
+	var credit models.Credits
+	err := s.baseRepo.Find(ctx, &credit, map[string]interface{}{
+		constants.UserID: userId,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -88,8 +98,8 @@ func (s *SubscriptionService) FetchCredit(ctx *gin.Context) (*dtos.CreditsRespon
 	creditResp := &dtos.CreditsResponse{
 		Id:              credit.ID,
 		UserMobile:      mobile.(string),
-		InitialCredit:   credit.Credits,
-		RemainingCredit: credit.CreditsLeft,
+		InitialCredit:   credit.Balance,
+		RemainingCredit: credit.BalanceLeft,
 		CreatedAt:       credit.CreatedAt,
 	}
 
@@ -98,7 +108,10 @@ func (s *SubscriptionService) FetchCredit(ctx *gin.Context) (*dtos.CreditsRespon
 
 func (s *SubscriptionService) ChargeUser(ctx *gin.Context, userId string, category string, subCategory string, unitCount float64) error {
 	// get subscription (recent one for typ,subtype,userId)
-	usersSubscription, er := s.subRepo.FetchAllSubscriptionByStatus(ctx, userId, "ACTIVE")
+	var usersSubscription []models.Subscription
+	er := s.baseRepo.FindMultiple(ctx, &usersSubscription, map[string]interface{}{
+		constants.Status: "ACTIVE",
+	})
 	if er != nil {
 		return er
 	}
@@ -116,42 +129,43 @@ func (s *SubscriptionService) ChargeUser(ctx *gin.Context, userId string, catego
 	pricingId := currentActiveSub.PricingId
 
 	// get pricing from subscription
-	pricing, err := s.pricingRepo.GetPricingByPricingID(ctx, pricingId)
+	var pricing models.Pricing
+	err := s.baseRepo.FindByID(ctx, pricingId, &pricing)
 	if err != nil {
 		return er
 	}
 
 	// fetch credit for user_id
-	credit, err := s.creditRepo.FetchCreditByUserID(ctx, userId)
+	var credit models.Credits
+	err = s.baseRepo.Find(ctx, &credit, map[string]interface{}{
+		constants.UserID: userId,
+	})
 	if err != nil {
 		return err
 	}
-	if credit == nil {
-		return errors.New("credit not found")
-	}
 
 	totalUsedCredit := pricing.Rates * unitCount
-	remainingCredit := credit.CreditsLeft
+	remainingCredit := credit.BalanceLeft
 
 	// check and update credit of user
 	if remainingCredit < totalUsedCredit {
 		return errors.New("CREDIT_EXHAUSTED")
 	}
 
-	credit.CreditsLeft = credit.CreditsLeft - totalUsedCredit
+	credit.BalanceLeft = credit.BalanceLeft - totalUsedCredit
 
-	if err = s.creditAuditRepo.CreateUserCreditAudit(ctx, &models.CreditAudits{
-		Id:             uuid.New().String(),
+	if err = s.baseRepo.Create(ctx, &models.CreditAudits{
 		Category:       category,
 		SubCategory:    subCategory,
 		DeductedAmount: totalUsedCredit,
 		AddedAmount:    0,
 		CreditId:       credit.ID,
-		UserId:         credit.UserID,
+		UserId:         credit.UserId,
 		BaseModel:      models.BaseModel{UpdatedAt: time.Now().Unix()},
 	}); err != nil {
 		return err
 	}
 
-	return s.creditRepo.CreateUserCredit(ctx, credit)
+	//todo: why are we creating it again?
+	return s.baseRepo.Create(ctx, &credit)
 }
