@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
+	"github.com/fastbiztech/hastinapura/internal/constants"
 	"github.com/fastbiztech/hastinapura/internal/services/payments"
 	"github.com/fastbiztech/hastinapura/pkg/dtos"
 	"github.com/fastbiztech/hastinapura/pkg/logger"
@@ -16,6 +17,12 @@ func HandlePaymentCreateOrder(ctx *gin.Context) {
 	var orderReq dtos.PaymentOrderRequest
 	if err := ctx.ShouldBindJSON(&orderReq); err != nil {
 		ctx.String(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	kycDone := ctx.GetString(constants.JwtUserKyc)
+	if kycDone == "false" {
+		ctx.String(http.StatusForbidden, errors.New(constants.KycError).Error())
 		return
 	}
 

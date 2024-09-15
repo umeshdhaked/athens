@@ -76,6 +76,7 @@ func InitialiseRepositories() {
 		newSubscriptionRepo(mysqlDBClient, nil)
 		newSubscriptionRepo(mysqlDBClient, nil)
 		newUserRepo(mysqlDBClient, nil)
+		newKycRepo(mysqlDBClient, nil)
 		newPaymentsRepo(mysqlDBClient, nil)
 		newInvoiceRepo(mysqlDBClient, nil)
 	})

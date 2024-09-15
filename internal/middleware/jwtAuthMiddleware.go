@@ -50,6 +50,8 @@ func JwtAuthMiddleware() gin.HandlerFunc {
 		ctx.Set(constants.JwtTokenMobile, userName)
 		ctx.Set(constants.JwtTokenUserID, int64(id))
 		ctx.Set(constants.JwtTokenRole, role)
+		ctx.Set(constants.JwtUserKyc, usr.KycDone)
+		ctx.Set(constants.JwtUserName, usr.Name)
 		ctx.Next()
 	}
 

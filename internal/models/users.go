@@ -21,6 +21,7 @@ type User struct {
 	Hashed_password string `json:"hashed_password"`
 	Name            string `json:"name"`
 	Role            string `json:"role"`
+	KycDone         string `json:"kyc_done"`
 	BaseModel
 }
 

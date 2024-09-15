@@ -87,6 +87,9 @@ func (s *RegistrationService) RegisterUser(ctx *gin.Context, request dtos.Regist
 	if err := s.otpService.VerifyOtp(ctx, request.MobileNumber, request.Otp); err != nil {
 		return nil, err
 	}
+	if request.UserName == "" {
+		return nil, errors.New("username cannot be empty")
+	}
 
 	// get User
 	var user models.User
@@ -105,8 +108,10 @@ func (s *RegistrationService) RegisterUser(ctx *gin.Context, request dtos.Regist
 	}
 
 	user = models.User{
+		Name:            request.UserName,
 		Mobile:          request.MobileNumber,
 		Hashed_password: s.cryp.HashString(request.Password),
+		KycDone:         "false",
 	}
 	if err = s.baseRepo.Create(ctx, &user); err != nil {
 		logger.GetLogger().Error(err.Error())

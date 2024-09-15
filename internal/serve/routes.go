@@ -165,4 +165,20 @@ var routeList = [...]route{
 			{http.MethodPost, "/getInvoice", controllers.HandleInvoice},
 		},
 	},
+	{
+		group:      "/v1/kyc",
+		middleware: []gin.HandlerFunc{middleware2.JwtAuthMiddleware()},
+		endpoints: []endpoint{
+			{http.MethodPost, "/uploadKycDoc", controllers.HandleUploadKycDocuments},
+			{http.MethodPost, "/getKycStatus", controllers.HandleGetKycStatus},
+		},
+	},
+	{
+		group:      "/v1/kyc",
+		middleware: []gin.HandlerFunc{middleware2.TokenAuthMiddleware()},
+		endpoints: []endpoint{
+			{http.MethodPost, "/getPendingKycRequests", controllers.HandleGetPendingKycVerifications},
+			{http.MethodPost, "/updateKycStatus", controllers.HandleUpdateKycStatus},
+		},
+	},
 }

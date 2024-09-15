@@ -10,3 +10,6 @@
 1. add logging via logger
 2. push logs
 3. validations in controller
+4. work on KYC flow.
+5. check invoice templating (not priority)
+6. fix payment.PopulateFromMap

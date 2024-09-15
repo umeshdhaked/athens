@@ -11,6 +11,7 @@ import (
 	"github.com/fastbiztech/hastinapura/internal/services/cronProcessing"
 	"github.com/fastbiztech/hastinapura/internal/services/group"
 	"github.com/fastbiztech/hastinapura/internal/services/invoices"
+	"github.com/fastbiztech/hastinapura/internal/services/kyc"
 	otcSvc "github.com/fastbiztech/hastinapura/internal/services/otp"
 	"github.com/fastbiztech/hastinapura/internal/services/payments"
 	"github.com/fastbiztech/hastinapura/internal/services/pendingJobs"
@@ -50,6 +51,7 @@ func initServices() {
 	crypto.NewCrypto()
 
 	otp.NewOtpSender()
+	kyc.NewKycService()
 	otcSvc.NewOtpService(otp.GetOtpSender(), crypto.GetCrypto())
 	promo.NewPromoService(repo.GetPromotionRepo())
 	subscription.NewSubscriptionService(repo.GetPricingRepo(), repo.GetSubscriptionRepo(), repo.GetUserRepo(), repo.GetCreditsRepo(), repo.GetCreditsAuditRepo())

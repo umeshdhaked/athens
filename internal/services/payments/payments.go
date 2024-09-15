@@ -53,7 +53,6 @@ func (r *PaymentService) CreateOrder(ctx *gin.Context, orderReq *dtos.PaymentOrd
 	if err != nil {
 		return nil, err
 	}
-	//log.Println(body)
 
 	orderId, _ := body["id"]
 	amount, _ := body["amount"]

@@ -18,6 +18,7 @@ const (
 
 	// Specify the bucket name
 	BucketContactUpload = "myfirstbucket"
+	BucketKycUpload     = "kycbucket"
 )
 
 type S3Client struct {

@@ -1,6 +1,7 @@
 package dtos
 
 type RegisterUserRequest struct {
+	UserName     string `json:"username"`
 	MobileNumber string `json:"mobile" binding:"required"`
 	Otp          string `json:"otp"`
 	Password     string `json:"password"`
