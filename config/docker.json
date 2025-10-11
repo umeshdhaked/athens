@@ -1,5 +1,27 @@
 {
-  "aws" : {
+  "app": {
+    "port": "8080"
+  },
+  "db": {
+    "mysql": {
+      "enabled": false,
+      "dialect": "mysql",
+      "host": "127.0.0.1",
+      "port": 3306,
+      "protocol": "tcp",
+      "username": "root",
+      "password": "1234",
+      "name": "hastinapur"
+    },
+    "dynamo": {
+      "enabled": true,
+      "key_id": "DUMMY",
+      "access_key": "DUMMY",
+      "region": "ap-south-1",
+      "endpoint": "http://dynamodb-local:8000"
+    }
+  },
+  "aws": {
     "s3": {
       "key_id": "DUMMY",
       "access_key": "DUMMY",
@@ -7,11 +29,11 @@
       "endpoint": "http://localstack-main:4566"
     }
   },
-
-  "app": {
-    "port" : "8080"
+  "mutex": {
+    "host": "redis-local",
+    "port": "6379",
+    "password": ""
   },
-
   "api": {
     "sms_header": {
       "base_url": "https://smsheader.trai.gov.in/",
@@ -22,7 +44,7 @@
       "base_url": "https://smsheader.trai.gov.in/",
       "path": "query_header",
       "method": "POST",
-      "auth" : {
+      "auth": {
         "key": "${API_INSTANT_SMS_AUTH_KEY}",
         "secret": ""
       }

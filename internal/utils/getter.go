@@ -9,9 +9,9 @@ import (
 func GetEnv() string {
 	env := os.Getenv(constants.AppEnv)
 
-	if IsEmpty(env) {
-		env = constants.EnvDev
-	}
+	// if IsEmpty(env) {
+	// 	env = constants.EnvDev
+	// }
 
 	return env
 }

@@ -10,6 +10,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsConfig "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/fastbiztech/hastinapura/internal/config"
@@ -96,12 +97,24 @@ func dynamoMigrations() {
 	}
 
 	// Create DynamoDB client
-	cfg, err := awsConfig.LoadDefaultConfig(context.Background(),
+	cfg, err := awsConfig.LoadDefaultConfig(
+		context.Background(),
 		awsConfig.WithRegion(config.GetConfig().Db.Dynamo.Region),
-		awsConfig.WithEndpointResolverWithOptions(aws.EndpointResolverWithOptionsFunc(
-			func(service, region string, options ...interface{}) (aws.Endpoint, error) {
-				return aws.Endpoint{URL: config.GetConfig().Db.Dynamo.EndPoint}, nil
-			})))
+		awsConfig.WithEndpointResolverWithOptions(
+			aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+				return aws.Endpoint{
+					URL: config.GetConfig().Db.Dynamo.EndPoint,
+				}, nil
+			}),
+		),
+		awsConfig.WithCredentialsProvider(
+			credentials.NewStaticCredentialsProvider(
+				config.GetConfig().Db.Dynamo.KeyID,
+				config.GetConfig().Db.Dynamo.AccessKey,
+				"", // session token, if any
+			),
+		),
+	)
 
 	if err != nil {
 		fmt.Println("Error loading AWS config:", err)

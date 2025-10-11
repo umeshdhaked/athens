@@ -1,20 +1,18 @@
 # Hastinapura
 
-# env variable required for local run
+# local run
     Need go 1.22.0 version in your system
-    ```
-    -> export APP_ENV=dev
-    -> export AWS_ACCESS_KEY_ID=DUMMY
-    -> export AWS_SECRET_ACCESS_KEY=DUMMY
-    -> export AWS_REGION=us-west-2
-    ```
-    ``` Run docker-compose file and migration script for initial setup dynamo and localstack setup (comment hastinapur from docker-compose)```
 
+    ``` Run docker-compose file and migration script for initial setup dynamo, redis and localstack setup (comment hastinapur from docker-compose)```
+    ```Run the DB migration script using 'go run cmd/migration/main.go dynamo up' ```
+    ```Run the application using 'go run cmd/main.go' ```
 # local run with docker
     ```
+    Run docker-compose file and migration script for initial setup dynamo, redis and localstack setup (comment hastinapur from docker-compose)
+    Run the DB migration script using 'go run cmd/migration/main.go dynamo up'
     build docker image with "docker build -t hastinapura ."
     go to docker directory "cd docker"
-    run application stack with "docker-compose up -d"
+    run application stack with "docker-compose up -d" (uncomment hastinapur from docker-compose)
     ```
 
 # ec2 deployment guide
