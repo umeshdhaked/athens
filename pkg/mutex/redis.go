@@ -6,12 +6,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/umeshdhaked/athens/internal/config"
-	"github.com/umeshdhaked/athens/pkg/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redsync/redsync/v4"
 	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	"github.com/redis/go-redis/v9"
+	"github.com/umeshdhaked/athens/internal/config"
+	"github.com/umeshdhaked/athens/pkg/logger"
 )
 
 // HandlerFunc defines the interface for handler function

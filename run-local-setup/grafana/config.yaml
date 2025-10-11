@@ -15,4 +15,4 @@ scrape_configs:
       - localhost
     labels:
       job: varlogs
-      __path__: /Users/u0d005p/go/log/*.log
+      __path__: $GOPATH/log/*.log
