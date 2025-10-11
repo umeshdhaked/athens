@@ -20,7 +20,7 @@
 
     "db": {
         "mysql": {
-            "enabled": true,
+            "enabled": false,
             "dialect" : "mysql",
             "host" : "127.0.0.1",
             "port" : 3306,
@@ -30,11 +30,11 @@
             "name" : "hastinapur"
         },
         "dynamo": {
-            "enabled": false,
+            "enabled": true,
             "key_id": "DUMMY",
             "access_key": "DUMMY",
             "region": "ap-south-1",
-            "endpoint": "http://localhost:8000"
+            "endpoint": "http://dynamodb-local:8000"
         }
     },
 

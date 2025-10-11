@@ -1,10 +1,12 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
-	"github.com/fastbiztech/hastinapura/pkg/logger"
 	"strings"
 	"sync"
+
+	"github.com/fastbiztech/hastinapura/pkg/logger"
 
 	"github.com/fastbiztech/hastinapura/internal/utils"
 	"github.com/spf13/viper"
@@ -132,6 +134,11 @@ func LoadConfig() {
 		if err != nil {
 			logger.GetLogger().WithField("error", err).Error("unable to decode into config struct")
 			logger.GetLogger().Panic("failed to load config")
+		}
+
+		configBytes, err := json.MarshalIndent(config, "", "  ")
+		if err == nil {
+			logger.GetLogger().Info(string(configBytes))
 		}
 	})
 }

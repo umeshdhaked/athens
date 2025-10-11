@@ -14,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/fastbiztech/hastinapura/internal/config"
 	"github.com/fastbiztech/hastinapura/internal/utils"
+	"github.com/fastbiztech/hastinapura/pkg/logger"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/mysql"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -28,6 +29,8 @@ type TableSchema struct {
 }
 
 func main() {
+
+	logger.Build()
 
 	// Check if the number of command-line arguments is as expected
 	if len(os.Args) < 3 {
