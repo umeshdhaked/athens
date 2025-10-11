@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 
-	"github.com/fastbiztech/hastinapura/internal/models"
-	"github.com/fastbiztech/hastinapura/internal/utils"
-	"github.com/fastbiztech/hastinapura/pkg/dtos"
-	"github.com/fastbiztech/hastinapura/pkg/logger"
+	"github.com/umeshdhaked/athens/internal/models"
+	"github.com/umeshdhaked/athens/internal/utils"
+	"github.com/umeshdhaked/athens/pkg/dtos"
+	"github.com/umeshdhaked/athens/pkg/logger"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )

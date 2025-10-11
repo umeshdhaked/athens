@@ -1,5 +1,27 @@
 {
-    "aws" : {
+    "app": {
+        "port": "8080"
+    },
+    "db": {
+        "mysql": {
+            "enabled": false,
+            "dialect": "mysql",
+            "host": "127.0.0.1",
+            "port": 3306,
+            "protocol": "tcp",
+            "username": "root",
+            "password": "1234",
+            "name": "athens"
+        },
+        "dynamo": {
+            "enabled": true,
+            "key_id": "DUMMY",
+            "access_key": "DUMMY",
+            "region": "ap-south-1",
+            "endpoint": "http://localhost:8000"
+        }
+    },
+    "aws": {
         "s3": {
             "key_id": "DUMMY",
             "access_key": "DUMMY",
@@ -7,37 +29,11 @@
             "endpoint": "http://localhost:4566"
         }
     },
-
-    "app": {
-        "port" : "8080"
-    },
-
-    "mutex" : {
+    "mutex": {
         "host": "localhost",
         "port": "6379",
         "password": ""
     },
-
-    "db": {
-        "mysql": {
-            "enabled": true,
-            "dialect" : "mysql",
-            "host" : "127.0.0.1",
-            "port" : 3306,
-            "protocol" : "tcp",
-            "username" : "root",
-            "password" : "1234",
-            "name" : "hastinapur"
-        },
-        "dynamo": {
-            "enabled": false,
-            "key_id": "DUMMY",
-            "access_key": "DUMMY",
-            "region": "ap-south-1",
-            "endpoint": "http://localhost:8000"
-        }
-    },
-
     "api": {
         "sms_header": {
             "base_url": "https://smsheader.trai.gov.in/",
@@ -48,7 +44,7 @@
             "base_url": "https://smsheader.trai.gov.in/",
             "path": "query_header",
             "method": "POST",
-            "auth" : {
+            "auth": {
                 "key": "${API_INSTANT_SMS_AUTH_KEY}",
                 "secret": ""
             }
@@ -56,14 +52,14 @@
     },
     "crons": {
         "s3_contacts": {
-            "enable"              : true,
-            "start_time"          : 60,
-            "execution_time"      : 100
+            "enable": true,
+            "start_time": 60,
+            "execution_time": 100
         },
         "campaign": {
-            "enable"              : true,
-            "start_time"          : 60,
-            "execution_time"      : 100
+            "enable": true,
+            "start_time": 60,
+            "execution_time": 100
         }
     }
 }

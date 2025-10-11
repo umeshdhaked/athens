@@ -8,7 +8,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"github.com/fastbiztech/hastinapura/internal/constants"
+	"github.com/umeshdhaked/athens/internal/constants"
 )
 
 // IsEmpty will check for given data is empty as per the go documentation

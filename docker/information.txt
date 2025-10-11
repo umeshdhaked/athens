@@ -2,7 +2,7 @@ run app with
 ./main >> $GOPATH/log/log.log
 
 local grafana setup run POC, to publish logs.
-docker run --name promtail --volume "$PWD/promtail:/etc/promtail" --volume "$GOPATH/log:$GOPATH/log" grafana/promtail:main -config.file=$GOPATH/src/github.com/FastBizTech/hastinapura/docker/grafana/config.yaml
+docker run --name promtail --volume "$PWD/promtail:/etc/promtail" --volume "$GOPATH/log:$GOPATH/log" grafana/promtail:main -config.file=$GOPATH/src/github.com/umeshdhaked/athens/docker/grafana/config.yaml
 
 
 grafana logging url:

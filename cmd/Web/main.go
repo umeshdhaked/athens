@@ -1,17 +1,17 @@
 package main
 
 import (
-	"github.com/fastbiztech/hastinapura/internal"
-	"github.com/fastbiztech/hastinapura/internal/config"
-	"github.com/fastbiztech/hastinapura/internal/serve"
-	"github.com/fastbiztech/hastinapura/pkg/logger"
+	"github.com/umeshdhaked/athens/internal"
+	"github.com/umeshdhaked/athens/internal/config"
+	"github.com/umeshdhaked/athens/internal/serve"
+	"github.com/umeshdhaked/athens/pkg/logger"
 )
 
 func main() {
 	// logger initialisation
 	logger.Build()
 
-	logger.GetLogger().Info("welcome to Hastinapur")
+	logger.GetLogger().Info("welcome to athens")
 
 	config.LoadConfig()
 

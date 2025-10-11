@@ -3,9 +3,9 @@ package serve
 import (
 	"net/http"
 
-	middleware2 "github.com/fastbiztech/hastinapura/internal/middleware"
+	middleware2 "github.com/umeshdhaked/athens/internal/middleware"
 
-	"github.com/fastbiztech/hastinapura/internal/controllers"
+	"github.com/umeshdhaked/athens/internal/controllers"
 	"github.com/gin-gonic/gin"
 )
 

@@ -3,11 +3,11 @@ package jwt
 import (
 	"errors"
 	"fmt"
-	"github.com/fastbiztech/hastinapura/pkg/logger"
+	"github.com/umeshdhaked/athens/pkg/logger"
 	"time"
 
-	"github.com/fastbiztech/hastinapura/internal/constants"
-	"github.com/fastbiztech/hastinapura/pkg/dtos"
+	"github.com/umeshdhaked/athens/internal/constants"
+	"github.com/umeshdhaked/athens/pkg/dtos"
 	"github.com/gin-gonic/gin"
 
 	"github.com/golang-jwt/jwt"

@@ -3,8 +3,8 @@ package controllers
 import (
 	"net/http"
 
-	"github.com/fastbiztech/hastinapura/internal/services/group"
-	"github.com/fastbiztech/hastinapura/pkg/dtos"
+	"github.com/umeshdhaked/athens/internal/services/group"
+	"github.com/umeshdhaked/athens/pkg/dtos"
 	"github.com/gin-gonic/gin"
 )
 

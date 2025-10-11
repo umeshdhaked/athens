@@ -3,7 +3,7 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/fastbiztech/hastinapura/internal/constants"
+	"github.com/umeshdhaked/athens/internal/constants"
 	"github.com/gin-gonic/gin"
 )
 

@@ -2,15 +2,15 @@ package otp
 
 import (
 	"errors"
-	"github.com/fastbiztech/hastinapura/pkg/logger"
+	"github.com/umeshdhaked/athens/pkg/logger"
 	"gorm.io/gorm"
 	"sync"
 	"time"
 
-	"github.com/fastbiztech/hastinapura/internal/models"
-	"github.com/fastbiztech/hastinapura/internal/pkg/crypto"
-	"github.com/fastbiztech/hastinapura/internal/pkg/otp"
-	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
+	"github.com/umeshdhaked/athens/internal/models"
+	"github.com/umeshdhaked/athens/internal/pkg/crypto"
+	"github.com/umeshdhaked/athens/internal/pkg/otp"
+	"github.com/umeshdhaked/athens/internal/pkg/repo"
 	"github.com/gin-gonic/gin"
 )
 

@@ -3,8 +3,8 @@ package controllers
 import (
 	"net/http"
 
-	"github.com/fastbiztech/hastinapura/internal/services/invoices"
-	"github.com/fastbiztech/hastinapura/pkg/dtos"
+	"github.com/umeshdhaked/athens/internal/services/invoices"
+	"github.com/umeshdhaked/athens/pkg/dtos"
 	"github.com/gin-gonic/gin"
 )
 

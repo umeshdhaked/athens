@@ -2,14 +2,14 @@ package promo
 
 import (
 	"errors"
-	"github.com/fastbiztech/hastinapura/pkg/logger"
+	"github.com/umeshdhaked/athens/pkg/logger"
 	"gorm.io/gorm"
 	"sync"
 
-	"github.com/fastbiztech/hastinapura/internal/models"
+	"github.com/umeshdhaked/athens/internal/models"
 	"github.com/gin-gonic/gin"
 
-	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
+	"github.com/umeshdhaked/athens/internal/pkg/repo"
 )
 
 var (

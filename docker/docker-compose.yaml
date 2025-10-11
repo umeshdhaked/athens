@@ -22,17 +22,14 @@ services:
       - "./docker/dynamodb:/home/dynamodblocal/data"
     working_dir: /home/dynamodblocal
   hatinapura:
-    container_name: "hastinapura-backend"
-    image: hastinapura
+    container_name: "athens-backend"
+    image: athens
     depends_on:
       - localstack
       - dynamodb-local
     ports:
       - "127.0.0.1:8080:8080"            # LocalStack Gateway
     environment:
-      AWS_ACCESS_KEY_ID: 'DUMMY'
-      AWS_REGION: us-west-2
-      AWS_SECRET_ACCESS_KEY: 'DUMMY'
       APP_ENV: 'docker'
     volumes:
       - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
@@ -46,13 +43,14 @@ services:
     ports:
       - "9080:9080"
     environment:
+      AWS_REGION: ap-south-1
       AWS_ACCESS_KEY_ID: 'DUMMY'
       AWS_SECRET_ACCESS_KEY: 'DUMMY'
     command:
-#      dynamodb describe-limits --endpoint-url http://dynamodb-local:8000 --region us-west-2
-      dynamodb list-tables --endpoint-url http://dynamodb-local:8000 --region us-west-2
-#      dynamodb scan --table-name otp --endpoint-url http://dynamodb-local:8000 --region us-west-2
-#      dynamodb scan --table-name Contacts --endpoint-url http://dynamodb-local:8000 --region us-west-2
+#      dynamodb describe-limits --endpoint-url http://dynamodb-local:8000 --region ap-south-1
+      dynamodb list-tables --endpoint-url http://dynamodb-local:8000 --region ap-south-1
+#      dynamodb scan --table-name otp --endpoint-url http://dynamodb-local:8000 --region ap-south-1
+#      dynamodb scan --table-name Contacts --endpoint-url http://dynamodb-local:8000 --region ap-south-1
 #      s3 mb s3://myfirstbucket --endpoint-url http://localstack-main:4566 --region ap-south-1
 #      s3 ls  --endpoint-url http://localstack-main:4566
 #      s3 ls s3://myfirstbucket  --endpoint-url http://localstack-main:4566

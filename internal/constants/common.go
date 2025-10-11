@@ -10,5 +10,5 @@ const (
 	AppEnv = "APP_ENV"
 
 	// Path
-	BasePath = "%s/src/github.com/fastbiztech/hastinapura"
+	BasePath = "%s/src/github.com/umeshdhaked/athens"
 )
