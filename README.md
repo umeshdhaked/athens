@@ -3,17 +3,15 @@
 # local run
     Need go 1.22.0 version in your system
 
-    ``` Run docker-compose file and migration script for initial setup dynamo, redis and localstack setup (comment athens from docker-compose)```
-    ```Run the DB migration script using 'go run cmd/migration/main.go dynamo up' ```
-    ```Run the application using 'go run cmd/main.go' ```
+    Run docker-compose file and migration script for initial setup dynamo, redis and localstack setup (comment athens from docker-compose)
+    Run the DB migration script using 'go run cmd/migration/main.go dynamo up' 
+    Run the application using 'go run cmd/Web/main.go' 
 # local run with docker
-    ```
     Run docker-compose file and migration script for initial setup dynamo, redis and localstack setup (comment athens from docker-compose)
     Run the DB migration script using 'go run cmd/migration/main.go dynamo up'
     build docker image with "docker build -t athens ."
     go to docker directory "cd docker"
     run application stack with "docker-compose up -d" (uncomment athens from docker-compose)
-    ```
 
 # ec2 deployment guide
     1. ssh to ec2 ssh -i "aws_local_connect.pem" ec2-user@ec2-18-215-149-126.compute-1.amazonaws.com

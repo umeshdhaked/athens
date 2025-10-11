@@ -21,7 +21,7 @@ services:
     volumes:
       - "./docker/dynamodb:/home/dynamodblocal/data"
     working_dir: /home/dynamodblocal
-  hatinapura:
+  athens:
     container_name: "athens-backend"
     image: athens
     depends_on:
