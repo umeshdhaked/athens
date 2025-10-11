@@ -1,10 +1,10 @@
 package controllers
 
 import (
-	"github.com/fastbiztech/hastinapura/internal/services/promo"
+	"github.com/umeshdhaked/athens/internal/services/promo"
 	"net/http"
 
-	"github.com/fastbiztech/hastinapura/pkg/dtos"
+	"github.com/umeshdhaked/athens/pkg/dtos"
 	"github.com/gin-gonic/gin"
 )
 

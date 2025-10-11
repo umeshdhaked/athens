@@ -1,18 +1,18 @@
-# Hastinapura
+# athens
 
 # local run
     Need go 1.22.0 version in your system
 
-    ``` Run docker-compose file and migration script for initial setup dynamo, redis and localstack setup (comment hastinapur from docker-compose)```
+    ``` Run docker-compose file and migration script for initial setup dynamo, redis and localstack setup (comment athens from docker-compose)```
     ```Run the DB migration script using 'go run cmd/migration/main.go dynamo up' ```
     ```Run the application using 'go run cmd/main.go' ```
 # local run with docker
     ```
-    Run docker-compose file and migration script for initial setup dynamo, redis and localstack setup (comment hastinapur from docker-compose)
+    Run docker-compose file and migration script for initial setup dynamo, redis and localstack setup (comment athens from docker-compose)
     Run the DB migration script using 'go run cmd/migration/main.go dynamo up'
-    build docker image with "docker build -t hastinapura ."
+    build docker image with "docker build -t athens ."
     go to docker directory "cd docker"
-    run application stack with "docker-compose up -d" (uncomment hastinapur from docker-compose)
+    run application stack with "docker-compose up -d" (uncomment athens from docker-compose)
     ```
 
 # ec2 deployment guide
@@ -44,8 +44,8 @@
     kill already running application 
     get PID -> netstat -nlp|grep 8080
     kill PID -> kill 3014
-    cd hastinapur/pkg go build ./...
-    cd hastinapur/api go build ./...
+    cd athens/pkg go build ./...
+    cd athens/api go build ./...
     go build cmd/main.go
     ./main
     ```

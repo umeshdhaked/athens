@@ -1,10 +1,10 @@
 package controllers
 
 import (
-	"github.com/fastbiztech/hastinapura/internal/services/subscription"
+	"github.com/umeshdhaked/athens/internal/services/subscription"
 	"net/http"
 
-	"github.com/fastbiztech/hastinapura/pkg/dtos"
+	"github.com/umeshdhaked/athens/pkg/dtos"
 	"github.com/gin-gonic/gin"
 )
 

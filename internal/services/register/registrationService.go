@@ -4,17 +4,17 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/fastbiztech/hastinapura/internal/constants"
-	"github.com/fastbiztech/hastinapura/internal/models"
-	"github.com/fastbiztech/hastinapura/internal/services/otp"
-	"github.com/fastbiztech/hastinapura/internal/services/subscription"
-	"github.com/fastbiztech/hastinapura/pkg/logger"
+	"github.com/umeshdhaked/athens/internal/constants"
+	"github.com/umeshdhaked/athens/internal/models"
+	"github.com/umeshdhaked/athens/internal/services/otp"
+	"github.com/umeshdhaked/athens/internal/services/subscription"
+	"github.com/umeshdhaked/athens/pkg/logger"
 	gormLogger "gorm.io/gorm/logger"
 
-	"github.com/fastbiztech/hastinapura/internal/pkg/crypto"
-	"github.com/fastbiztech/hastinapura/internal/pkg/jwt"
-	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
-	"github.com/fastbiztech/hastinapura/pkg/dtos"
+	"github.com/umeshdhaked/athens/internal/pkg/crypto"
+	"github.com/umeshdhaked/athens/internal/pkg/jwt"
+	"github.com/umeshdhaked/athens/internal/pkg/repo"
+	"github.com/umeshdhaked/athens/pkg/dtos"
 	"github.com/gin-gonic/gin"
 )
 

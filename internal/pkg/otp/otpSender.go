@@ -2,7 +2,7 @@ package otp
 
 import (
 	"crypto/rand"
-	"github.com/fastbiztech/hastinapura/pkg/logger"
+	"github.com/umeshdhaked/athens/pkg/logger"
 	"io"
 	"sync"
 )

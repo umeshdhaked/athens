@@ -1,12 +1,12 @@
 package serve
 
 import (
-	"github.com/fastbiztech/hastinapura/pkg/logger"
+	"github.com/umeshdhaked/athens/pkg/logger"
 	"net/http"
 	"time"
 
-	"github.com/fastbiztech/hastinapura/internal/config"
-	"github.com/fastbiztech/hastinapura/internal/utils"
+	"github.com/umeshdhaked/athens/internal/config"
+	"github.com/umeshdhaked/athens/internal/utils"
 	"github.com/gin-gonic/gin"
 )
 

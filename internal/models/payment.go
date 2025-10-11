@@ -4,7 +4,7 @@ import "time"
 
 const (
 	CurrencyINR       = "INR"
-	PaymentOrgName    = "FastBizTech Solutions"
+	PaymentOrgName    = "umeshdhaked Solutions"
 	TestPaymentKey    = "rzp_test_NmbdVYr5EuOOo5"
 	TestPaymentSecret = "vW4mQzdP5SL0VlSrRNlkLc7Y"
 	TableInvoices     = "Invoice"

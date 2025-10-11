@@ -9,8 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"github.com/fastbiztech/hastinapura/internal/config"
-	"github.com/fastbiztech/hastinapura/pkg/logger"
+	"github.com/umeshdhaked/athens/internal/config"
+	"github.com/umeshdhaked/athens/pkg/logger"
 )
 
 func dynomoDbInit() *dynamodb.Client {

@@ -3,7 +3,7 @@ package utils
 import (
 	"os"
 
-	"github.com/fastbiztech/hastinapura/internal/constants"
+	"github.com/umeshdhaked/athens/internal/constants"
 )
 
 func GetEnv() string {

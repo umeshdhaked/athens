@@ -1,6 +1,6 @@
 package dtos
 
-import "github.com/fastbiztech/hastinapura/internal/models"
+import "github.com/umeshdhaked/athens/internal/models"
 
 type PaymentOrderRequest struct {
 	Amount int64 `json:"amount"`

@@ -6,9 +6,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/fastbiztech/hastinapura/pkg/logger"
+	"github.com/umeshdhaked/athens/pkg/logger"
 
-	"github.com/fastbiztech/hastinapura/internal/utils"
+	"github.com/umeshdhaked/athens/internal/utils"
 	"github.com/spf13/viper"
 )
 

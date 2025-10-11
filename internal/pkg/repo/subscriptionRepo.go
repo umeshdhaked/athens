@@ -2,7 +2,7 @@ package repo
 
 import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/fastbiztech/hastinapura/internal/models"
+	"github.com/umeshdhaked/athens/internal/models"
 	"gorm.io/gorm"
 
 	"github.com/gin-gonic/gin"

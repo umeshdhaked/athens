@@ -1,16 +1,16 @@
 package payments
 
 import (
-	"github.com/fastbiztech/hastinapura/pkg/logger"
+	"github.com/umeshdhaked/athens/pkg/logger"
 	"sync"
 	"time"
 
-	"github.com/fastbiztech/hastinapura/internal/models"
+	"github.com/umeshdhaked/athens/internal/models"
 
-	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
-	"github.com/fastbiztech/hastinapura/internal/pkg/rzp"
-	"github.com/fastbiztech/hastinapura/internal/services/subscription"
-	"github.com/fastbiztech/hastinapura/pkg/dtos"
+	"github.com/umeshdhaked/athens/internal/pkg/repo"
+	"github.com/umeshdhaked/athens/internal/pkg/rzp"
+	"github.com/umeshdhaked/athens/internal/services/subscription"
+	"github.com/umeshdhaked/athens/pkg/dtos"
 	"github.com/gin-gonic/gin"
 )
 

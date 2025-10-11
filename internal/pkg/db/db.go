@@ -4,7 +4,7 @@ import (
 	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/fastbiztech/hastinapura/internal/config"
+	"github.com/umeshdhaked/athens/internal/config"
 	"gorm.io/gorm"
 )
 

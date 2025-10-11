@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"github.com/fastbiztech/hastinapura/internal/services/kyc"
-	"github.com/fastbiztech/hastinapura/pkg/dtos"
+	"github.com/umeshdhaked/athens/internal/services/kyc"
+	"github.com/umeshdhaked/athens/pkg/dtos"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )

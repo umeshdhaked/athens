@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/fastbiztech/hastinapura/internal/config"
-	"github.com/fastbiztech/hastinapura/pkg/logger"
+	"github.com/umeshdhaked/athens/internal/config"
+	"github.com/umeshdhaked/athens/pkg/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redsync/redsync/v4"
 	"github.com/go-redsync/redsync/v4/redis/goredis/v9"

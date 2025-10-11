@@ -1,8 +1,8 @@
 package rzp
 
 import (
-	"github.com/fastbiztech/hastinapura/internal/constants"
-	"github.com/fastbiztech/hastinapura/internal/models"
+	"github.com/umeshdhaked/athens/internal/constants"
+	"github.com/umeshdhaked/athens/internal/models"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/razorpay/razorpay-go"

@@ -3,10 +3,10 @@ package controllers
 import (
 	"net/http"
 
-	"github.com/fastbiztech/hastinapura/internal/services/register"
+	"github.com/umeshdhaked/athens/internal/services/register"
 
-	"github.com/fastbiztech/hastinapura/internal/pkg/jwt"
-	"github.com/fastbiztech/hastinapura/pkg/dtos"
+	"github.com/umeshdhaked/athens/internal/pkg/jwt"
+	"github.com/umeshdhaked/athens/pkg/dtos"
 
 	"github.com/gin-gonic/gin"
 )

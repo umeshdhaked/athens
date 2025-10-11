@@ -1,7 +1,7 @@
 package cron
 
 import (
-	"github.com/fastbiztech/hastinapura/pkg/logger"
+	"github.com/umeshdhaked/athens/pkg/logger"
 	"time"
 
 	"github.com/go-co-op/gocron/v2"

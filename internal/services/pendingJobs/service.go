@@ -1,13 +1,13 @@
 package pendingJobs
 
 import (
-	"github.com/fastbiztech/hastinapura/pkg/logger"
+	"github.com/umeshdhaked/athens/pkg/logger"
 	"sync"
 
-	"github.com/fastbiztech/hastinapura/internal/constants"
-	"github.com/fastbiztech/hastinapura/internal/models"
-	"github.com/fastbiztech/hastinapura/internal/pkg/repo"
-	"github.com/fastbiztech/hastinapura/pkg/dtos"
+	"github.com/umeshdhaked/athens/internal/constants"
+	"github.com/umeshdhaked/athens/internal/models"
+	"github.com/umeshdhaked/athens/internal/pkg/repo"
+	"github.com/umeshdhaked/athens/pkg/dtos"
 	"github.com/gin-gonic/gin"
 )
 

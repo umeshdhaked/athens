@@ -3,8 +3,8 @@ package db
 import (
 	"time"
 
-	"github.com/fastbiztech/hastinapura/internal/config"
-	"github.com/fastbiztech/hastinapura/pkg/logger"
+	"github.com/umeshdhaked/athens/internal/config"
+	"github.com/umeshdhaked/athens/pkg/logger"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )

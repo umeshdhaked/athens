@@ -1,4 +1,4 @@
-module github.com/fastbiztech/hastinapura
+module github.com/umeshdhaked/athens
 
 go 1.22.0
 
