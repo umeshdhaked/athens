@@ -36,11 +36,7 @@ config/dev*
 config/test*
 
 
-/docker/volume/cache/machine.json
-/docker/volume/cache/server.test.pem
-/docker/volume/cache/server.test.pem.crt
-/docker/volume/cache/server.test.pem.key
-/docker/volume/cache/service-catalog-3_3_1_dev-1_34_74.pickle
+/run-local-setup/volume*
 
 /docker/docker/dynamodb/shared-local-instance.db
 /docker/promtail

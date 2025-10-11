@@ -18,7 +18,7 @@
       "key_id": "DUMMY",
       "access_key": "DUMMY",
       "region": "ap-south-1",
-      "endpoint": "http://dynamodb-local:8000"
+      "endpoint": "http://athens-dynamodb:8000"
     }
   },
   "aws": {
@@ -30,7 +30,7 @@
     }
   },
   "mutex": {
-    "host": "redis-local",
+    "host": "athens-redis",
     "port": "6379",
     "password": ""
   },
