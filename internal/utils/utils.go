@@ -54,8 +54,10 @@ func IsEmpty(val interface{}) bool {
 }
 
 func GetFilePath(name string) string {
-	dirPath := fmt.Sprintf(constants.BasePath, os.Getenv("GOPATH"))
-
+	dirPath, err := os.Getwd()
+	if err != nil {
+		dirPath = fmt.Sprintf(constants.BasePath, os.Getenv("GOPATH"))
+	}
 	return fmt.Sprintf("%s/%s", dirPath, name)
 }
 

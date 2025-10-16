@@ -13,12 +13,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"github.com/umeshdhaked/athens/internal/config"
-	"github.com/umeshdhaked/athens/internal/utils"
-	"github.com/umeshdhaked/athens/pkg/logger"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/mysql"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/umeshdhaked/athens/internal/config"
+	"github.com/umeshdhaked/athens/internal/utils"
+	"github.com/umeshdhaked/athens/pkg/logger"
 )
 
 type TableSchema struct {
