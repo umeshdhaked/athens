@@ -36,7 +36,7 @@ config/dev*
 config/test*
 
 
-/run-local-setup/volume*
+/athens-local/volume*
 
 /docker/docker/dynamodb/shared-local-instance.db
 /docker/promtail
